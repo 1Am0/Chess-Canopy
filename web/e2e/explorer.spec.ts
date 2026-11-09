@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { importSampleJson, mockApis, moveRow } from "./helpers";
+import path from "node:path";
+
+const PGN_SAMPLE = path.join(process.cwd(), "tests/fixtures/golden/sample.pgn");
 
 test.beforeEach(async ({ context }) => {
   await mockApis(context);
@@ -11,6 +14,20 @@ test("onboarding -> JSON import shows move table and game count", async ({ page 
   await expect(page.getByRole("region", { name: "Position summary" })).toContainText("2");
   await expect(moveRow(page, "e4")).toBeVisible();
   await expect(moveRow(page, "d4")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Explorer" }).getByText("Starting position")).toBeVisible();
+});
+
+test("PGN import (username Hero) shows move rows in the explorer", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
+  await page.getByRole("tab", { name: "PGN" }).click();
+  await page.getByLabel("Drop a .pgn file here").setInputFiles(PGN_SAMPLE);
+  await page.getByLabel("Your username in these games").fill("Hero");
+  await page.getByRole("button", { name: "Import games" }).click();
+  await expect(page.getByRole("table")).toBeVisible();
+  // Explorer trees are per color: at the start (White to move) only Hero's White game counts.
+  await expect(moveRow(page, "e4")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Position summary" })).toContainText(/\b1\s*game here/);
   await expect(page.getByRole("complementary", { name: "Explorer" }).getByText("Starting position")).toBeVisible();
 });
 

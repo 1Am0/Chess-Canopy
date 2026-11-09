@@ -146,10 +146,10 @@ It writes to `games/lichess/<player>.json`. Options include `--max`, `--rated`, 
 ## Testing
 
 - **Web unit and parity tests (Vitest):** `pnpm test` in `web/`. The engine is checked against golden outputs produced by the Python engine (`scripts/make_golden.py`). Importers are tested with recorded fixtures, so no live network calls are made.
-- **Web end-to-end tests (Playwright):** `pnpm e2e` in `web/`. These are not part of CI.
+- **Web end-to-end tests (Playwright):** `pnpm e2e` in `web/` (run `pnpm build` first). CI runs e2e too, in its own job. In container-style local environments with a preinstalled Chromium, set `PW_CHROMIUM_PATH` (for example `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium pnpm e2e`) to use that browser instead of downloading one.
 - **Python tests (pytest):** `pip install -e .[dev]`, then `pytest` from the repo root.
 
-CI (`.github/workflows/ci.yml`) runs two jobs. The `web` job runs lint, typecheck, Vitest, and the build. The `python` job runs pytest.
+CI (`.github/workflows/ci.yml`) runs three jobs. The `web` job runs lint, typecheck, Vitest, and the build. The `e2e` job installs Chromium and runs the Playwright suite. The `python` job runs pytest.
 
 ## License
 

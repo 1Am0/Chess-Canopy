@@ -34,6 +34,33 @@ jobs:
 
       - run: pnpm build
 
+  e2e:
+    name: Web e2e (Playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm build
+
+      - run: pnpm e2e
+
   python:
     name: Python (pytest)
     runs-on: ubuntu-latest
