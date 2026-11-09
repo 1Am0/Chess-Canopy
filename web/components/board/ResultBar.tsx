@@ -5,23 +5,26 @@ import { pct } from "@/lib/format";
 import type { Color } from "@/lib/engine/types";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-const seg = "w-full transition-[height] duration-300 ease-out";
+const seg = "w-full shrink-0 motion-safe:transition-[height] motion-safe:duration-[800ms] motion-safe:ease-in-out";
 
-/** Vertical W/D/L bar beside the board. Your wins sit at your end of the board. */
+/**
+ * Lichess-style evaluation bar. Stats are from the player's side, so they are converted to
+ * White / Black. White's segment sits at White's end of the board, Black's at the other end.
+ */
 export function ResultBar({ side, orientation }: { side: Color; orientation: Color }) {
   const stats = useExplorerStore((s) => s.result?.stats);
   const has = !!stats && stats.total > 0;
-  const w = has ? stats.winRate * 100 : 0;
-  const d = has ? stats.drawRate * 100 : 0;
-  const l = has ? stats.lossRate * 100 : 0;
+  const whiteRate = has ? (side === "white" ? stats.winRate : stats.lossRate) : 0;
+  const blackRate = has ? (side === "white" ? stats.lossRate : stats.winRate) : 0;
+  const drawRate = has ? stats.drawRate : 0;
   const label = has
-    ? `Win ${pct(stats.winRate)} · Draw ${pct(stats.drawRate)} · Loss ${pct(stats.lossRate)}`
-    : "No games in this position";
-  const youAtBottom = orientation === side;
+    ? `White ${pct(whiteRate)} · Draw ${pct(drawRate)} · Black ${pct(blackRate)}`
+    : "No games";
+  const whiteAtBottom = orientation === "white";
 
-  const win = <div key="w" className={seg} style={{ height: `${w}%`, background: "var(--color-win)" }} />;
-  const draw = <div key="d" className={seg} style={{ height: `${d}%`, background: "var(--color-draw)" }} />;
-  const loss = <div key="l" className={seg} style={{ height: `${l}%`, background: "var(--color-loss)" }} />;
+  const white = <div key="w" className={seg} style={{ height: `${whiteRate * 100}%`, background: "var(--eval-white, #fff)" }} />;
+  const draw = <div key="d" className={seg} style={{ height: `${drawRate * 100}%`, background: "var(--eval-draw, #9a9a9a)" }} />;
+  const black = <div key="b" className={seg} style={{ height: `${blackRate * 100}%`, background: "var(--eval-black, #403d39)" }} />;
 
   return (
     <Tooltip>
@@ -30,14 +33,18 @@ export function ResultBar({ side, orientation }: { side: Color; orientation: Col
           role="img"
           aria-label={label}
           data-testid="result-bar"
-          className="flex h-full w-3 flex-col overflow-hidden rounded-full bg-muted shadow-inner ring-1 ring-border"
-          style={
-            has
-              ? undefined
-              : { backgroundImage: "repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in oklab, var(--color-draw) 35%, transparent) 4px 8px)" }
-          }
+          className="flex h-full w-2.5 flex-col overflow-hidden rounded-[3px] sm:w-3"
+          style={{
+            border: "1px solid var(--eval-border, rgb(0 0 0 / .2))",
+            ...(has
+              ? { background: "var(--eval-draw, #9a9a9a)" }
+              : {
+                  backgroundImage:
+                    "repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in oklab, var(--eval-draw, #9a9a9a) 40%, transparent) 4px 8px)",
+                }),
+          }}
         >
-          {has && (youAtBottom ? [loss, draw, win] : [win, draw, loss])}
+          {has && (whiteAtBottom ? [black, draw, white] : [white, draw, black])}
         </div>
       </TooltipTrigger>
       <TooltipContent side="right">{label}</TooltipContent>

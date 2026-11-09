@@ -8,14 +8,14 @@ export interface OverlayArrow {
   from: string;
   to: string;
   kind: OverlayArrowKind;
-  /** Pill text, e.g. "42%" or "Bc4 · 64%". */
-  label: string;
   /** Stroke width in board units (100 units = 1 square). */
   width: number;
   opacity: number;
-  /** Player score in [0, 1] for the target-square ring (candidates only). */
-  score?: number;
 }
+
+/** Fixed slot count (3 candidates + 1 hover) so the SVG node count never changes. */
+const CANDIDATE_SLOTS = 3;
+const PLACEHOLDER: OverlayArrow = { from: "a1", to: "a2", kind: "candidate", width: 10, opacity: 0 };
 
 interface Props {
   orientation: "white" | "black";
@@ -25,8 +25,8 @@ interface Props {
 type Pt = { x: number; y: number };
 
 const COLORS = {
-  candidate: "var(--arrow-candidate, rgb(21 101 192))",
-  hover: "var(--arrow-preview, rgb(245 158 11))",
+  candidate: "var(--arrow-candidate, #0a46b9)",
+  hover: "var(--arrow-preview, #eb8a00)",
 };
 const HALO = "rgba(255,255,255,0.55)";
 const BOARD_LIGHT = "var(--board-light, #f0d9b5)";
@@ -49,16 +49,9 @@ const norm = (v: Pt): Pt => {
   return { x: v.x / l, y: v.y / l };
 };
 
-function ringColor(score: number): string {
-  if (score >= 0.55) return "var(--color-win, rgb(34 160 90))";
-  if (score <= 0.45) return "var(--color-loss, rgb(210 70 60))";
-  return "var(--color-draw, rgb(140 150 165))";
-}
-
 interface Geometry {
   d: string;
   head: string;
-  pill: Pt;
 }
 
 function geometry(a: OverlayArrow, orientation: "white" | "black"): Geometry {
@@ -84,7 +77,7 @@ function geometry(a: OverlayArrow, orientation: "white" | "black"): Geometry {
     pts.push(add(s, d1, startGap), corner);
     const tip = add(t, finalDir, -tipGap);
     pts.push(add(tip, finalDir, -headLen * 0.85));
-    return build(pts, tip, finalDir, headLen, headHalf, add(corner, d1, -48));
+    return build(pts, tip, finalDir, headLen, headHalf);
   }
   finalDir = norm(sub(t, s));
   const tip = add(t, finalDir, -tipGap);
@@ -92,29 +85,28 @@ function geometry(a: OverlayArrow, orientation: "white" | "black"): Geometry {
   return build(pts, tip, finalDir, headLen, headHalf);
 }
 
-function build(pts: Pt[], tip: Pt, dir: Pt, headLen: number, headHalf: number, pillAt?: Pt): Geometry {
+function build(pts: Pt[], tip: Pt, dir: Pt, headLen: number, headHalf: number): Geometry {
   const d = pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
   const base = add(tip, dir, -headLen);
   const n: Pt = { x: -dir.y, y: dir.x };
   const l = add(base, n, headHalf);
   const r = add(base, n, -headHalf);
   const head = `${tip.x.toFixed(1)},${tip.y.toFixed(1)} ${l.x.toFixed(1)},${l.y.toFixed(1)} ${r.x.toFixed(1)},${r.y.toFixed(1)}`;
-  // Pill sits on the shaft just behind the head; clamp to stay past the start.
-  const start = pts[0];
-  let back = headLen + 30;
-  const maxBack = Math.hypot(tip.x - start.x, tip.y - start.y) - 4;
-  if (back > maxBack) back = Math.max(maxBack, 0);
-  const pill = pillAt ?? add(tip, dir, -back);
-  return { d, head, pill };
+  return { d, head };
 }
 
 export function BoardOverlay({ orientation, arrows }: Props) {
-  const geoms = useMemo(
-    () =>
-      arrows
-        .map((a) => ({ a, g: geometry(a, orientation) })),
-    [arrows, orientation],
-  );
+  const slots = useMemo(() => {
+    const cands = arrows.filter((a) => a.kind === "candidate").slice(0, CANDIDATE_SLOTS);
+    const hover = arrows.find((a) => a.kind === "hover");
+    const list: { a: OverlayArrow; show: boolean }[] = [];
+    for (let i = 0; i < CANDIDATE_SLOTS; i++) {
+      const a = cands[i];
+      list.push({ a: a ?? PLACEHOLDER, show: !!a && !hover });
+    }
+    list.push({ a: hover ?? { ...PLACEHOLDER, kind: "hover" }, show: !!hover });
+    return list.map((x) => ({ ...x, g: geometry(x.a, orientation) }));
+  }, [arrows, orientation]);
 
   const coords = useMemo(() => {
     const out: { key: string; x: number; y: number; text: string; fill: string; anchor: "start" | "end" }[] = [];
@@ -152,10 +144,9 @@ export function BoardOverlay({ orientation, arrows }: Props) {
       style={{ pointerEvents: "none" }}
     >
       <style>{`
-        .board-overlay .ov-arrow { animation: ov-in 180ms ease-out both; transition: opacity 180ms ease; }
-        @keyframes ov-in { from { opacity: 0; } }
+        .board-overlay .ov-arrow { transition: opacity 180ms ease; }
         @media (prefers-reduced-motion: reduce) {
-          .board-overlay .ov-arrow { animation: none; transition: none; }
+          .board-overlay .ov-arrow { transition: none; }
         }
       `}</style>
 
@@ -174,23 +165,16 @@ export function BoardOverlay({ orientation, arrows }: Props) {
         ))}
       </g>
 
-      {geoms.map(({ a, g }) => {
+      {slots.map(({ a, g, show }, i) => {
         const color = COLORS[a.kind];
-        const to = squareCenter(a.to, orientation);
-        const pw = a.label.length * 13 + 22;
         return (
-          <g key={`${a.kind}-${a.from}${a.to}`} className="ov-arrow">
+          <g
+            key={i}
+            className="ov-arrow"
+            data-slot={i}
+            style={{ opacity: show ? 0.75 : 0, visibility: show ? "visible" : "hidden" }}
+          >
             <g style={{ opacity: a.opacity }}>
-              {a.kind === "candidate" && a.score !== undefined && (
-                <circle
-                  cx={to.x}
-                  cy={to.y}
-                  r={43}
-                  fill="none"
-                  strokeWidth={5}
-                  style={{ stroke: ringColor(a.score), opacity: 0.6 }}
-                />
-              )}
               {/* Thin light halo beneath the arrow so it reads on dark squares. */}
               <path
                 d={g.d}
@@ -211,31 +195,6 @@ export function BoardOverlay({ orientation, arrows }: Props) {
               />
               <polygon points={g.head} style={{ fill: color }} />
             </g>
-            <rect
-              x={g.pill.x - pw / 2}
-              y={g.pill.y - 18}
-              width={pw}
-              height={36}
-              rx={18}
-              strokeWidth={2.5}
-              style={{ fill: color, stroke: "rgba(255,255,255,0.85)" }}
-            />
-            <text
-              x={g.pill.x}
-              y={g.pill.y + 1}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontFamily="ui-sans-serif, system-ui, sans-serif"
-              fontSize="22"
-              fontWeight="700"
-              fill="#fff"
-              stroke="rgba(0,0,0,0.4)"
-              strokeWidth={3}
-              paintOrder="stroke"
-              strokeLinejoin="round"
-            >
-              {a.label}
-            </text>
           </g>
         );
       })}

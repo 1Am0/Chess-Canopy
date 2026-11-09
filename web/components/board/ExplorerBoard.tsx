@@ -7,14 +7,12 @@ import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
 import { BOARD_THEMES } from "@/lib/board-themes";
 import { BoardOverlay, type OverlayArrow } from "@/components/board/BoardOverlay";
-import { pct, score } from "@/lib/format";
-import { shareLabel } from "@/lib/explorer-format";
 
 const MAX_ARROWS = 3;
 const MIN_ARROW_SHARE = 0.1;
-const MIN_WIDTH = 9;
-const MAX_WIDTH = 26;
-const HOVER_WIDTH = 28;
+const MIN_WIDTH = 9.4; // 6/64 of a square (100 units)
+const MAX_WIDTH = 23.4; // 15/64 of a square
+const HOVER_WIDTH = 20;
 
 const overlay = (rgba: string) => `linear-gradient(${rgba}, ${rgba})`;
 
@@ -69,16 +67,7 @@ export function ExplorerBoard() {
     if (hoverMove) {
       const sq = toSquares(hoverMove);
       if (!sq) return [];
-      const nm = result.next.find((n) => n.move === hoverMove);
-      return [
-        {
-          ...sq,
-          kind: "hover",
-          label: nm ? `${hoverMove} \u00b7 ${pct(score(nm.stats))}` : hoverMove,
-          width: HOVER_WIDTH,
-          opacity: 0.92,
-        },
-      ];
+      return [{ ...sq, kind: "hover", width: HOVER_WIDTH, opacity: 1 }];
     }
     const max = result.next[0]?.stats.total || 1;
     const picked = result.next.filter((n, i) => i === 0 || n.stats.total / total >= MIN_ARROW_SHARE).slice(0, MAX_ARROWS);
@@ -96,16 +85,14 @@ export function ExplorerBoard() {
       const sq = toSquares(n.move);
       if (!sq) return;
       const rel = n.stats.total / max;
-      let opacity = 0.55 + 0.35 * rel;
+      let opacity = 0.6 + 0.4 * rel;
       // Shared start square (non-collinear): fade the less frequent one so both stay readable.
-      if (out.some((o) => o.from === sq.from)) opacity = Math.max(0.55, opacity * 0.8);
+      if (out.some((o) => o.from === sq.from)) opacity = Math.max(0.6, opacity * 0.8);
       const cur: A = {
         ...sq,
         kind: "candidate",
-        label: shareLabel(n.stats.total, total),
         width: MIN_WIDTH + (MAX_WIDTH - MIN_WIDTH) * rel,
         opacity,
-        score: score(n.stats),
         idx,
       };
       // Collinear arrows from one square overlap into a single long line: keep only the nearer,
@@ -118,7 +105,7 @@ export function ExplorerBoard() {
       }
       out.push(cur);
     });
-    return out.map((o) => ({ from: o.from, to: o.to, kind: o.kind, label: o.label, width: o.width, opacity: o.opacity, score: o.score }));
+    return out.map((o) => ({ from: o.from, to: o.to, kind: o.kind, width: o.width, opacity: o.opacity }));
   }, [result, key, fen, hoverMove]);
 
   const squareStyles = useMemo(() => {
