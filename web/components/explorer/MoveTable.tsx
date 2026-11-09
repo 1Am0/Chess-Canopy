@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, FilterX, RotateCcw, Undo2 } from "lucide-react";
 import type { NextMove } from "@/lib/engine/types";
-import { activeFilterCount, useExplorerStore } from "@/lib/store";
+import { activeFilterCount, isResultFresh, useExplorerStore } from "@/lib/store";
 import { compact, pct, score } from "@/lib/format";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { usePosition } from "@/hooks/use-position";
@@ -63,7 +63,7 @@ export function MoveTable({ className }: { className?: string }) {
   // The rows belong to the position the result was computed for. While a new result is
   // pending (or the shown one is for another position) rows stay visible but inert, so
   // a double click can't play a move from a stale table.
-  const fresh = !!result && result.path.join(" ") === posKey;
+  const fresh = useExplorerStore(isResultFresh);
   const inert = loading || !fresh;
   const next = result?.next ?? NO_ROWS;
   const total = result?.stats.total ?? 0;

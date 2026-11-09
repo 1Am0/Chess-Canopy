@@ -28,8 +28,12 @@ export function PlayerManager() {
       const a = document.createElement("a");
       a.href = url;
       a.download = `${p.source}-${p.username}.json`;
+      a.style.display = "none";
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      a.remove();
+      // Revoke after the browser has started the download.
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Export failed");
     }

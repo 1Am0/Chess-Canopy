@@ -12,6 +12,8 @@ function range(lo?: number | null, hi?: number | null): string {
   return `≤ ${hi}`;
 }
 
+const PRESET_LABEL: Record<number, string> = { 30: "last 30 days", 90: "last 90 days", 365: "last year" };
+
 function chipsFor(filters: Filters): { label: string; clear: Partial<Filters> }[] {
   const chips: { label: string; clear: Partial<Filters> }[] = [];
   if (filters.result)
@@ -22,10 +24,15 @@ function chipsFor(filters: Filters): { label: string; clear: Partial<Filters> }[
   if (filters.opponent) chips.push({ label: `vs ${filters.opponent}`, clear: { opponent: null } });
   if (filters.time_control) chips.push({ label: `Time: ${filters.time_control}`, clear: { time_control: null } });
   if (filters.time_control_raw) chips.push({ label: `TC ${filters.time_control_raw}`, clear: { time_control_raw: null } });
-  if (filters.date_from || filters.date_to)
+  if (filters.date_preset)
+    chips.push({
+      label: `Date: ${PRESET_LABEL[filters.date_preset] ?? `last ${filters.date_preset} days`}`,
+      clear: { date_preset: null, date_from: null, date_to: null },
+    });
+  else if (filters.date_from || filters.date_to)
     chips.push({
       label: `Date: ${filters.date_from ?? "…"} → ${filters.date_to ?? "now"}`,
-      clear: { date_from: null, date_to: null },
+      clear: { date_preset: null, date_from: null, date_to: null },
     });
   if (filters.min_my_rating != null || filters.max_my_rating != null)
     chips.push({ label: `My rating ${range(filters.min_my_rating, filters.max_my_rating)}`, clear: { min_my_rating: null, max_my_rating: null } });

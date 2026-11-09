@@ -63,6 +63,7 @@ export function BoardControls() {
   const redo = useExplorerStore((s) => s.redo);
   const toEnd = useExplorerStore((s) => s.toEnd);
   const flip = useExplorerStore((s) => s.flip);
+  const side = useExplorerStore((s) => s.filters.color ?? "white");
   const { fen, visible } = usePosition();
   const atStart = cursor === 0;
   const atEnd = cursor >= pathLength;
@@ -87,6 +88,7 @@ export function BoardControls() {
     url.search = "";
     url.hash = "";
     if (visible.length) url.searchParams.set("line", visible.join(","));
+    url.searchParams.set("side", side);
     void copyText(url.toString(), "Share link");
   };
 

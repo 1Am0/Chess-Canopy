@@ -5,7 +5,6 @@ import { Check, ChevronsUpDown, X } from "lucide-react";
 import type { Filters } from "@/lib/engine/types";
 import { getExplorer } from "@/lib/explorer-client";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
-import { isoDaysAgo } from "@/lib/format";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -135,10 +134,11 @@ function OpponentCombobox() {
   );
 }
 
-function daysBetween(from?: string | null, to?: string | null): number | "all" | "custom" {
-  if (!from && !to) return "all";
-  if (to) return "custom";
-  for (const d of [30, 90, 365]) if (from === isoDaysAgo(d)) return d;
+const PRESETS = [[30, "30 days"], [90, "90 days"], [365, "1 year"]] as const;
+
+function datePreset(f: Filters): number | "all" | "custom" {
+  if (f.date_preset) return f.date_preset;
+  if (!f.date_from && !f.date_to) return "all";
   return "custom";
 }
 
@@ -150,7 +150,7 @@ export function FilterSheet() {
   const setUi = useExplorerStore((s) => s.setUi);
   const desktop = useMediaQuery("(min-width: 1024px)");
   const count = activeFilterCount(filters);
-  const preset = daysBetween(filters.date_from, filters.date_to);
+  const preset = datePreset(filters);
 
   const patch = (p: Partial<Filters>) => setFilters(p);
 
@@ -222,7 +222,7 @@ export function FilterSheet() {
 
           <Field label="Date">
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="Date presets">
-              {([[30, "30 days"], [90, "90 days"], [365, "1 year"], ["all", "All time"]] as const).map(([v, label]) => (
+              {([...PRESETS, ["all", "All time"]] as const).map(([v, label]) => (
                 <Button
                   key={label}
                   type="button"
@@ -230,15 +230,15 @@ export function FilterSheet() {
                   variant={preset === v ? "default" : "outline"}
                   aria-pressed={preset === v}
                   className="rounded-full"
-                  onClick={() => patch(v === "all" ? { date_from: null, date_to: null } : { date_from: isoDaysAgo(v), date_to: null })}
+                  onClick={() => patch(v === "all" ? { date_preset: null, date_from: null, date_to: null } : { date_preset: v, date_from: null, date_to: null })}
                 >
                   {label}
                 </Button>
               ))}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Input type="date" aria-label="From date" value={filters.date_from ?? ""} onChange={(e) => patch({ date_from: e.target.value || null })} />
-              <Input type="date" aria-label="To date" value={filters.date_to ?? ""} onChange={(e) => patch({ date_to: e.target.value || null })} />
+              <Input type="date" aria-label="From date" value={filters.date_from ?? ""} onChange={(e) => patch({ date_preset: null, date_from: e.target.value || null })} />
+              <Input type="date" aria-label="To date" value={filters.date_to ?? ""} onChange={(e) => patch({ date_preset: null, date_to: e.target.value || null })} />
             </div>
           </Field>
 

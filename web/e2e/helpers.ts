@@ -69,3 +69,6 @@ export async function trackCspViolations(page: Page): Promise<{ readonly violati
   });
   return { get violations() { return [...violations]; } };
 }
+
+/** Synthetic fixture for the layout-stability test: 60 legal games over 8 openings, both colors. */
+export const STABILITY_GAMES_JSON = path.join(root, "e2e/fixtures/stability_games.json");

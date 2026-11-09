@@ -151,7 +151,7 @@ test("persisted selection of an unknown player falls back to all", async ({ page
   await expect(moveRow(page, "e4")).toBeVisible();
 });
 
-test("side switch: Black resets line, flips board and player strip; White switches back", async ({ page }) => {
+test("side switch keeps the line, flips board and player strip; White switches back", async ({ page }) => {
   await importSampleJson(page);
   const black = page.getByRole("radio", { name: "View games as Black" });
   const white = page.getByRole("radio", { name: "View games as White" });
@@ -163,7 +163,8 @@ test("side switch: Black resets line, flips board and player strip; White switch
   await black.click();
   await expect(black).toBeChecked();
   await expect(white).not.toBeChecked();
-  await expect.poll(() => new URL(page.url()).searchParams.get("line") ?? "").toBe("");
+  // The line is kept: only the side and board orientation change.
+  await expect(page).toHaveURL(/line=e4/);
 
   // Board orientation follows the side: a1 is now at the top, and the bottom strip is "You · Black".
   const board = page.getByLabel("Chess board");
@@ -248,6 +249,7 @@ test("copy share link shows a Copied toast", async ({ page, context }) => {
   await expect(page.getByText("Copied", { exact: true })).toBeVisible();
   const copied = new URL(await page.evaluate(() => navigator.clipboard.readText()));
   expect(copied.searchParams.get("line")).toBe("e4");
+  expect(copied.searchParams.get("side")).toBe("white");
 });
 
 test("mobile tabs: Moves / Line / Games switch content without horizontal scroll", async ({ page }) => {

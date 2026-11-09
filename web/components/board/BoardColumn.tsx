@@ -26,14 +26,14 @@ export function BoardColumn() {
 
   return (
     <section aria-label="Board" className="flex flex-col gap-1.5" style={{ width: BOARD_COLUMN_WIDTH, maxWidth: "100%" }}>
-      <div className="pl-5">
+      <div className="pl-5" data-testid="strip-top">
         <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} games={games} />
       </div>
       <div className="grid grid-cols-[12px_minmax(0,1fr)] gap-x-2">
         <ResultBar side={side} orientation={orientation} />
         <ExplorerBoard />
       </div>
-      <div className="pl-5">
+      <div className="pl-5" data-testid="strip-bottom">
         <PlayerStrip you={bottomIsYou} color={bottomIsYou ? side : opp} games={games} />
       </div>
       <div className="pl-5">

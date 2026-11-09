@@ -6,12 +6,17 @@ A fast, private opening explorer for your own chess.com and Lichess games.
 
 - **Runs fully in the browser.** No backend. Games are stored in IndexedDB and nothing is uploaded.
 - **Import from anywhere.** Pull games from chess.com or Lichess (incremental sync re-fetches only new games), load local PGN files, or drop in JSON exported by the Python CLI.
+- **Standard chess only.** Variant games (Chess960, Crazyhouse, King of the Hill, ...) and games that start from a custom position are skipped at import, in the web app and in the Python CLI, and the import message reports how many were skipped.
+- **One time-control rule.** Chess.com games use chess.com's own `time_class`, Lichess games use Lichess's `speed`, and everything else is classified from `base + 40 * increment` seconds (bullet under 180, blitz under 600, rapid under 3600, else classical; daily for correspondence). The web importers and the CLI agree.
 - **Multi-player merge.** Select several players and explore their games together.
-- **Per-position stats.** Win/draw/loss for every candidate move, a move table, and the top moves drawn as arrows on the board.
+- **Per-position stats.** Win/draw/loss for every candidate move, a move table, and the top moves drawn as arrows on the board. Arrows carry no text: thickness and opacity encode how often you played the move, and hovering a table row previews its arrow.
+- **White / Draw / Black bars.** The result bar beside the board and the bars in the move table use the chess convention (white, gray, near-black segments, oriented with the board) and a tooltip such as "White 49% · Draw 8% · Black 43%". Win / Loss from your point of view appears only in the score text and the Recent games chips.
+- **Stable layout.** On desktop the board column and every workspace slot (side switch, opening header, filter row, line panel, summary, Moves | Games tabs) have fixed geometry, so nothing moves while you play moves, as on Lichess or chess.com. New results replace the previous ones in place (the old rows stay dimmed and inert while loading). On mobile the board and toolbar stay put and the tab panel has a fixed height. A Playwright test (`web/e2e/layout-stability.spec.ts`) guards this.
+- **Side switch.** A White | Black switch picks whose repertoire you explore. Switching keeps the current line and only changes the side and board orientation.
 - **Openings.** 3,800+ openings from [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0), with ECO codes and names shown as you play.
-- **Filters.** Color, result (Win / Draw / Loss), time control, rating ranges (yours and your opponent's), date range, opponent, and move range.
+- **Filters.** Result (Win / Draw / Loss), time control, rating ranges (yours and your opponent's), date (rolling 30 days / 90 days / 1 year, or a custom range), and opponent, via the **Add filter** button. Active filters show as removable chips in a fixed-height row.
 - **Recent games.** See the games that reached the current position, with links to the original game.
-- **Shareable lines.** The current line is kept in the URL (`?line=e4,c5,Nf3`), so refresh, Back, and sharing all work.
+- **Shareable lines.** The current line is kept in the URL (`?line=e4,c5,Nf3`) with `replaceState`, so refresh and sharing work (the Back button leaves the app rather than stepping through moves; use the arrow keys). The board toolbar's copy-link button also adds `&side=white|black`, which is read on load.
 - **Light and dark themes.**
 - **Keyboard shortcuts:**
 
@@ -146,10 +151,10 @@ It writes to `games/lichess/<player>.json`. Options include `--max`, `--rated`, 
 ## Testing
 
 - **Web unit and parity tests (Vitest):** `pnpm test` in `web/`. The engine is checked against golden outputs produced by the Python engine (`scripts/make_golden.py`). Importers are tested with recorded fixtures, so no live network calls are made.
-- **Web end-to-end tests (Playwright):** `pnpm e2e` in `web/` (run `pnpm build` first). CI runs e2e too, in its own job. In container-style local environments with a preinstalled Chromium, set `PW_CHROMIUM_PATH` (for example `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium pnpm e2e`) to use that browser instead of downloading one.
-- **Python tests (pytest):** `pip install -e .[dev]`, then `pytest` from the repo root.
+- **Web end-to-end tests (Playwright):** `pnpm e2e` in `web/` (run `pnpm build` first). The tests run against `pnpm start`, which serves `out/` with the same Content-Security-Policy headers as production (`web/serve.json`, kept in sync with `vercel.json`), and fail on CSP violations. They include the layout-stability test, which imports a synthetic 60-game fixture, plays 12 plies, steps back, switches side, applies a filter and changes tabs at 1440x900 and 1280x720 (plus a 390x844 mobile check), asserting that key element rectangles move by at most 1px. CI runs e2e too, in its own job. In container-style local environments with a preinstalled Chromium, set `PW_CHROMIUM_PATH` (for example `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium pnpm e2e`) to use that browser instead of downloading one.
+- **Python tests (pytest):** `pip install -e .[dev]`, then `pytest` from the repo root. Lint with `ruff check --select F chess_explorer tests`.
 
-CI (`.github/workflows/ci.yml`) runs three jobs. The `web` job runs lint, typecheck, Vitest, and the build. The `e2e` job installs Chromium and runs the Playwright suite. The `python` job runs pytest.
+CI (`.github/workflows/ci.yml`) runs three jobs. The `web` job runs lint, typecheck, Vitest, and the build. The `e2e` job installs Chromium and runs the Playwright suite. The `python` job runs `ruff check --select F chess_explorer tests` (pyflakes) and pytest.
 
 ## License
 
