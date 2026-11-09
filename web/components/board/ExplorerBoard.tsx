@@ -6,11 +6,15 @@ import { Chessboard } from "react-chessboard";
 import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
 import { BOARD_THEMES } from "@/lib/board-themes";
+import { BoardOverlay, type OverlayArrow } from "@/components/board/BoardOverlay";
+import { pct, score } from "@/lib/format";
+import { shareLabel } from "@/lib/explorer-format";
 
 const MAX_ARROWS = 3;
 const MIN_ARROW_SHARE = 0.1;
-const CANDIDATE_RGB = "21,101,192";
-const HOVER_COLOR = "rgba(245,124,0,1)";
+const MIN_WIDTH = 9;
+const MAX_WIDTH = 26;
+const HOVER_WIDTH = 28;
 
 const overlay = (rgba: string) => `linear-gradient(${rgba}, ${rgba})`;
 
@@ -49,32 +53,39 @@ export function ExplorerBoard() {
     }
   }, [selected, fen]);
 
-  const arrows = useMemo(() => {
+  const arrows = useMemo((): OverlayArrow[] => {
     if (!result || result.path.join(" ") !== key) return [];
     const chess = new Chess(fen);
-    const toArrow = (san: string) => {
+    const toSquares = (san: string) => {
       try {
         const m = chess.move(san);
         chess.undo();
-        return { startSquare: m.from, endSquare: m.to };
+        return { from: m.from, to: m.to };
       } catch {
         return null;
       }
     };
-    if (hoverMove) {
-      const a = toArrow(hoverMove);
-      return a ? [{ ...a, color: HOVER_COLOR }] : [];
-    }
     const total = result.next.reduce((n, m) => n + m.stats.total, 0) || 1;
+    if (hoverMove) {
+      const sq = toSquares(hoverMove);
+      if (!sq) return [];
+      const nm = result.next.find((n) => n.move === hoverMove);
+      return [
+        {
+          ...sq,
+          kind: "hover",
+          label: nm ? `${hoverMove} \u00b7 ${pct(score(nm.stats))}` : hoverMove,
+          width: HOVER_WIDTH,
+          opacity: 0.92,
+        },
+      ];
+    }
     const max = result.next[0]?.stats.total || 1;
     const picked = result.next.filter((n, i) => i === 0 || n.stats.total / total >= MIN_ARROW_SHARE).slice(0, MAX_ARROWS);
-    type A = { startSquare: string; endSquare: string; color: string; idx: number };
-    const vec = (a: { startSquare: string; endSquare: string }) => [
-      a.endSquare.charCodeAt(0) - a.startSquare.charCodeAt(0),
-      a.endSquare.charCodeAt(1) - a.startSquare.charCodeAt(1),
-    ];
+    type A = OverlayArrow & { idx: number };
+    const vec = (a: { from: string; to: string }) => [a.to.charCodeAt(0) - a.from.charCodeAt(0), a.to.charCodeAt(1) - a.from.charCodeAt(1)];
     const collinear = (a: A, b: A) => {
-      if (a.startSquare !== b.startSquare) return false;
+      if (a.from !== b.from) return false;
       const [ax, ay] = vec(a);
       const [bx, by] = vec(b);
       return ax * by - ay * bx === 0 && ax * bx + ay * by > 0;
@@ -82,12 +93,21 @@ export function ExplorerBoard() {
     const len = (a: A) => Math.max(...vec(a).map(Math.abs));
     let out: A[] = [];
     picked.forEach((n, idx) => {
-      const a = toArrow(n.move);
-      if (!a) return;
-      let alpha = 0.4 + 0.5 * (n.stats.total / max);
+      const sq = toSquares(n.move);
+      if (!sq) return;
+      const rel = n.stats.total / max;
+      let opacity = 0.55 + 0.35 * rel;
       // Shared start square (non-collinear): fade the less frequent one so both stay readable.
-      if (out.some((o) => o.startSquare === a.startSquare)) alpha *= 0.6;
-      const cur: A = { ...a, color: `rgba(${CANDIDATE_RGB},${alpha.toFixed(2)})`, idx };
+      if (out.some((o) => o.from === sq.from)) opacity = Math.max(0.55, opacity * 0.8);
+      const cur: A = {
+        ...sq,
+        kind: "candidate",
+        label: shareLabel(n.stats.total, total),
+        width: MIN_WIDTH + (MAX_WIDTH - MIN_WIDTH) * rel,
+        opacity,
+        score: score(n.stats),
+        idx,
+      };
       // Collinear arrows from one square overlap into a single long line: keep only the nearer,
       // unless the farther one is the top move.
       const clash = out.find((o) => collinear(o, cur));
@@ -98,7 +118,7 @@ export function ExplorerBoard() {
       }
       out.push(cur);
     });
-    return out.map(({ startSquare, endSquare, color }) => ({ startSquare, endSquare, color }));
+    return out.map((o) => ({ from: o.from, to: o.to, kind: o.kind, label: o.label, width: o.width, opacity: o.opacity, score: o.score }));
   }, [result, key, fen, hoverMove]);
 
   const squareStyles = useMemo(() => {
@@ -130,7 +150,8 @@ export function ExplorerBoard() {
 
   return (
     <div
-      className="@container aspect-square w-full overflow-hidden rounded-md shadow-md ring-1 ring-black/15"
+      className="@container relative aspect-square w-full overflow-hidden rounded-md shadow-md ring-1 ring-black/15"
+      style={{ "--board-light": theme.light, "--board-dark": theme.dark } as React.CSSProperties}
       aria-label="Chess board"
     >
       <Chessboard
@@ -138,11 +159,10 @@ export function ExplorerBoard() {
           id: "explorer-board",
           position: fen,
           boardOrientation: orientation,
-          showNotation: true,
+          showNotation: false,
           allowDrawingArrows: true,
           clearArrowsOnPositionChange: true,
           animationDurationInMs: 150,
-          arrows,
           arrowOptions: {
             colors: {
               default: "rgba(22,163,74,0.85)",
@@ -165,11 +185,6 @@ export function ExplorerBoard() {
           squareStyles,
           lightSquareStyle: { backgroundColor: theme.light },
           darkSquareStyle: { backgroundColor: theme.dark },
-          // Coordinates take the opposite square color.
-          lightSquareNotationStyle: { color: theme.dark },
-          darkSquareNotationStyle: { color: theme.light },
-          alphaNotationStyle: { fontSize: "clamp(10px, 2.9cqw, 13px)", fontWeight: 700, bottom: 2, right: 4, userSelect: "none" },
-          numericNotationStyle: { fontSize: "clamp(10px, 2.9cqw, 13px)", fontWeight: 700, top: 2, left: 3, userSelect: "none" },
           dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,255,255,0.7)" },
           draggingPieceStyle: { transform: "scale(1.1)" },
           onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare ? tryMove(sourceSquare, targetSquare) : false),
@@ -185,6 +200,7 @@ export function ExplorerBoard() {
           },
         }}
       />
+      <BoardOverlay orientation={orientation} arrows={arrows} />
       <span className="sr-only" aria-live="polite">
         {visible.length ? `Position after ${visible[visible.length - 1]}` : "Starting position"}
       </span>
