@@ -3,6 +3,7 @@
 import { Filter, HelpCircle, Plus, Trees } from "lucide-react";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
+import { ImportIndicator } from "@/components/players/ImportIndicator";
 import { PlayerSwitcher } from "@/components/players/PlayerSwitcher";
 import { SoundToggle } from "@/components/layout/SoundToggle";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -21,8 +22,9 @@ export function Header({ showTools }: { showTools: boolean }) {
           </span>
           <span className="hidden sm:inline">Chess Canopy</span>
         </div>
-        {showTools && <div className="min-w-0 shrink"><PlayerSwitcher /></div>}
+        {showTools && <div className="min-w-0 shrink" data-testid="player-switcher"><PlayerSwitcher /></div>}
         <div className="ml-auto flex shrink-0 items-center gap-1">
+          {showTools && <ImportIndicator />}
           {showTools && (
             <Button variant="outline" size="sm" onClick={() => setUi({ filtersOpen: true })} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
               <Filter />

@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { FileUp } from "lucide-react";
 import { toast } from "sonner";
 import type { ImportRequest } from "@/lib/engine/types";
-import { useImport } from "@/hooks/use-import";
+import { useSharedImport } from "@/components/players/ImportProvider";
 import { ImportProgress } from "@/components/players/ImportProgress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +55,7 @@ function FileDrop({ accept, label, file, onFile }: { accept: string; label: stri
 }
 
 export function ImportForm({ initialTab = "chess.com", onDone, idPrefix = "imp" }: { initialTab?: Tab; onDone?: () => void; idPrefix?: string }) {
-  const { progress, running, start, cancel } = useImport();
+  const { progress, running, start, cancel } = useSharedImport();
   const [tab, setTab] = useState<Tab>(initialTab);
   const [username, setUsername] = useState("");
   const [file, setFile] = useState<File | null>(null);

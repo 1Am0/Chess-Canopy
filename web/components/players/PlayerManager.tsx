@@ -6,9 +6,9 @@ import { toast } from "sonner";
 import type { Player } from "@/lib/engine/types";
 import { getExplorer } from "@/lib/explorer-client";
 import { refreshPlayers } from "@/hooks/use-explorer-sync";
-import { useImport } from "@/hooks/use-import";
 import { useExplorerStore } from "@/lib/store";
 import { sourceLabel } from "@/lib/format";
+import { useSharedImport } from "@/components/players/ImportProvider";
 import { ImportProgress } from "@/components/players/ImportProgress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ export function PlayerManager() {
   const open = useExplorerStore((s) => s.managerOpen);
   const players = useExplorerStore((s) => s.players);
   const setUi = useExplorerStore((s) => s.setUi);
-  const { progress, running, sync, cancel } = useImport();
+  const { progress, running, sync, cancel } = useSharedImport();
   const [confirming, setConfirming] = useState<string | null>(null);
 
   const exportPlayer = async (p: Player) => {
@@ -76,7 +76,7 @@ export function PlayerManager() {
               </div>
               {confirming === p.id ? (
                 <div className="flex items-center gap-1">
-                  <Button size="sm" variant="destructive" onClick={() => remove(p)}>Delete</Button>
+                  <Button size="sm" variant="destructive" disabled={running} onClick={() => remove(p)}>Delete</Button>
                   <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Keep</Button>
                 </div>
               ) : (
@@ -89,7 +89,7 @@ export function PlayerManager() {
                   <Button size="icon" variant="ghost" onClick={() => exportPlayer(p)} aria-label={`Export ${p.displayName} as JSON`} title="Export JSON">
                     <Download />
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => setConfirming(p.id)} aria-label={`Delete ${p.displayName}`} title="Delete">
+                  <Button size="icon" variant="ghost" disabled={running} onClick={() => setConfirming(p.id)} aria-label={`Delete ${p.displayName}`} title={running ? "Wait for the import to finish" : "Delete"}>
                     <Trash2 />
                   </Button>
                 </div>
@@ -98,7 +98,7 @@ export function PlayerManager() {
           ))}
         </ul>
         {progress && <ImportProgress progress={progress} onCancel={cancel} />}
-        <Button variant="outline" onClick={() => setUi({ managerOpen: false, importOpen: true })}>Import another player</Button>
+        <Button variant="outline" disabled={running} onClick={() => setUi({ managerOpen: false, importOpen: true })}>Import another player</Button>
       </DialogContent>
     </Dialog>
   );

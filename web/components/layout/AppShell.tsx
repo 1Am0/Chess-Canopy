@@ -4,10 +4,12 @@ import { useExplorerSync, useKeyboardShortcuts } from "@/hooks/use-explorer-sync
 import { useMoveSounds } from "@/hooks/use-move-sounds";
 import { useExplorerStore } from "@/lib/store";
 import { Header } from "@/components/layout/Header";
+import { UrlSideSync } from "@/components/layout/UrlSideSync";
 import { ShortcutsDialog } from "@/components/layout/ShortcutsDialog";
 import { BoardColumn } from "@/components/board/BoardColumn";
 import { ExplorerPanel } from "@/components/explorer/ExplorerPanel";
 import { FilterSheet } from "@/components/filters/FilterSheet";
+import { ImportProvider } from "@/components/players/ImportProvider";
 import { ImportDialog } from "@/components/players/ImportDialog";
 import { PlayerManager } from "@/components/players/PlayerManager";
 import { Welcome } from "@/components/onboarding/Welcome";
@@ -16,14 +18,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 /**
  * --board-size is the width (and height) of the board itself:
- *   mobile : the viewport minus a 12px gutter on each side
+ *   mobile : the viewport minus a 12px gutter on each side, at most 62% of the viewport height
+ *            (so a tablet in portrait still shows the move table without scrolling far)
  *   desktop: min( clamp(22rem, ~57% of the content width, 52rem),
  *                 viewport height - header (3.5rem) - chrome (8.5rem: strips + toolbar + padding) )
  * The content width is min(100vw, 1600px) minus the page padding (2rem) and the
  * workspace gap (1rem).
  */
 const BOARD_COLUMN =
-  "[--board-size:calc(100vw-1.5rem)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-1rem),52rem),calc(100dvh-12rem))]";
+  "[--board-size:min(calc(100vw-1.5rem),62dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-1rem),52rem),calc(100dvh-12rem))]";
 
 /** Placeholder with the same slots as the explorer, so the first paint doesn't jump. */
 function LoadingShell() {
@@ -58,7 +61,9 @@ export function AppShell() {
 
   return (
     <TooltipProvider>
+      <ImportProvider>
       <div className={`flex min-h-dvh flex-col ${explorer ? "lg:h-dvh lg:overflow-hidden" : ""}`}>
+        <UrlSideSync />
         <Header showTools={explorer} />
         {!ready && <LoadingShell />}
         {ready && !hasPlayers && <Welcome />}
@@ -90,6 +95,7 @@ export function AppShell() {
         <PlayerManager />
         <ShortcutsDialog />
       </div>
+      </ImportProvider>
     </TooltipProvider>
   );
 }
