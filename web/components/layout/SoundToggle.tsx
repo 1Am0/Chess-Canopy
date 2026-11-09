@@ -13,9 +13,9 @@ export function SoundToggle() {
     <Button
       variant="ghost"
       size="icon"
-      aria-label={on ? "Mute sounds" : "Unmute sounds"}
-      aria-pressed={!on}
-      title={on ? "Sounds on (click to mute)" : "Sounds off (click to unmute)"}
+      aria-label="Move sounds"
+      aria-pressed={on}
+      title={on ? "Move sounds on (click to mute)" : "Move sounds off (click to unmute)"}
       onClick={() => {
         unlockSound();
         setOn(!on);

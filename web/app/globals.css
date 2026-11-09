@@ -95,7 +95,7 @@
   --bar-black: #555555;
   --bar-border: rgb(0 0 0 / 0.17);
   --bar-white-fg: #222;
-  --bar-draw-fg: #fff;
+  --bar-draw-fg: #111;
   --bar-black-fg: #fff;
   --bar-gloss-white: inset 0 -5px 7px rgb(0 0 0 / 0.1);
   --bar-gloss: inset 0 5px 7px rgb(255 255 255 / 0.2);
@@ -157,6 +157,7 @@
 
   --bar-white: #cccccc;
   --bar-draw: #666666;
+  --bar-draw-fg: #fff;
   --bar-black: #333333;
   --bar-border: rgb(255 255 255 / 0.12);
   --bar-gloss-white: inset 0 -5px 7px rgb(0 0 0 / 0.25);

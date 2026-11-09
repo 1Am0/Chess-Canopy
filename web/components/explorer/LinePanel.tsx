@@ -63,7 +63,7 @@ export function LinePanel({ className }: { className?: string }) {
         className={cn(
           "h-7 shrink-0 rounded-md px-1.5 font-mono text-sm font-medium outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60",
           current && "bg-primary font-bold text-primary-foreground hover:bg-primary",
-          !current && i >= cursor && "font-normal text-muted-foreground/75 italic",
+          !current && i >= cursor && "font-normal text-muted-foreground italic",
         )}
       >
         {san}

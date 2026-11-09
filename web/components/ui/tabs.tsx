@@ -2,13 +2,19 @@
 import * as React from "react";
 import { Tabs as TabsPrimitive } from "radix-ui";
 import { cn } from "@/lib/utils";
+import { keepNavKeysLocal } from "@/components/ui/keys";
 
 function Tabs({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Root>) {
   return <TabsPrimitive.Root className={cn("flex flex-col gap-2", className)} {...props} />;
 }
-function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
+function TabsList({ className, onKeyDown, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
   return (
     <TabsPrimitive.List
+      data-local-keys
+      onKeyDown={(e) => {
+        onKeyDown?.(e);
+        keepNavKeysLocal(e);
+      }}
       className={cn("inline-flex h-9 w-fit items-center justify-center rounded-lg bg-muted p-[3px] text-muted-foreground", className)}
       {...props}
     />
@@ -26,7 +32,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
   );
 }
 function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {
-  return <TabsPrimitive.Content className={cn("flex-1 outline-none", className)} {...props} />;
+  return <TabsPrimitive.Content className={cn("flex-1 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring/50", className)} {...props} />;
 }
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };

@@ -17,7 +17,7 @@ export function OpeningHeader({ className }: { className?: string }) {
   return (
     <div
       className={cn("flex h-7 min-w-0 shrink-0 items-center gap-2 overflow-hidden whitespace-nowrap", className)}
-      aria-live="polite"
+      data-slot="opening-header"
       title={opening ? `${opening.eco} ${opening.name}` : undefined}
     >
       {opening ? (

@@ -93,7 +93,7 @@ export function BoardControls() {
   };
 
   return (
-    <div role="toolbar" aria-label="Board controls" className="flex flex-wrap items-center justify-between gap-x-1 gap-y-1">
+    <div role="group" aria-label="Board controls" className="flex flex-wrap items-center justify-between gap-x-1 gap-y-1">
       <div className={group}>
         <Tip label="Start" keys="↑">
           <Button variant="ghost" size="icon" className={btn} onClick={toStart} disabled={atStart} aria-label="Go to start (↑)">
