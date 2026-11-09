@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 function range(lo?: number | null, hi?: number | null): string {
-  if (lo != null && hi != null) return `${lo}–${hi}`;
+  if (lo != null && hi != null) return lo <= hi ? `${lo}–${hi}` : `${hi}–${lo}`;
   if (lo != null) return `≥ ${lo}`;
   return `≤ ${hi}`;
 }

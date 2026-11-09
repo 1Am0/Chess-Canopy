@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SideSwitch } from "@/components/layout/SideSwitch";
 import { FilterRow } from "@/components/filters/FilterRow";
 import { LinePanel } from "@/components/explorer/LinePanel";
+import { PositionAnnouncer } from "@/components/explorer/PositionAnnouncer";
 import { OpeningHeader } from "@/components/explorer/OpeningHeader";
 import { PositionSummary } from "@/components/explorer/PositionSummary";
 import { MoveTable } from "@/components/explorer/MoveTable";
@@ -34,6 +35,7 @@ export function ExplorerPanel() {
 
   return (
     <div className="flex min-w-0 flex-col gap-2 lg:h-full lg:min-h-0">
+      <PositionAnnouncer />
       <SideSwitch />
       <OpeningHeader />
       <FilterRow />
@@ -49,11 +51,11 @@ export function ExplorerPanel() {
           <TabsTrigger value="moves" className={TRIGGER}>Moves</TabsTrigger>
           <TabsTrigger value="games" className={TRIGGER}>Games</TabsTrigger>
         </TabsList>
-        <TabsContent value="moves" forceMount className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
+        <TabsContent value="moves" forceMount tabIndex={-1} className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
           <MoveTable />
         </TabsContent>
-        <TabsContent value="games" forceMount className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
-          <GamesList />
+        <TabsContent value="games" forceMount tabIndex={-1} className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
+          <GamesList active={value === "games"} />
         </TabsContent>
       </Tabs>
     </div>

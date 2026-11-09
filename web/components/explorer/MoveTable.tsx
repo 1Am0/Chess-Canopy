@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, FilterX, RotateCcw, Undo2 } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, ChevronDown, FilterX, RotateCcw, Undo2 } from "lucide-react";
 import type { NextMove } from "@/lib/engine/types";
-import { activeFilterCount, isResultFresh, useExplorerStore } from "@/lib/store";
+import { activeFilterCount, isResultFresh, loadFailed, useExplorerStore } from "@/lib/store";
 import { compact, pct, score } from "@/lib/format";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { usePosition } from "@/hooks/use-position";
 import { COL, MoveRow } from "@/components/explorer/MoveRow";
+import { splitRare } from "@/components/explorer/rare";
 import { WdbBar } from "@/components/explorer/WdbBar";
 import { scoreTextClass } from "@/components/explorer/wdb";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,8 @@ export function MoveTable({ className }: { className?: string }) {
   const filterCount = useExplorerStore((s) => activeFilterCount(s.filters));
   const setSide = useExplorerStore((s) => s.setSide);
   const toStart = useExplorerStore((s) => s.toStart);
+  const failed = useExplorerStore(loadFailed);
+  const retryLoad = useExplorerStore((s) => s.retryLoad);
   const undo = useExplorerStore((s) => s.undo);
   const { visible, key: posKey } = usePosition();
   const scroller = useRef<HTMLDivElement>(null);
@@ -80,13 +83,7 @@ export function MoveTable({ className }: { className?: string }) {
     return out;
   }, [next, sort]);
 
-  const threshold = Math.max(3, total * 0.01);
-  const { common, rare } = useMemo(() => {
-    const c = sorted.filter((r) => r.stats.total >= threshold);
-    // If nothing is common, never hide everything.
-    if (c.length === 0) return { common: sorted, rare: NO_ROWS };
-    return { common: c, rare: sorted.filter((r) => r.stats.total < threshold) };
-  }, [sorted, threshold]);
+  const { common, rare } = useMemo(() => splitRare(sorted, total), [sorted, total]);
 
   const rows = showRare ? [...common, ...rare] : common;
   const idx = Math.min(active, Math.max(rows.length - 1, 0));
@@ -139,7 +136,7 @@ export function MoveTable({ className }: { className?: string }) {
         type="button"
         onClick={() => toggle(k)}
         className={cn(
-          "inline-flex items-center gap-0.5 whitespace-nowrap rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
+          "-mx-1 inline-flex min-h-6 min-w-6 items-center gap-0.5 whitespace-nowrap rounded-sm px-1 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
           sort.key === k && "text-foreground",
         )}
       >
@@ -149,9 +146,9 @@ export function MoveTable({ className }: { className?: string }) {
     </th>
   );
 
-  const firstLoad = !result;
+  const firstLoad = !result && !failed;
   const noGames = !!summary && summary.games === 0;
-  const empty = !firstLoad && (noGames || next.length === 0);
+  const empty = !firstLoad && !failed && (noGames || next.length === 0);
   const outOfBook = visible.length > 0;
   const busy = inert && !firstLoad;
   const other = side === "white" ? "black" : "white";
@@ -161,30 +158,33 @@ export function MoveTable({ className }: { className?: string }) {
   return (
     <div
       ref={scroller}
-      data-local-keys
-      tabIndex={0}
-      role="group"
-      aria-label="Candidate moves. Use up and down arrows to select, Enter to play."
-      aria-activedescendant={rows.length && !empty ? `move-row-${idx}` : undefined}
-      aria-busy={inert}
-      onKeyDown={onKeyDown}
-      onFocus={(e) => {
-        if (e.target === e.currentTarget) setFocused(true);
-      }}
-      onBlur={(e) => {
-        if (e.currentTarget.contains(e.relatedTarget as Node | null)) {
-          if (e.target === e.currentTarget) setFocused(false);
-          return;
-        }
-        setFocused(false);
-        setHoverMove(null);
-      }}
+      data-testid="move-table-scroller"
       className={cn(
-        "@container relative h-full min-h-0 overflow-y-auto overscroll-contain outline-none [scrollbar-gutter:stable] [scrollbar-width:thin] focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
+        "@container relative h-full min-h-0 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin]",
         className,
       )}
     >
-      <table className="w-full table-fixed border-separate border-spacing-0 text-left text-sm">
+      <table
+        role="grid"
+        data-local-keys
+        tabIndex={0}
+        aria-label="Candidate moves. Use up and down arrows to select, Enter to play."
+        aria-activedescendant={focused && rows.length && !empty ? `move-row-${idx}` : undefined}
+        aria-busy={inert}
+        onKeyDown={onKeyDown}
+        onFocus={(e) => {
+          if (e.target === e.currentTarget) setFocused(true);
+        }}
+        onBlur={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            if (e.target === e.currentTarget) setFocused(false);
+            return;
+          }
+          setFocused(false);
+          setHoverMove(null);
+        }}
+        className="w-full table-fixed border-separate border-spacing-0 text-left text-sm outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring/60"
+      >
         <thead className="sticky top-0 z-10">
           <tr className="h-7 bg-muted text-xs text-muted-foreground [&>th]:border-b">
             <Th k="move" label="Move" className={COL.move} />
@@ -246,6 +246,19 @@ export function MoveTable({ className }: { className?: string }) {
         )}
       </table>
 
+      {failed && (
+        <div className="absolute inset-x-0 top-7 bottom-0 flex flex-col items-center justify-center gap-3 px-4 text-center" role="alert">
+          <AlertTriangle className="size-6 text-muted-foreground" />
+          <div>
+            <p className="font-medium">Couldn&apos;t load your games</p>
+            <p className="text-sm text-muted-foreground">Something went wrong while reading the saved games. Try again.</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={retryLoad}>
+            <RotateCcw /> Retry
+          </Button>
+        </div>
+      )}
+
       {empty && (
         <div className="absolute inset-x-0 top-7 bottom-0 flex flex-col items-center justify-center gap-3 px-4 text-center">
           {noGames && filterCount === 0 && otherCount > 0 ? (
@@ -270,7 +283,7 @@ export function MoveTable({ className }: { className?: string }) {
           ) : (
             <>
               <div>
-                <p className="font-medium">{outOfBook ? "Out of book" : "No moves found"}</p>
+                <p className="font-medium">{outOfBook ? "No games here" : "No moves found"}</p>
                 <p className="text-sm text-muted-foreground">
                   {outOfBook
                     ? total > 0

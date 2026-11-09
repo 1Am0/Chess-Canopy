@@ -52,17 +52,17 @@ export function MoveRow({
       className={cn("h-8 cursor-pointer transition-colors even:bg-muted/45 hover:bg-accent/80", active && "bg-accent even:bg-accent")}
     >
       <td className={cn(COL.move, active && "shadow-[inset_2px_0_0_var(--color-primary)]")} title={openingName ?? undefined}>
-        <div className={cn("flex min-w-0 items-baseline gap-2", dim && "opacity-60")}>
+        <div className={cn("flex min-w-0 items-baseline gap-2", dim && "text-muted-foreground")}>
           <span className="shrink-0 font-mono text-sm font-semibold">{item.move}</span>
           {openingName && <span className="hidden min-w-0 truncate text-xs text-muted-foreground @md:inline">{openingName}</span>}
         </div>
       </td>
-      <td className={cn(COL.games, "text-[13px]", dim && "opacity-60")}>{compact(item.stats.total)}</td>
-      <td className={cn(COL.share, "text-xs text-muted-foreground", dim && "opacity-60")}>{shareLabel(item.stats.total, positionTotal)}</td>
-      <td className={cn(COL.bar, dim && "opacity-60")}>
+      <td className={cn(COL.games, "text-[13px]", dim && "text-muted-foreground")}>{compact(item.stats.total)}</td>
+      <td className={cn(COL.share, "text-xs text-muted-foreground")}>{shareLabel(item.stats.total, positionTotal)}</td>
+      <td className={cn(COL.bar, dim && "opacity-75")}>
         <WdbBar stats={item.stats} side={side} />
       </td>
-      <td className={cn(COL.score, "text-[13px] font-semibold", scoreTextClass(sc, item.stats.total), dim && "opacity-70")}>{pct(sc)}</td>
+      <td className={cn(COL.score, "text-[13px] font-semibold", scoreTextClass(sc, item.stats.total))}>{pct(sc)}</td>
     </tr>
   );
 }

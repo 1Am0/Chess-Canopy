@@ -33,8 +33,10 @@ function Field({ label, children, htmlFor }: { label: string; children: React.Re
 function numOrNull(v: string): number | null {
   if (v.trim() === "") return null;
   const n = Number(v);
-  return Number.isFinite(n) ? n : null;
+  return Number.isFinite(n) ? Math.max(0, Math.round(n)) : null;
 }
+
+const show = (n: number | null | undefined) => (n == null ? "" : String(n));
 
 function RatingRange({
   label,
@@ -49,13 +51,41 @@ function RatingRange({
   max: number | null | undefined;
   onChange: (min: number | null, max: number | null) => void;
 }) {
+  // The number boxes are drafts: they are applied on blur / Enter (typing "1500" must not
+  // apply 1, 15 and 150 on the way). The slider applies live and refreshes the drafts.
+  const [draft, setDraft] = useState({ min: show(min), max: show(max) });
+  const [seen, setSeen] = useState({ min, max });
+  if (seen.min !== min || seen.max !== max) {
+    setSeen({ min, max });
+    setDraft({ min: show(min), max: show(max) });
+  }
+  const dMin = numOrNull(draft.min);
+  const dMax = numOrNull(draft.max);
+  const inverted = dMin != null && dMax != null && dMin > dMax;
+  const errId = `${idBase}-err`;
+
+  const commit = () => {
+    let lo = dMin;
+    let hi = dMax;
+    if (lo != null && hi != null && lo > hi) [lo, hi] = [hi, lo]; // swap an inverted range
+    setDraft({ min: show(lo), max: show(hi) });
+    if (lo !== (min ?? null) || hi !== (max ?? null)) onChange(lo, hi);
+  };
+  const keys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commit();
+    }
+  };
+  const clamp = (n: number | null | undefined, fallback: number) => Math.min(R_MAX, Math.max(R_MIN, n ?? fallback));
+
   return (
     <Field label={label}>
       <Slider
         min={R_MIN}
         max={R_MAX}
         step={25}
-        value={[min ?? R_MIN, max ?? R_MAX]}
+        value={[clamp(min, R_MIN), clamp(max, R_MAX)]}
         onValueChange={([lo, hi]) => onChange(lo <= R_MIN ? null : lo, hi >= R_MAX ? null : hi)}
         aria-label={label}
       />
@@ -66,8 +96,12 @@ function RatingRange({
           inputMode="numeric"
           placeholder="Min"
           aria-label={`${label} minimum`}
-          value={min ?? ""}
-          onChange={(e) => onChange(numOrNull(e.target.value), max ?? null)}
+          aria-invalid={inverted || undefined}
+          aria-describedby={inverted ? errId : undefined}
+          value={draft.min}
+          onChange={(e) => setDraft((d) => ({ ...d, min: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={keys}
         />
         <span className="text-muted-foreground">–</span>
         <Input
@@ -76,10 +110,19 @@ function RatingRange({
           inputMode="numeric"
           placeholder="Max"
           aria-label={`${label} maximum`}
-          value={max ?? ""}
-          onChange={(e) => onChange(min ?? null, numOrNull(e.target.value))}
+          aria-invalid={inverted || undefined}
+          aria-describedby={inverted ? errId : undefined}
+          value={draft.max}
+          onChange={(e) => setDraft((d) => ({ ...d, max: e.target.value }))}
+          onBlur={commit}
+          onKeyDown={keys}
         />
       </div>
+      {inverted && (
+        <p id={errId} role="alert" className="text-xs text-destructive">
+          Min is above max. The two values will be swapped.
+        </p>
+      )}
     </Field>
   );
 }
@@ -102,12 +145,12 @@ function OpponentCombobox() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between font-normal">
+        <Button variant="outline" role="combobox" aria-label="Opponent" aria-expanded={open} className="w-full justify-between font-normal">
           <span className={opponent ? "" : "text-muted-foreground"}>{opponent || "Any opponent"}</span>
           <ChevronsUpDown className="size-3.5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start" aria-label="Opponents">
         <Command shouldFilter={false}>
           <CommandInput placeholder="Search opponents…" value={q} onValueChange={setQ} />
           <CommandList>
@@ -134,6 +177,36 @@ function OpponentCombobox() {
   );
 }
 
+function RawTimeControl({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
+  const [draft, setDraft] = useState(value);
+  const [seen, setSeen] = useState(value);
+  if (seen !== value) {
+    setSeen(value);
+    setDraft(value);
+  }
+  // Trimmed only when applied, so a space typed in the middle is never swallowed.
+  const commit = () => {
+    const v = draft.trim();
+    setDraft(v);
+    if (v !== value) onCommit(v);
+  };
+  return (
+    <Input
+      placeholder="Raw time control, e.g. 180+2"
+      aria-label="Raw time control"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          commit();
+        }
+      }}
+    />
+  );
+}
+
 const PRESETS = [[30, "30 days"], [90, "90 days"], [365, "1 year"]] as const;
 
 function datePreset(f: Filters): number | "all" | "custom" {
@@ -153,6 +226,9 @@ export function FilterSheet() {
   const preset = datePreset(filters);
 
   const patch = (p: Partial<Filters>) => setFilters(p);
+  // ISO dates compare as strings; an inverted range is swapped instead of matching nothing.
+  const patchDates = (from: string | null, to: string | null) =>
+    patch(from && to && from > to ? { date_preset: null, date_from: to, date_to: from } : { date_preset: null, date_from: from, date_to: to });
 
   return (
     <Sheet open={open} onOpenChange={(o) => setUi({ filtersOpen: o })}>
@@ -197,12 +273,7 @@ export function FilterSheet() {
                 );
               })}
             </div>
-            <Input
-              placeholder="Raw time control, e.g. 180+2"
-              aria-label="Raw time control"
-              value={filters.time_control_raw ?? ""}
-              onChange={(e) => patch({ time_control_raw: e.target.value.trim() || null })}
-            />
+            <RawTimeControl value={filters.time_control_raw ?? ""} onCommit={(v) => patch({ time_control_raw: v || null })} />
           </Field>
 
           <RatingRange
@@ -237,8 +308,8 @@ export function FilterSheet() {
               ))}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Input type="date" aria-label="From date" value={filters.date_from ?? ""} onChange={(e) => patch({ date_preset: null, date_from: e.target.value || null })} />
-              <Input type="date" aria-label="To date" value={filters.date_to ?? ""} onChange={(e) => patch({ date_preset: null, date_to: e.target.value || null })} />
+              <Input type="date" aria-label="From date" value={filters.date_from ?? ""} onChange={(e) => patchDates(e.target.value || null, filters.date_to ?? null)} />
+              <Input type="date" aria-label="To date" value={filters.date_to ?? ""} onChange={(e) => patchDates(filters.date_from ?? null, e.target.value || null)} />
             </div>
           </Field>
 

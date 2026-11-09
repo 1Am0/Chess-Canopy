@@ -39,7 +39,7 @@ export function PositionSummary({ className }: { className?: string }) {
             <span className="text-sm text-muted-foreground">{total === 1 ? "game" : "games"}</span>
             <span aria-hidden className="text-muted-foreground">·</span>
             <span className={cn("text-sm font-semibold tabular-nums", scoreTextClass(sc, total))}>{total ? pct(sc) : "–"}</span>
-            <span className="text-sm text-muted-foreground">score</span>
+            <span className="sr-only text-sm text-muted-foreground sm:not-sr-only">score</span>
           </p>
         ) : (
           <Skeleton className="h-4 w-40" />
