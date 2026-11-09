@@ -37,6 +37,8 @@ export function GamesList({ className, active = true }: { className?: string; ac
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [limit, setLimit] = useState(LIMIT);
+  const lastKey = useRef("");
   const scroller = useRef<HTMLDivElement>(null);
   const fetched = useRef("");
   const summary = useExplorerStore((s) => s.summary);
@@ -49,21 +51,30 @@ export function GamesList({ className, active = true }: { className?: string; ac
   // when the position / selection changed since the last fetch.
   useEffect(() => {
     if (!active || selectionVersion === 0) return;
-    const stamp = `${key}|${selectionVersion}|${attempt}`;
+    // A new position or selection starts again at one page; "Show more" only grows the limit.
+    const base = `${key}|${selectionVersion}`;
+    if (lastKey.current !== base) {
+      lastKey.current = base;
+      if (limit !== LIMIT) {
+        setLimit(LIMIT);
+        return;
+      }
+    }
+    const stamp = `${base}|${attempt}|${limit}`;
     if (fetched.current === stamp) return;
     fetched.current = stamp;
     let stale = false;
     let finished = false;
     setLoading(true);
     getExplorer()
-      .gamesAt(visible, LIMIT)
+      .gamesAt(visible, limit)
       .then((g) => {
         finished = true;
         if (stale) return;
         setGames(g);
         setFailed(false);
         setLoading(false);
-        if (scroller.current) scroller.current.scrollTop = 0;
+        if (scroller.current && limit === LIMIT) scroller.current.scrollTop = 0;
       })
       .catch(() => {
         finished = true;
@@ -78,7 +89,7 @@ export function GamesList({ className, active = true }: { className?: string; ac
       if (!finished && fetched.current === stamp) fetched.current = "";
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, selectionVersion, active, attempt]);
+  }, [key, selectionVersion, active, attempt, limit]);
 
   const other = side === "white" ? "black" : "white";
   const otherCount = summary?.counts[other] ?? 0;
@@ -198,6 +209,13 @@ export function GamesList({ className, active = true }: { className?: string; ac
             </li>
           );
         })}
+        {!failed && games && positionTotal != null && games.length >= limit && positionTotal > games.length && (
+          <li className="flex h-9 items-center justify-center">
+            <Button size="sm" variant="ghost" disabled={loading} onClick={() => setLimit((n) => n + LIMIT)}>
+              Show {Math.min(LIMIT, positionTotal - games.length)} more
+            </Button>
+          </li>
+        )}
       </ul>
     </div>
   );

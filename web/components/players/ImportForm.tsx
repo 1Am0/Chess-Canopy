@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { FileUp } from "lucide-react";
-import { toast } from "sonner";
 import type { ImportRequest } from "@/lib/engine/types";
 import { useSharedImport } from "@/components/players/ImportProvider";
 import { ImportProgress } from "@/components/players/ImportProgress";
@@ -68,14 +67,8 @@ export function ImportForm({ initialTab = "chess.com", onDone, idPrefix = "imp" 
     if (!canSubmit) return;
     let req: ImportRequest;
     if (isFile) {
-      let text: string;
-      try {
-        text = await (file as File).text();
-      } catch {
-        toast.error("Could not read that file");
-        return;
-      }
-      req = tab === "pgn" ? { kind: "pgn", username: username.trim(), text } : { kind: "json", username: username.trim() || labelFromFileName((file as File).name), text };
+      const f = file as File;
+      req = tab === "pgn" ? { kind: "pgn", username: username.trim(), file: f } : { kind: "json", username: username.trim() || labelFromFileName(f.name), file: f };
     } else {
       req = { kind: tab as "chess.com" | "lichess", username: username.trim() };
     }

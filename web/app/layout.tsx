@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], preload: false, variable: "--font-jetbrains-mono" });
 
 export const metadata: Metadata = {
   title: "Chess Canopy",
