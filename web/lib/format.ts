@@ -1,4 +1,5 @@
 import type { Source, Stats } from "@/lib/engine/types";
+import { classifyResult } from "@/lib/engine/trie";
 
 export function pct(n: number, digits = 0): string {
   if (!Number.isFinite(n)) return "–";
@@ -45,10 +46,10 @@ export function isoDaysAgo(days: number, now: number = Date.now()): string {
   return new Date(now - days * 86_400_000).toISOString().slice(0, 10);
 }
 
+/** Player-perspective result label; accepts every token classifyResult does (unknown: "Draw"). */
 export function resultLabel(result: string): "Win" | "Draw" | "Loss" {
-  if (result === "1-0") return "Win";
-  if (result === "0-1") return "Loss";
-  return "Draw";
+  const kind = classifyResult(result);
+  return kind === "win" ? "Win" : kind === "loss" ? "Loss" : "Draw";
 }
 
 export function splitOpeningName(name: string): string[] {
@@ -56,19 +57,4 @@ export function splitOpeningName(name: string): string[] {
     .split(/[:,]/)
     .map((s) => s.trim())
     .filter(Boolean);
-}
-
-export interface TrailEntry {
-  index: number;
-  san: string;
-  /** "1." for white moves, "1…" for a black move that starts the line */
-  number: string | null;
-}
-
-export function buildTrail(path: string[]): TrailEntry[] {
-  return path.map((san, index) => {
-    const moveNo = Math.floor(index / 2) + 1;
-    const white = index % 2 === 0;
-    return { index, san, number: white ? `${moveNo}.` : index === 0 ? `${moveNo}…` : null };
-  });
 }
