@@ -13,12 +13,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useExplorerStore, type BoardTheme } from "@/lib/store";
+import { BOARD_THEMES } from "@/lib/board-themes";
 
-const BOARDS: { id: BoardTheme; label: string; colors: [string, string] }[] = [
-  { id: "green", label: "Green", colors: ["#eeeed2", "#769656"] },
-  { id: "brown", label: "Brown", colors: ["#f0d9b5", "#b58863"] },
-  { id: "blue", label: "Blue", colors: ["#dee3e6", "#8ca2ad"] },
-  { id: "slate", label: "Slate", colors: ["#c8ccd4", "#5d6b82"] },
+const BOARDS: { id: BoardTheme; label: string }[] = [
+  { id: "green", label: "Green" },
+  { id: "brown", label: "Brown" },
+  { id: "blue", label: "Blue" },
+  { id: "slate", label: "Slate" },
 ];
 
 export function ThemeToggle() {
@@ -48,8 +49,8 @@ export function ThemeToggle() {
         {BOARDS.map((b) => (
           <DropdownMenuItem key={b.id} onSelect={() => setBoardTheme(b.id)}>
             <span className="flex size-4 overflow-hidden rounded-sm border">
-              <span className="w-1/2" style={{ background: b.colors[0] }} />
-              <span className="w-1/2" style={{ background: b.colors[1] }} />
+              <span className="w-1/2" style={{ background: BOARD_THEMES[b.id].light }} />
+              <span className="w-1/2" style={{ background: BOARD_THEMES[b.id].dark }} />
             </span>
             {b.label}
             {boardTheme === b.id && <Check className="ml-auto" />}

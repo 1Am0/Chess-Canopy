@@ -133,12 +133,12 @@ export function ExplorerBoard() {
           : "radial-gradient(circle, rgba(20,20,20,0.28) 21%, transparent 23%)",
       );
     }
-    if (selected) add(selected, overlay("rgba(59,130,246,0.5)"));
+    if (selected) add(selected, overlay("color-mix(in oklab, var(--highlight-selected) 50%, transparent)"));
     if (lastMove) {
       for (const sq of [lastMove.from, lastMove.to]) {
         // a1 is dark: file+rank parity even => dark square.
         const dark = (sq.charCodeAt(0) - 97 + Number(sq[1]) - 1) % 2 === 0;
-        add(sq, overlay(dark ? "rgba(255,224,0,0.68)" : "rgba(255,235,59,0.45)"));
+        add(sq, overlay(`color-mix(in oklab, var(--highlight-last) ${dark ? 65 : 45}%, transparent)`));
       }
     }
     const s: Record<string, React.CSSProperties> = {};

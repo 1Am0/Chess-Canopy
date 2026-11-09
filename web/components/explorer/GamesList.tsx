@@ -13,9 +13,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 const RESULT_STYLE = {
-  Win: "bg-win/15 text-win",
-  Draw: "bg-draw/20 text-muted-foreground",
-  Loss: "bg-loss/15 text-loss",
+  Win: "bg-win/15 text-win-text",
+  Draw: "bg-draw/20 text-draw-text",
+  Loss: "bg-loss/15 text-loss-text",
 } as const;
 
 export function GamesList() {

@@ -28,6 +28,7 @@ const COLORS = {
   candidate: "var(--arrow-candidate, rgb(21 101 192))",
   hover: "var(--arrow-preview, rgb(245 158 11))",
 };
+const HALO = "rgba(255,255,255,0.55)";
 const BOARD_LIGHT = "var(--board-light, #f0d9b5)";
 const BOARD_DARK = "var(--board-dark, #b58863)";
 
@@ -190,6 +191,16 @@ export function BoardOverlay({ orientation, arrows }: Props) {
                   style={{ stroke: ringColor(a.score), opacity: 0.6 }}
                 />
               )}
+              {/* Thin light halo beneath the arrow so it reads on dark squares. */}
+              <path
+                d={g.d}
+                fill="none"
+                strokeWidth={a.width + 4}
+                strokeLinejoin="round"
+                strokeLinecap="butt"
+                style={{ stroke: HALO }}
+              />
+              <polygon points={g.head} strokeWidth={4} strokeLinejoin="round" style={{ fill: HALO, stroke: HALO }} />
               <path
                 d={g.d}
                 fill="none"
