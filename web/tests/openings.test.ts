@@ -41,3 +41,13 @@ describe("openingCount", () => {
     expect(openingCount()).toBeGreaterThan(3000);
   });
 });
+
+describe("lookupOpening with check marks (C6)", () => {
+  it("finds lines whose index key contains a check", () => {
+    expect(lookupOpening(["e4", "c5", "Nf3", "d6", "Bb5+"])).toMatchObject({ eco: "B51" });
+    expect(lookupOpening(["e4", "c5", "Nf3", "d6", "Bb5"])).toMatchObject({ eco: "B51" });
+  });
+  it("finds Fool's Mate (a '#' key)", () => {
+    expect(lookupOpening(["f3", "e5", "g4", "Qh4#"])?.name).toBe("Barnes Opening: Fool's Mate");
+  });
+});

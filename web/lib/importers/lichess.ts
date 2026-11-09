@@ -1,5 +1,7 @@
 import type { Color, Game } from "../engine/types";
 import { abortError, HttpError, isoDateFromMs } from "./common";
+import { isStandardPlay, isStandardVariant, isStartFen } from "./standard";
+import { lichessSpeedLabel, lichessTimeControlLabel } from "./timeControl";
 
 export interface LichessRawPlayer {
   user?: { name?: string; id?: string };
@@ -19,6 +21,18 @@ export interface LichessRawGame {
   players?: { white?: LichessRawPlayer; black?: LichessRawPlayer };
   clock?: { initial?: number; increment?: number };
   daysPerTurn?: number;
+  /** Present for games that started from a custom position */
+  initialFen?: string;
+}
+
+/** Still being played (correspondence / in progress): not stored, and the sync watermark stops before it. */
+export function isOngoing(obj: LichessRawGame): boolean {
+  return obj.status === "created" || obj.status === "started";
+}
+
+/** Finished without a result (aborted, never started): nothing to count. */
+export function isUnfinished(obj: LichessRawGame): boolean {
+  return isOngoing(obj) || obj.status === "aborted" || obj.status === "noStart" || obj.status === "unknownFinish";
 }
 
 export interface FetchLichessOptions {
@@ -60,10 +74,21 @@ export async function* readLines(body: ReadableStream<Uint8Array>, signal?: Abor
   }
 }
 
-/** Stream a user's games as raw NDJSON objects (newest first). */
+/**
+ * Stream a user's games as raw NDJSON objects, oldest first (`sort=dateAsc`), including
+ * ongoing games (`ongoing=true`) so the caller can stop its watermark before them.
+ */
 export async function* fetchLichessGames(username: string, opts: FetchLichessOptions = {}): AsyncGenerator<LichessRawGame> {
   const f = opts.fetchImpl ?? ((...a: Parameters<typeof fetch>) => fetch(...a));
-  const params = new URLSearchParams({ moves: "true", clocks: "false", evals: "false", opening: "false", pgnInJson: "false" });
+  const params = new URLSearchParams({
+    moves: "true",
+    clocks: "false",
+    evals: "false",
+    opening: "false",
+    pgnInJson: "false",
+    sort: "dateAsc",
+    ongoing: "true",
+  });
   if (opts.since != null) params.set("since", String(opts.since));
   const url = `https://lichess.org/api/games/user/${encodeURIComponent(username.trim())}?${params}`;
   const res = await f(url, { signal: opts.signal, headers: { Accept: "application/x-ndjson" } });
@@ -86,8 +111,6 @@ export async function* fetchLichessGames(username: string, opts: FetchLichessOpt
     }
   }
 }
-
-const SPEED_MAP: Record<string, string> = { ultraBullet: "bullet", correspondence: "daily" };
 
 function terminationOf(status: string | undefined): string {
   switch (status) {
@@ -113,10 +136,18 @@ function nameOf(p: LichessRawPlayer | undefined): string {
   return "Anonymous";
 }
 
-/** Parse one Lichess NDJSON game. Returns null for non-standard variants or missing id. */
+/**
+ * Parse one Lichess NDJSON game. Returns null for a missing id and for anything that is not
+ * standard chess from the initial position (variant, initialFen, or moves that do not replay).
+ * Unfinished games come back with result "*"; the service does not store them.
+ */
 export function parseLichessGame(obj: LichessRawGame, username: string): Game | null {
   if (!obj.id) return null;
-  if (obj.variant && obj.variant !== "standard") return null;
+  if (!isStandardVariant(obj.variant)) return null;
+  if (obj.initialFen && !isStartFen(obj.initialFen)) return null;
+  const movesStr = (obj.moves ?? "").trim();
+  const moves = movesStr ? movesStr.split(/\s+/) : [];
+  if (!isStandardPlay(moves)) return null;
   const userL = username.trim().toLowerCase();
   const white = nameOf(obj.players?.white);
   const black = nameOf(obj.players?.black);
@@ -129,24 +160,25 @@ export function parseLichessGame(obj: LichessRawGame, username: string): Game | 
   else if (["aborted", "noStart", "created", "started", "unknownFinish"].includes(obj.status ?? "")) result = "*";
   else result = "1/2-1/2";
 
+  // Raw control in the same form as the Python CLI: "base+inc", "1/<seconds>" for days per
+  // move, "-" for unlimited correspondence.
   let tcRaw = "";
   if (obj.clock && obj.clock.initial != null) tcRaw = `${obj.clock.initial}+${obj.clock.increment ?? 0}`;
   else if (obj.daysPerTurn) tcRaw = `1/${obj.daysPerTurn * 86400}`;
+  else if (obj.speed === "correspondence") tcRaw = "-";
 
-  const speed = obj.speed ?? "";
   const rating = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
-  const movesStr = (obj.moves ?? "").trim();
 
   return {
     game_id: obj.id,
-    moves: movesStr ? movesStr.split(/\s+/) : [],
+    moves,
     result,
     color,
     date: obj.createdAt != null ? isoDateFromMs(obj.createdAt) : "",
     opponent: color === "white" ? black : white,
     my_rating: rating(me?.rating),
     opponent_rating: rating(opp?.rating),
-    time_control: SPEED_MAP[speed] ?? speed,
+    time_control: lichessSpeedLabel(obj.speed) ?? lichessTimeControlLabel(tcRaw),
     time_control_raw: tcRaw,
     termination: terminationOf(obj.status),
     url: `https://lichess.org/${obj.id}`,

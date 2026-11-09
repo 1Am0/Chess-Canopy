@@ -37,11 +37,12 @@ export function formatDate(iso: string): string {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-export function isoDaysAgo(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - days);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+/**
+ * The UTC calendar date `days` days ago, "YYYY-MM-DD". Game dates are UTC (chess.com
+ * end_time, Lichess createdAt, PGN UTCDate), so presets are computed in UTC as well.
+ */
+export function isoDaysAgo(days: number, now: number = Date.now()): string {
+  return new Date(now - days * 86_400_000).toISOString().slice(0, 10);
 }
 
 export function resultLabel(result: string): "Win" | "Draw" | "Loss" {

@@ -1,6 +1,7 @@
 import type { Color, Game } from "../engine/types";
 import { abortError, HttpError, isoDateFromMs, lastSegment, sleep } from "./common";
 import { extractSanMoves, parsePgnHeaders } from "./san";
+import { isStandardHeaders, isStandardPlay, isStandardVariant, isStartFen } from "./standard";
 import { timeControlLabel } from "./timeControl";
 
 export interface ChessComPlayerSide {
@@ -16,6 +17,8 @@ export interface ChessComRawGame {
   time_class?: string;
   end_time?: number;
   rules?: string;
+  /** FEN the game started from (the standard start FEN for normal games) */
+  initial_setup?: string;
   white?: ChessComPlayerSide;
   black?: ChessComPlayerSide;
 }
@@ -51,6 +54,35 @@ export interface ChessComFetchResult {
 }
 
 
+/** Retry-After (seconds or an HTTP date) in ms, or null. */
+function retryAfterMs(res: Response): number | null {
+  const v = res.headers?.get?.("retry-after");
+  if (!v) return null;
+  const secs = Number(v);
+  if (Number.isFinite(secs)) return Math.max(0, secs * 1000);
+  const at = Date.parse(v);
+  return Number.isFinite(at) ? Math.max(0, at - Date.now()) : null;
+}
+
+async function bodyText(res: Response): Promise<string> {
+  try {
+    const t = (await res.text()).trim();
+    if (!t) return "";
+    // JSON error bodies look like {"code":0,"message":"..."}
+    let j: { message?: unknown } | null = null;
+    try {
+      j = JSON.parse(t) as { message?: unknown };
+    } catch {
+      return t.slice(0, 200); // plain text
+    }
+    return typeof j?.message === "string" ? j.message.slice(0, 200) : "";
+  } catch {
+    return "";
+  }
+}
+
+const MAX_DELAY_MS = 30_000;
+
 async function fetchJson(url: string, o: Required<Pick<FetchChessComOptions, "maxTries" | "baseDelayMs">> & {
   fetchImpl: typeof fetch;
   sleepImpl: (ms: number, signal?: AbortSignal) => Promise<void>;
@@ -59,66 +91,101 @@ async function fetchJson(url: string, o: Required<Pick<FetchChessComOptions, "ma
   let lastErr: unknown;
   for (let attempt = 0; attempt < o.maxTries; attempt++) {
     if (o.signal?.aborted) throw abortError();
+    let wait = Math.min(MAX_DELAY_MS, o.baseDelayMs * 2 ** attempt);
     try {
       const res = await o.fetchImpl(url, { signal: o.signal, headers: { Accept: "application/json" } });
       if (res.ok) return await res.json();
-      const err = new HttpError(res.status, `chess.com request failed (${res.status}) for ${url}`);
-      if (res.status === 429 || res.status >= 500) lastErr = err;
-      else throw err;
+      const body = await bodyText(res);
+      const err = new HttpError(res.status, `chess.com request failed (${res.status})${body ? `: ${body}` : ""}`, body);
+      // Only rate limiting and server errors are worth retrying; 403/404 are final.
+      if (res.status !== 429 && res.status < 500) throw err;
+      lastErr = err;
+      const ra = retryAfterMs(res);
+      if (ra !== null) wait = Math.min(60_000, Math.max(wait, ra));
     } catch (e) {
       if (o.signal?.aborted || (e instanceof Error && e.name === "AbortError")) throw abortError();
       if (e instanceof HttpError && e.status !== 429 && e.status < 500) throw e;
       lastErr = e;
     }
-    if (attempt < o.maxTries - 1) await o.sleepImpl(o.baseDelayMs * 2 ** attempt, o.signal);
+    if (attempt < o.maxTries - 1) await o.sleepImpl(wait, o.signal);
   }
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
-/** Fetch all (or incremental) monthly archives for a chess.com user. */
+/**
+ * Fetch all (or incremental) monthly archives for a chess.com user. At most 2 archives are
+ * fetched at once (chess.com blocks heavier crawls with a 403); 429/5xx are retried with
+ * exponential backoff (honouring Retry-After), and the first failure cancels the other fetches.
+ */
 export async function fetchChessComGames(username: string, opts: FetchChessComOptions = {}): Promise<ChessComFetchResult> {
+  // One controller for this crawl, so a failing archive stops its siblings.
+  const crawl = new AbortController();
+  const onOuterAbort = () => crawl.abort();
+  if (opts.signal?.aborted) crawl.abort();
+  opts.signal?.addEventListener("abort", onOuterAbort, { once: true });
   const o = {
     fetchImpl: opts.fetchImpl ?? ((...a: Parameters<typeof fetch>) => fetch(...a)),
     sleepImpl: opts.sleepImpl ?? sleep,
-    signal: opts.signal,
-    maxTries: opts.maxTries ?? 4,
-    baseDelayMs: opts.baseDelayMs ?? 500,
+    signal: crawl.signal,
+    maxTries: opts.maxTries ?? 5,
+    baseDelayMs: opts.baseDelayMs ?? 1000,
   };
-  const user = encodeURIComponent(username.trim().toLowerCase());
-  const idx = (await fetchJson(`https://api.chess.com/pub/player/${user}/games/archives`, o)) as { archives?: string[] };
-  let archives = idx.archives ?? [];
-  const monthOf = (u: string) => u.split("/").slice(-2).join("/");
-  if (opts.sinceMonth) archives = archives.filter((u) => monthOf(u) >= opts.sinceMonth!);
-  const ordered = [...archives].reverse(); // newest first
-  const total = ordered.length;
-  const results: ChessComRawGame[][] = new Array(total);
-  let next = 0;
-  let done = 0;
-  let gameCount = 0;
-  const workers = Math.max(1, Math.min(opts.concurrency ?? 4, total));
+  try {
+    const user = encodeURIComponent(username.trim().toLowerCase());
+    const idx = (await fetchJson(`https://api.chess.com/pub/player/${user}/games/archives`, o)) as { archives?: string[] };
+    let archives = idx.archives ?? [];
+    const monthOf = (u: string) => u.split("/").slice(-2).join("/");
+    if (opts.sinceMonth) archives = archives.filter((u) => monthOf(u) >= opts.sinceMonth!);
+    const ordered = [...archives].reverse(); // newest first
+    const total = ordered.length;
+    const results: ChessComRawGame[][] = new Array(total);
+    let next = 0;
+    let done = 0;
+    let gameCount = 0;
+    const workers = Math.max(1, Math.min(opts.concurrency ?? 2, total));
+    let failure: unknown = null;
 
-  const run = async () => {
-    while (next < total) {
-      if (o.signal?.aborted) throw abortError();
-      const i = next++;
-      const data = (await fetchJson(ordered[i], o)) as { games?: ChessComRawGame[] };
-      const games = [...(data.games ?? [])].reverse();
-      results[i] = games;
-      done++;
-      gameCount += games.length;
-      opts.onProgress?.({ done, total, games: gameCount, month: monthOf(ordered[i]) });
-    }
-  };
-  await Promise.all(Array.from({ length: workers }, run));
-  return { games: results.flat(), lastMonth: total ? monthOf(ordered[0]) : null };
+    const run = async () => {
+      while (next < total && !failure) {
+        if (o.signal.aborted) throw abortError();
+        const i = next++;
+        try {
+          const data = (await fetchJson(ordered[i], o)) as { games?: ChessComRawGame[] };
+          const games = [...(data.games ?? [])].reverse();
+          results[i] = games;
+          done++;
+          gameCount += games.length;
+          opts.onProgress?.({ done, total, games: gameCount, month: monthOf(ordered[i]) });
+        } catch (e) {
+          if (!failure) failure = e;
+          crawl.abort();
+          throw e;
+        }
+      }
+    };
+    await Promise.allSettled(Array.from({ length: workers }, run));
+    if (opts.signal?.aborted) throw abortError();
+    if (failure) throw failure;
+    return { games: results.flat(), lastMonth: total ? monthOf(ordered[0]) : null };
+  } finally {
+    opts.signal?.removeEventListener("abort", onOuterAbort);
+  }
 }
 
-/** Parse one chess.com archive game into a Game. Returns null for non-standard variants or missing PGN. */
+/**
+ * Parse one chess.com archive game into a Game. Returns null for missing PGN and for anything
+ * that is not standard chess from the initial position (rules, initial_setup, SetUp/FEN, or
+ * moves that do not replay legally).
+ */
 export function parseChessComGame(raw: ChessComRawGame, username: string): Game | null {
-  if (raw.rules && raw.rules !== "chess") return null;
+  if (!isStandardVariant(raw.rules)) return null;
+  if (raw.initial_setup && !isStartFen(raw.initial_setup)) return null;
   const pgn = raw.pgn;
   if (!pgn) return null;
   const headers = parsePgnHeaders(pgn);
+  if (!isStandardHeaders(headers)) return null;
+  const moves = extractSanMoves(pgn);
+  if (!isStandardPlay(moves, headers.Termination)) return null;
   const userL = username.trim().toLowerCase();
   const whiteName = raw.white?.username ?? headers.White ?? "";
   const color: Color = whiteName.toLowerCase() === userL ? "white" : "black";
@@ -146,7 +213,7 @@ export function parseChessComGame(raw: ChessComRawGame, username: string): Game 
 
   return {
     game_id,
-    moves: extractSanMoves(pgn),
+    moves,
     result,
     color,
     date,

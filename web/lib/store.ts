@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Color, Filters, Player, QueryResult, SelectionSummary } from "@/lib/engine/types";
+import { canonicalLine, legalSan, linePositions } from "@/lib/position-cache";
 
 export type BoardTheme = "green" | "brown" | "blue" | "slate";
 
@@ -68,12 +69,14 @@ export interface ExplorerState {
   bumpSelection: () => void;
   setUi: (patch: Partial<Pick<ExplorerState, "importOpen" | "filtersOpen" | "shortcutsOpen" | "managerOpen">>) => void;
 
+  /** Play a move at the cursor. Illegal input is ignored (never clears the line); SAN is stored as chess.js SAN. */
   playMove: (san: string) => void;
   undo: () => void;
   redo: () => void;
   toStart: () => void;
   toEnd: () => void;
   goTo: (cursor: number) => void;
+  /** Replace the line with the legal prefix of `moves` (chess.js SAN). */
   setLine: (moves: string[]) => void;
   flip: () => void;
   /** Explicit side switch: sets the viewed color + board orientation; keeps the current line. */
@@ -111,6 +114,9 @@ export const useExplorerStore = create<ExplorerState>()(
       setFilters: (patch) =>
         set((s) => {
           const filters: Filters = { ...s.filters, ...patch };
+          // The move-slice filter is CLI-only: a start slice detaches the tree from the board.
+          delete filters.moves_start;
+          delete filters.moves_end;
           for (const k of Object.keys(filters) as (keyof Filters)[]) {
             const v = filters[k];
             if (v === null || v === undefined || v === "" || (typeof v === "number" && Number.isNaN(v))) delete filters[k];
@@ -131,10 +137,14 @@ export const useExplorerStore = create<ExplorerState>()(
 
       playMove: (san) =>
         set((s) => {
+          const lp = linePositions(s.path);
+          const at = Math.min(s.cursor, lp.sans.length);
+          const move = legalSan(lp.fens[at], san);
+          if (move === null) return s; // illegal here (e.g. a click on a stale table): no-op
           // Re-playing the next move of the redo branch keeps the rest of it.
-          if (s.path[s.cursor] === san) return { cursor: s.cursor + 1, hoverMove: null };
-          const path = s.path.slice(0, s.cursor);
-          path.push(san);
+          if (s.path[at] === move) return { cursor: at + 1, hoverMove: null };
+          const path = s.path.slice(0, at);
+          path.push(move);
           return { path, cursor: path.length, hoverMove: null };
         }),
       undo: () => set((s) => (s.cursor > 0 ? { cursor: s.cursor - 1, hoverMove: null } : s)),
@@ -142,7 +152,10 @@ export const useExplorerStore = create<ExplorerState>()(
       toStart: () => set({ cursor: 0, hoverMove: null }),
       toEnd: () => set((s) => ({ cursor: s.path.length, hoverMove: null })),
       goTo: (cursor) => set((s) => ({ cursor: Math.max(0, Math.min(cursor, s.path.length)), hoverMove: null })),
-      setLine: (moves) => set({ path: moves, cursor: moves.length, hoverMove: null }),
+      setLine: (moves) => {
+        const path = canonicalLine(moves);
+        set({ path, cursor: path.length, hoverMove: null });
+      },
       flip: () => set({ orientation: get().orientation === "white" ? "black" : "white" }),
       // The line is kept (any legal line is valid for either side); only the side and
       // the board orientation change, so the board and the line panel stay put.
@@ -159,18 +172,8 @@ export const useExplorerStore = create<ExplorerState>()(
     {
       name: "chess-canopy:v1",
       storage: safeStorage,
-      version: 1,
-      migrate: (persisted) => {
-        const p = (persisted ?? {}) as Partial<ExplorerState>;
-        const color: Color = p.filters?.color === "black" ? "black" : "white";
-        const explicit = p.filters?.color === "white" || p.filters?.color === "black";
-        return {
-          ...p,
-          filters: { ...(p.filters ?? {}), color },
-          orientation: explicit ? color : "white",
-          sideChosen: explicit,
-        } as ExplorerState;
-      },
+      version: 2,
+      migrate: migratePersisted,
       skipHydration: true,
       partialize: (s) => ({
         selected: s.selected,
@@ -192,14 +195,53 @@ export function effectiveSelection(selected: string[] | "all", players: Player[]
 }
 
 
-/** Number of active filters; the viewed side is not a filter. */
+/** Number of active filters; the viewed side is not a filter (nor the CLI-only move slice). */
 export function activeFilterCount(f: Filters): number {
-  // Rating / date / move ranges count as one filter each, not per bound.
+  // Rating / date ranges count as one filter each, not per bound.
   let n = 0;
   for (const k of ["result", "opponent", "time_control", "time_control_raw"] as const) if (f[k]) n++;
-  if (f.date_from || f.date_to) n++;
+  if (f.date_from || f.date_to || f.date_preset) n++;
   if (f.min_my_rating != null || f.max_my_rating != null) n++;
   if (f.min_opponent_rating != null || f.max_opponent_rating != null) n++;
-  if (f.moves_start != null || f.moves_end != null) n++;
   return n;
+}
+
+/** Filters as sent to the worker: the CLI-only move slice is never sent from the UI. */
+export function selectionFilters(f: Filters): Filters {
+  const out: Filters = { ...f };
+  delete out.moves_start;
+  delete out.moves_end;
+  return out;
+}
+
+/**
+ * True when the shown query result belongs to the current position. While it is false the
+ * move table shows the previous position's rows (dimmed) and must not play them.
+ */
+export function isResultFresh(s: Pick<ExplorerState, "result" | "path" | "cursor">): boolean {
+  if (!s.result) return false;
+  const visible = s.path.slice(0, s.cursor);
+  return s.result.path.length === visible.length && s.result.path.every((m, i) => m === visible[i]);
+}
+
+/**
+ * Persisted-state migrations.
+ * - v0 -> v1: the side became explicit (filters.color always set).
+ * - v1 -> v2: drop the move-range filter (`moves_start`/`moves_end`), which the UI no longer
+ *   offers; a stored start value made every root move illegal from the start position.
+ */
+export function migratePersisted(persisted: unknown, version: number): ExplorerState {
+  let p = { ...((persisted ?? {}) as Partial<ExplorerState>) };
+  if (version < 1) {
+    const color: Color = p.filters?.color === "black" ? "black" : "white";
+    const explicit = p.filters?.color === "white" || p.filters?.color === "black";
+    p = { ...p, filters: { ...(p.filters ?? {}), color }, orientation: explicit ? color : "white", sideChosen: explicit };
+  }
+  if (version < 2 && p.filters) {
+    const filters = { ...p.filters };
+    delete filters.moves_start;
+    delete filters.moves_end;
+    p = { ...p, filters };
+  }
+  return p as ExplorerState;
 }

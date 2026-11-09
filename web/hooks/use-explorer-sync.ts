@@ -1,10 +1,39 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { getExplorer } from "@/lib/explorer-client";
-import { effectiveSelection, useExplorerStore } from "@/lib/store";
+import type { Color, SelectionSummary } from "@/lib/engine/types";
+import { getExplorer, isExplorerRestart, onExplorerRestart } from "@/lib/explorer-client";
+import { activeFilterCount, effectiveSelection, selectionFilters, useExplorerStore } from "@/lib/store";
 import { usePosition, validateLine } from "@/hooks/use-position";
+
+/**
+ * Parse `?line=`: URLSearchParams turns a raw "+" into a space ("Bxf7+" -> "Bxf7 "), so
+ * spaces are mapped back before splitting; the legal prefix is kept as chess.js SAN.
+ */
+export function parseLineParam(raw: string | null): string[] {
+  if (!raw) return [];
+  return validateLine(raw.replace(/ /g, "+").split(",").map((m) => m.trim()).filter(Boolean));
+}
+
+/**
+ * Side to view after a selection summary, or null to keep the current one.
+ * - Until the user picks a side: the side with more games (also when the current side has 0).
+ * - Afterwards: only when the current side has no games at all, the other side has some, and
+ *   no filter is active (so the player simply never played that color).
+ */
+export function autoSide(
+  summary: SelectionSummary,
+  cur: Color,
+  sideChosen: boolean,
+  filterCount: number,
+): Color | null {
+  const other: Color = cur === "white" ? "black" : "white";
+  if (summary.counts.white + summary.counts.black === 0) return null;
+  if (!sideChosen) return summary.counts[other] > summary.counts[cur] ? other : null;
+  if (summary.counts[cur] === 0 && summary.counts[other] > 0 && filterCount === 0) return other;
+  return null;
+}
 
 export async function refreshPlayers() {
   const players = await getExplorer().listPlayers();
@@ -22,6 +51,21 @@ export function useExplorerSync() {
   const { key, visible } = usePosition();
   const urlRead = useRef(false);
   const queryId = useRef(0);
+  /** Latest setSelection request; older responses are ignored. */
+  const selReq = useRef(0);
+  /** A selection change is pending (debounce or in flight): position queries wait for it. */
+  const selPending = useRef(false);
+  /** Bumped when the worker crashed and was restarted, to re-apply the selection. */
+  const [restarts, setRestarts] = useState(0);
+
+  useEffect(
+    () =>
+      onExplorerRestart(() => {
+        toast.error("The explorer stopped unexpectedly and was restarted.");
+        setRestarts((n) => n + 1);
+      }),
+    [],
+  );
 
   // Bootstrap once on the client.
   useEffect(() => {
@@ -33,8 +77,11 @@ export function useExplorerSync() {
         /* ignore corrupt storage */
       }
       try {
-        const line = new URLSearchParams(window.location.search).get("line");
-        if (line) useExplorerStore.getState().setLine(validateLine(line.split(",").filter(Boolean)));
+        const params = new URLSearchParams(window.location.search);
+        const line = parseLineParam(params.get("line"));
+        if (line.length) useExplorerStore.getState().setLine(line);
+        const side = params.get("side");
+        if (side === "white" || side === "black") useExplorerStore.getState().setSide(side);
       } catch {
         /* ignore */
       }
@@ -69,33 +116,42 @@ export function useExplorerSync() {
   useEffect(() => {
     if (!ready) return;
     const st = useExplorerStore.getState();
+    const req = ++selReq.current;
     if (players.length === 0) {
+      selPending.current = false;
       st.setResult(null);
       st.setSummary(null);
       st.setResultLoading(false);
       return;
     }
+    selPending.current = true;
     st.setResultLoading(true);
     const t = setTimeout(async () => {
       try {
-        const summary = await getExplorer().setSelection(effectiveSelection(selected, players), filters);
+        const summary = await getExplorer().setSelection(effectiveSelection(selected, players), selectionFilters(filters));
+        if (req !== selReq.current) return; // a newer selection is on its way
+        selPending.current = false;
         const s = useExplorerStore.getState();
         s.setSummary(summary);
-        // One-time: if the user never chose a side, view the side with more games.
-        if (!s.sideChosen && summary.games > 0) {
-          const cur = s.filters.color ?? "white";
-          const other = cur === "white" ? "black" : "white";
-          if (summary.counts[other] > summary.counts[cur]) s.autoPickSide(other);
-          else useExplorerStore.setState({ sideChosen: true });
+        const cur = s.filters.color ?? "white";
+        const pick = autoSide(summary, cur, s.sideChosen, activeFilterCount(s.filters));
+        if (pick) {
+          // Changes filters.color, which re-runs this effect; the query follows that selection.
+          s.autoPickSide(pick);
+          return;
         }
+        if (!s.sideChosen && summary.counts.white + summary.counts.black > 0) useExplorerStore.setState({ sideChosen: true });
         s.bumpSelection();
       } catch (e) {
-        toast.error(`Could not apply filters: ${e instanceof Error ? e.message : String(e)}`);
+        if (req !== selReq.current) return;
+        selPending.current = false;
         useExplorerStore.getState().setResultLoading(false);
+        if (isExplorerRestart(e)) return; // re-applied after the restart
+        toast.error(`Could not apply filters: ${e instanceof Error ? e.message : String(e)}`);
       }
     }, 180);
     return () => clearTimeout(t);
-  }, [ready, players, selected, filters]);
+  }, [ready, players, selected, filters, restarts]);
 
   // Query the current position.
   useEffect(() => {
@@ -103,6 +159,9 @@ export function useExplorerSync() {
     const id = ++queryId.current;
     const st = useExplorerStore.getState();
     st.setResultLoading(true);
+    // A move during a filter change: the pending selection queries the latest position when
+    // it lands, so don't also query the old selection (stale counts, a second tree walk).
+    if (selPending.current) return;
     getExplorer()
       .query(visible)
       .then((r) => {
@@ -114,8 +173,14 @@ export function useExplorerSync() {
       .catch((e) => {
         if (id !== queryId.current) return;
         useExplorerStore.getState().setResultLoading(false);
+        if (isExplorerRestart(e)) return; // re-applied after the restart
         if (e instanceof Error && e.message.includes("Invalid move sequence")) {
-          useExplorerStore.getState().setLine([]);
+          // Keep the legal prefix rather than wiping the whole line.
+          const s = useExplorerStore.getState();
+          const legal = validateLine(s.path);
+          if (legal.length !== s.path.length || legal.some((m, i) => m !== s.path[i])) {
+            useExplorerStore.setState({ path: legal, cursor: Math.min(s.cursor, legal.length), hoverMove: null });
+          }
           return;
         }
         toast.error(`Query failed: ${e instanceof Error ? e.message : String(e)}`);

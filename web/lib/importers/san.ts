@@ -35,8 +35,13 @@ function cleanToken(raw: string): string | null {
   if (tok === "" || RESULTS.has(tok)) return null;
   tok = tok.replace(/[!?]+$/, ""); // annotations
   if (tok.startsWith("$")) return null;
-  if (/^0-0-0[+#]?$/.test(tok)) tok = tok.replace("0-0-0", "O-O-O");
-  else if (/^0-0[+#]?$/.test(tok)) tok = tok.replace("0-0", "O-O");
+  tok = tok.replace(/e\.p\.?$/, ""); // glued en-passant marker: "exd6e.p." -> "exd6"
+  if (tok === "") return null;
+  // Castling written with zeros or lower case: 0-0, o-o-o -> O-O, O-O-O.
+  const castle = /^([0oO])-\1(-\1)?([+#]?)$/.exec(tok);
+  if (castle) tok = (castle[2] ? "O-O-O" : "O-O") + castle[3];
+  // Promotion without "=" or with a lower-case piece: e8Q, exd8q -> e8=Q, exd8=Q.
+  tok = tok.replace(/^([a-h](?:x[a-h])?[18])=?([QRBNqrbn])([+#]?)$/, (_m, sq: string, pc: string, mark: string) => `${sq}=${pc.toUpperCase()}${mark}`);
   if (!/^[A-Za-z]/.test(tok) || !/^[A-Za-z0-9=+#-]+$/.test(tok)) return null;
   return tok;
 }

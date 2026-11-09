@@ -15,20 +15,24 @@ export function useImport() {
   const finish = useCallback(async (outcome: ImportOutcome) => {
     await refreshPlayers();
     const st = useExplorerStore.getState();
-    // Make sure the freshly imported player is part of the selection.
+    // Make sure the freshly imported player(s) are part of the selection.
     const eff = effectiveSelection(st.selected, st.players);
+    const ids = outcome.playerIds?.length ? outcome.playerIds : [outcome.playerId];
     if (eff === "all") {
       if (st.selected !== "all") st.setSelected("all"); // drop stale ids
-    } else if (!eff.includes(outcome.playerId)) {
-      st.setSelected([...eff, outcome.playerId]);
+    } else if (ids.some((id) => !eff.includes(id))) {
+      st.setSelected([...eff, ...ids.filter((id) => !eff.includes(id))]);
     } else if (eff.length !== st.selected.length) {
       st.setSelected(eff);
     }
     // players changed, so useExplorerSync re-applies the selection and re-queries.
+    const skipped = outcome.skipped
+      ? ` · skipped ${outcome.skipped.toLocaleString()} non-standard game${outcome.skipped === 1 ? "" : "s"}`
+      : "";
     toast.success(
       outcome.added > 0
-        ? `Imported ${outcome.added.toLocaleString()} new games (${outcome.total.toLocaleString()} total)`
-        : "Already up to date: no new games",
+        ? `Imported ${outcome.added.toLocaleString()} new games (${outcome.total.toLocaleString()} total)${skipped}`
+        : `Already up to date: no new games${skipped}`,
     );
   }, []);
 

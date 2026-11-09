@@ -52,7 +52,11 @@ export interface Player {
   lastSyncedAt: number | null;
   /** chess.com incremental sync: "YYYY/MM" of last fetched archive */
   lastSyncedMonth?: string;
-  /** lichess incremental sync: ms timestamp of newest game */
+  /**
+   * lichess incremental sync: every finished game created at or before this ms timestamp
+   * is stored (the next sync asks for `since = lastGameTs + 1`). Never passes an ongoing
+   * game or a game that was not durably saved.
+   */
   lastGameTs?: number;
 }
 
@@ -79,6 +83,11 @@ export interface Filters {
   /** Inclusive, YYYY-MM-DD */
   date_from?: string | null;
   date_to?: string | null;
+  /**
+   * Rolling "last N days" window, resolved to `date_from` (UTC) each time the selection is
+   * applied, so a persisted preset keeps rolling instead of freezing at the day it was set.
+   */
+  date_preset?: number | null;
   min_my_rating?: number | null;
   max_my_rating?: number | null;
   min_opponent_rating?: number | null;
@@ -86,6 +95,8 @@ export interface Filters {
   /**
    * Move-slice filter: applied as `game.moves.slice(moves_start ?? 0, moves_end ?? undefined)`,
    * i.e. a 0-based half-move (ply) slice with exclusive end, exactly like Python `moves[start:end]`.
+   * Engine/CLI parity only: the web UI never sets these (a start slice detaches the tree from
+   * the start position the board shows).
    */
   moves_start?: number | null;
   moves_end?: number | null;
@@ -127,6 +138,8 @@ export interface ImportProgress {
   total: number | null;
   added: number;
   duplicates: number;
+  /** Games dropped as not standard chess (variants, custom start positions, illegal moves). */
+  skipped?: number;
   message?: string;
 }
 
@@ -149,7 +162,12 @@ export interface SelectionSummary {
 export interface ImportOutcome {
   added: number;
   total: number;
+  /** The main player imported into (the largest group for a multi-player JSON export). */
   playerId: string;
+  /** Every player that received games (a re-imported export keeps each game's original player). */
+  playerIds?: string[];
+  /** Games dropped as not standard chess. */
+  skipped?: number;
 }
 
 /** Worker contract (exposed via Comlink). All calls async. */

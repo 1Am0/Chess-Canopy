@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { Chess } from "chess.js";
 import { useExplorerStore } from "@/lib/store";
+import { canonicalLine, linePositions } from "@/lib/position-cache";
 
 export interface Position {
   /** moves up to the cursor */
@@ -13,36 +13,29 @@ export interface Position {
   lastMove: { from: string; to: string } | null;
 }
 
+/**
+ * The position at the cursor. Every caller shares one incremental chess.js replay per line
+ * (lib/position-cache.ts), so a move costs one chess.js move however many components ask.
+ */
 export function usePosition(): Position {
   const path = useExplorerStore((s) => s.path);
   const cursor = useExplorerStore((s) => s.cursor);
   return useMemo(() => {
+    const lp = linePositions(path);
     const visible = path.slice(0, cursor);
-    const chess = new Chess();
-    let lastMove: Position["lastMove"] = null;
-    for (const san of visible) {
-      try {
-        const m = chess.move(san);
-        lastMove = { from: m.from, to: m.to };
-      } catch {
-        break;
-      }
-    }
-    return { visible, key: visible.join(" "), fen: chess.fen(), turn: chess.turn(), lastMove };
+    const at = Math.min(cursor, lp.sans.length);
+    const fen = lp.fens[at];
+    return {
+      visible,
+      key: visible.join(" "),
+      fen,
+      turn: fen.split(" ")[1] === "b" ? "b" : "w",
+      lastMove: at > 0 ? lp.lastMoves[at - 1] : null,
+    };
   }, [path, cursor]);
 }
 
-/** Validate a SAN line, truncating at the first illegal move. */
+/** Validate a SAN line: the legal prefix, as chess.js SAN (so "Bxf7" becomes the stored "Bxf7+"). */
 export function validateLine(moves: string[]): string[] {
-  const chess = new Chess();
-  const ok: string[] = [];
-  for (const san of moves) {
-    try {
-      chess.move(san);
-      ok.push(san);
-    } catch {
-      break;
-    }
-  }
-  return ok;
+  return canonicalLine(moves);
 }

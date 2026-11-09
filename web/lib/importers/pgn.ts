@@ -1,7 +1,8 @@
 import type { Color, Game } from "../engine/types";
-import { lastSegment, parsePgnDate, todayIso } from "./common";
+import { hash64, parsePgnDate, pyInt, urlGameId } from "./common";
 import { extractSanMoves, parsePgnHeaders } from "./san";
-import { timeControlLabel } from "./timeControl";
+import { isStandardHeaders, isStandardPlay } from "./standard";
+import { isLichessUrl, lichessSpeedLabel, lichessTimeControlLabel, normalizeLichessRaw, timeControlLabel } from "./timeControl";
 
 const HEADER_LINE = /^\s*\[\s*[A-Za-z0-9_]+\s+"/;
 
@@ -25,26 +26,40 @@ export function splitPgnGames(text: string): string[] {
   return chunks.filter((c) => HEADER_LINE.test(c.split("\n").find((l) => l.trim() !== "") ?? ""));
 }
 
-function eloOf(v: string | undefined): number {
-  // Python: int(headers.get("WhiteElo", 0)); missing/invalid -> 0 here (Python would drop the game on invalid).
-  const n = v === undefined ? 0 : parseInt(v, 10);
-  return Number.isFinite(n) ? n : 0;
+/** Python `_parse_elo`: missing, "?" or non-numeric Elo is null (never 0). */
+function eloOf(v: string | undefined): number | null {
+  return pyInt(v);
+}
+
+export interface ParseStats {
+  /** Games dropped because they are not standard chess from the initial position. */
+  skipped: number;
 }
 
 /**
  * Port of import_pgn.py + parse_game. Only games where `username` played White or Black are kept.
- * Deviations: SAN is taken from the movetext as written (no replay/normalisation of check marks);
- * a missing/"?" Site yields a `pgn-<n>` game_id (Python would use "?"), where n is the 1-based game index.
+ *
+ * - Variant / from-position games (`Variant`, `SetUp "1"`, non-initial `FEN`) and games whose
+ *   moves are not legal standard chess are dropped and counted in `stats.skipped`.
+ * - `game_id` is the last path segment of an http(s) `Link`/`Site`; otherwise a content hash
+ *   `pgn-<16 hex>` of the players, date, round, event, result and moves, so games without a URL
+ *   never collide (Python would use the Site/Event text, e.g. "Chess.com" for every game).
+ * - SAN is taken from the movetext as written (no replay/normalisation of check marks).
  */
-export function parsePgnText(text: string, username: string): Game[] {
+export function parsePgnText(text: string, username: string, stats?: ParseStats): Game[] {
   const userL = username.trim().toLowerCase();
   const out: Game[] = [];
   const seen = new Set<string>();
-  splitPgnGames(text).forEach((chunk, i) => {
+  for (const chunk of splitPgnGames(text)) {
     const h = parsePgnHeaders(chunk);
     const whiteName = h.White ?? "";
     const blackName = h.Black ?? "";
-    if (whiteName.toLowerCase() !== userL && blackName.toLowerCase() !== userL) return;
+    if (whiteName.toLowerCase() !== userL && blackName.toLowerCase() !== userL) continue;
+    const moves = extractSanMoves(chunk);
+    if (!isStandardHeaders(h) || !isStandardPlay(moves, h.Termination)) {
+      if (stats) stats.skipped++;
+      continue;
+    }
     const color: Color = whiteName.toLowerCase() === userL ? "white" : "black";
     const opponent = color === "white" ? blackName : whiteName;
 
@@ -55,33 +70,44 @@ export function parsePgnText(text: string, username: string): Game[] {
     else if (rawResult === "1/2-1/2" || rawResult === "½-½") result = "1/2-1/2";
     else result = rawResult;
 
-    const dateTag = h.EndDate || h.UTCDate || h.Date || "0000.00.00";
-    const date = parsePgnDate(dateTag) ?? todayIso();
+    const dateTag = h.EndDate || h.UTCDate || h.Date || "";
+    const date = parsePgnDate(dateTag) ?? "";
 
-    const siteRaw = h.Link || h.Site || "";
-    const url = siteRaw === "?" ? "" : siteRaw;
-    let game_id = url ? lastSegment(url) : h.Event && h.Event !== "?" ? h.Event : "";
-    if (!game_id) game_id = `pgn-${i + 1}`;
-    if (seen.has(game_id)) return;
+    const linkId = urlGameId(h.Link);
+    const siteId = linkId ? null : urlGameId(h.Site);
+    const url = linkId ? h.Link!.trim() : siteId ? h.Site!.trim() : "";
+    const game_id =
+      linkId ??
+      siteId ??
+      `pgn-${hash64([h.White, h.Black, h.Date, h.UTCDate, h.UTCTime, h.Round, h.Event, h.Result, moves.join(" ")].map((v) => v ?? "").join("|"))}`;
+    // Only byte-identical games share an id, so this drops true duplicates only.
+    if (seen.has(game_id)) continue;
     seen.add(game_id);
 
-    const tcRaw = h.TimeControl ?? "";
+    const lichess = isLichessUrl(url);
+    const tcHeader = h.TimeControl ?? "";
+    const tcRaw = lichess ? normalizeLichessRaw(tcHeader) : tcHeader;
+    let time_control: string;
+    if (h.TimeClass) time_control = h.TimeClass.toLowerCase();
+    else if (lichess) time_control = lichessSpeedLabel(h.Event) ?? lichessTimeControlLabel(tcRaw);
+    else time_control = timeControlLabel(tcRaw);
+
     out.push({
       game_id,
-      moves: extractSanMoves(chunk),
+      moves,
       result,
       color,
       date,
       opponent,
       my_rating: eloOf(color === "white" ? h.WhiteElo : h.BlackElo),
       opponent_rating: eloOf(color === "white" ? h.BlackElo : h.WhiteElo),
-      time_control: (h.TimeClass ? h.TimeClass.toLowerCase() : timeControlLabel(tcRaw)),
+      time_control,
       time_control_raw: tcRaw,
       termination: h.Termination ?? "",
       url,
       source: "pgn",
       playerId: `pgn:${userL}`,
     });
-  });
+  }
   return out;
 }

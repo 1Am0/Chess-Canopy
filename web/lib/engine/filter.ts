@@ -16,14 +16,18 @@ function parseDate(value: string | null | undefined): number | null {
 }
 
 /**
- * Port of filter_games.filter_games. Returns new game objects (shallow copies) whose
- * `moves` is sliced by `moves_start`/`moves_end` (0-based, end exclusive, Python slice semantics).
+ * Port of filter_games.filter_games. With `moves_start`/`moves_end` set it returns shallow
+ * copies whose `moves` is sliced (0-based, end exclusive, Python slice semantics); otherwise
+ * the matching game objects themselves (never mutated).
  */
 export function filterGames(games: Iterable<Game>, filters: Filters = {}): Game[] {
   const f = filters;
   const df = parseDate(f.date_from);
   const dt = parseDate(f.date_to);
   const oppLower = f.opponent ? f.opponent.toLowerCase() : null;
+  const start = f.moves_start ?? 0;
+  const end = f.moves_end ?? undefined;
+  const slice = f.moves_start != null || f.moves_end != null;
   const out: Game[] = [];
 
   for (const game of games) {
@@ -44,9 +48,9 @@ export function filterGames(games: Iterable<Game>, filters: Filters = {}): Game[
     if (f.min_opponent_rating != null && (opp == null || opp < f.min_opponent_rating)) continue;
     if (f.max_opponent_rating != null && (opp == null || opp > f.max_opponent_rating)) continue;
 
-    const start = f.moves_start ?? 0;
-    const end = f.moves_end ?? undefined;
-    out.push({ ...game, moves: (game.moves ?? []).slice(start, end) });
+    // Only copy when a slice is requested; the explorer keeps references otherwise.
+    if (slice) out.push({ ...game, moves: (game.moves ?? []).slice(start, end) });
+    else out.push(game);
   }
   return out;
 }

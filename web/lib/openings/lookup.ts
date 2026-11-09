@@ -13,8 +13,10 @@ function normalizeSan(token: string): string {
 
 function buildIndex(): Map<string, Entry> {
   const map = new Map<string, Entry>();
-  for (const [eco, name, moves] of data.openings as [string, string, string][]) {
-    // Keep the first entry when two rows share a move sequence.
+  for (const [eco, name, line] of data.openings as [string, string, string][]) {
+    // Keys are normalized like the query ("Bb5+" -> "Bb5"); check marks follow from the
+    // position, so normalized keys stay unique. Keep the first row when two share a line.
+    const moves = line.split(" ").map(normalizeSan).join(" ");
     if (map.has(moves)) continue;
     const colon = name.indexOf(":");
     const entry: Entry = { eco, name };
