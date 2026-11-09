@@ -31,7 +31,7 @@ export function EvalBar() {
       title={label}
       data-testid="eval-bar"
       className={cn(
-        "relative w-6 shrink-0 self-stretch overflow-hidden rounded-md border border-[var(--bar-border)] bg-[var(--bar-black)]",
+        "relative w-7 shrink-0 self-stretch overflow-hidden rounded-md border border-[var(--bar-border)] bg-[var(--bar-black)]",
         !ok && "opacity-60 [background-image:repeating-linear-gradient(135deg,transparent_0_5px,rgb(128_128_128/.25)_5px_10px)]",
       )}
     >
@@ -43,7 +43,8 @@ export function EvalBar() {
           />
           <span
             className={cn(
-              "absolute inset-x-0 text-center text-[10px] leading-none font-semibold tabular-nums",
+              "absolute inset-x-0 text-center leading-none font-semibold tracking-tight tabular-nums",
+              text.length > 4 ? "text-[9px]" : "text-[10px]",
               whiteWinning ? "text-[var(--bar-white-fg)]" : "text-[var(--bar-black-fg)]",
               // the number sits at the end of the larger side
               whiteWinning === whiteAtBottom ? "bottom-1" : "top-1",

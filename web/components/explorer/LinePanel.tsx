@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type WheelEvent } from "react";
+import { useEffect, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { useExplorerStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ export function LinePanel({ className }: { className?: string }) {
   const goTo = useExplorerStore((s) => s.goTo);
   const toStart = useExplorerStore((s) => s.toStart);
   const scroller = useRef<HTMLDivElement>(null);
+  const [scrolled, setScrolled] = useState(false); // content hidden on the left: fade that edge too
 
   // Keep the current move in view (horizontally only; never scrolls the page).
   useEffect(() => {
@@ -76,6 +77,8 @@ export function LinePanel({ className }: { className?: string }) {
       <div
         ref={scroller}
         onWheel={onWheel}
+        onScroll={(e) => setScrolled(e.currentTarget.scrollLeft > 2)}
+        style={scrolled ? { maskImage: "linear-gradient(to right, transparent, black 20px, black calc(100% - 24px), transparent)" } : undefined}
         className="flex min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden overscroll-x-contain pr-6 [mask-image:linear-gradient(to_right,black_calc(100%-24px),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <button

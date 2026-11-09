@@ -37,14 +37,18 @@ export function PositionSummary({ className }: { className?: string }) {
           <p className="flex min-w-0 items-baseline gap-1.5 overflow-hidden">
             <span className="text-base font-semibold tracking-tight tabular-nums">{total.toLocaleString()}</span>
             <span className="text-sm text-muted-foreground">{total === 1 ? "game" : "games"}</span>
-            <span aria-hidden className="text-muted-foreground">·</span>
-            <span className={cn("text-sm font-semibold tabular-nums", scoreTextClass(sc, total))}>{total ? pct(sc) : "–"}</span>
-            <span className="sr-only text-sm text-muted-foreground sm:not-sr-only">score</span>
+            {total > 0 && (
+              <>
+                <span aria-hidden className="text-muted-foreground">·</span>
+                <span className={cn("text-sm font-semibold tabular-nums", scoreTextClass(sc, total))}>{pct(sc)}</span>
+                <span className="sr-only text-sm text-muted-foreground sm:not-sr-only">score</span>
+              </>
+            )}
           </p>
         ) : (
           <Skeleton className="h-4 w-40" />
         )}
-        <p className="flex shrink-0 items-center gap-2.5 text-xs text-muted-foreground tabular-nums">
+        <p aria-hidden={!p} className={cn("flex shrink-0 items-center gap-2.5 text-xs text-muted-foreground tabular-nums", !p && "invisible")}>
           {LEGEND.map((l) => (
             <span key={l.kind} className="inline-flex items-center gap-1">
               <WdbSwatch kind={l.kind} />

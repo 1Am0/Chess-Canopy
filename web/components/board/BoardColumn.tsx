@@ -24,7 +24,7 @@ export function BoardColumn() {
 
   return (
     <div className="mx-auto flex flex-col gap-1.5 lg:mx-0" style={{ width: BOARD_COLUMN_WIDTH, maxWidth: "100%" }}>
-      <div data-testid="strip-top" className="pl-7">
+      <div data-testid="strip-top" className="pl-8">
         <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} />
       </div>
       <div className="flex gap-1">
@@ -33,10 +33,10 @@ export function BoardColumn() {
           <ExplorerBoard />
         </div>
       </div>
-      <div data-testid="strip-bottom" className="pl-7">
+      <div data-testid="strip-bottom" className="pl-8">
         <PlayerStrip you={bottomIsYou} color={bottomIsYou ? side : opp} />
       </div>
-      <div className="pl-7">
+      <div className="pl-8">
         <BoardControls />
       </div>
     </div>
