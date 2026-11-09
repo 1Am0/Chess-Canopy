@@ -1,21 +1,14 @@
 import type { ExplorerAPI } from "@/lib/engine/types";
-import { mockExplorer } from "@/lib/mock-explorer";
+import { createWorkerExplorer } from "@/lib/worker-explorer";
 
 let instance: ExplorerAPI | null = null;
 
 /**
- * Single seam for all UI data access. A later change replaces the body with a
- * Comlink-wrapped Web Worker; the UI must never import the engine directly.
+ * Single seam for all UI data access: a lazily created Comlink client for the
+ * explorer Web Worker. Browser-only; the UI must never import the engine directly.
+ * (The worker client proxies progress callbacks itself, so callers pass plain functions.)
  */
 export function getExplorer(): ExplorerAPI {
-  if (!instance) instance = mockExplorer;
+  if (!instance) instance = createWorkerExplorer();
   return instance;
-}
-
-/**
- * Wrap callbacks passed across the worker boundary. Becomes `Comlink.proxy(fn)`
- * once the worker is wired; identity for the in-memory mock.
- */
-export function withProxy<T extends (...args: never[]) => unknown>(fn: T): T {
-  return fn;
 }

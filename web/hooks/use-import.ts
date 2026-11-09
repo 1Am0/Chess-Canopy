@@ -3,9 +3,9 @@
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { ImportOutcome, ImportProgress, ImportRequest } from "@/lib/engine/types";
-import { getExplorer, withProxy } from "@/lib/explorer-client";
+import { getExplorer } from "@/lib/explorer-client";
 import { refreshPlayers } from "@/hooks/use-explorer-sync";
-import { useExplorerStore } from "@/lib/store";
+import { effectiveSelection, useExplorerStore } from "@/lib/store";
 
 export function useImport() {
   const [progress, setProgress] = useState<ImportProgress | null>(null);
@@ -16,10 +16,15 @@ export function useImport() {
     await refreshPlayers();
     const st = useExplorerStore.getState();
     // Make sure the freshly imported player is part of the selection.
-    if (st.selected !== "all" && !st.selected.includes(outcome.playerId)) {
-      st.setSelected([...st.selected, outcome.playerId]);
+    const eff = effectiveSelection(st.selected, st.players);
+    if (eff === "all") {
+      if (st.selected !== "all") st.setSelected("all"); // drop stale ids
+    } else if (!eff.includes(outcome.playerId)) {
+      st.setSelected([...eff, outcome.playerId]);
+    } else if (eff.length !== st.selected.length) {
+      st.setSelected(eff);
     }
-    st.bumpSelection();
+    // players changed, so useExplorerSync re-applies the selection and re-queries.
     toast.success(
       outcome.added > 0
         ? `Imported ${outcome.added.toLocaleString()} new games (${outcome.total.toLocaleString()} total)`
@@ -33,12 +38,16 @@ export function useImport() {
       setRunning(true);
       setProgress({ phase: "fetching", done: 0, total: null, added: 0, duplicates: 0 });
       try {
-        const outcome = await op(withProxy((p: ImportProgress) => setProgress(p)));
+        const outcome = await op((p: ImportProgress) => setProgress(p));
         await finish(outcome);
         return outcome;
       } catch (e) {
-        if (cancelled.current) toast("Import cancelled");
-        else toast.error(e instanceof Error ? e.message : "Import failed");
+        const aborted = cancelled.current || (e instanceof Error && e.name === "AbortError");
+        // A cancelled import may still have saved a partial batch (lichess).
+        if (aborted) {
+          toast("Import cancelled");
+          await refreshPlayers().catch(() => {});
+        } else toast.error(e instanceof Error && e.message ? e.message : "Import failed");
         return null;
       } finally {
         setRunning(false);

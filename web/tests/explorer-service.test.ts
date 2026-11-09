@@ -194,11 +194,8 @@ describe("chess.com", () => {
 });
 
 describe("lichess", () => {
-  const ndjson = (lines: string[]) =>
-    vi.fn(async () => new Response(lines.join("\n") + "\n", { status: 200 }));
-
   it("imports NDJSON and tracks lastGameTs; sync passes since", async () => {
-    const f = vi.fn(async (_u: string) => new Response(lichessLine + "\n", { status: 200 }));
+    const f = vi.fn(async (...args: [string]) => { void args; return new Response(lichessLine + "\n", { status: 200 }); });
     const s = new ExplorerService({ fetchImpl: f as unknown as typeof fetch });
     const out = await s.importGames({ kind: "lichess", username: "Hero" }, noop);
     expect(out).toMatchObject({ added: 1, playerId: "lichess:hero" });

@@ -104,9 +104,14 @@ export class ExplorerService implements ExplorerAPI {
     return { games: c.filtered.length, counts: { ...c.counts } };
   }
 
-  private current(): { c: Computed; label: string } {
+  private async current(): Promise<{ c: Computed; label: string }> {
     if (!this.sel) throw new Error("No selection set");
-    const c = this.lru.get(this.sel.key);
+    let c = this.lru.get(this.sel.key);
+    if (!c) {
+      // Cache was invalidated (e.g. an import finished); rebuild for the current selection.
+      await this.setSelection(this.sel.ids, this.sel.filters);
+      c = this.lru.get(this.sel.key);
+    }
     if (!c) throw new Error("Selection is stale; call setSelection again");
     return { c, label: this.sel.ids === "all" ? "all" : this.sel.ids.join(",") };
   }
@@ -120,7 +125,7 @@ export class ExplorerService implements ExplorerAPI {
   }
 
   async query(path: string[]): Promise<QueryResult> {
-    const { c, label } = this.current();
+    const { c, label } = await this.current();
     if (c.filtered.length === 0) {
       return { player: label, games: 0, path, fen: START_FEN, stats: emptyStats(), next: [] };
     }
@@ -138,7 +143,7 @@ export class ExplorerService implements ExplorerAPI {
   }
 
   async gamesAt(path: string[], limit: number): Promise<GameSummary[]> {
-    const { c } = this.current();
+    const { c } = await this.current();
     if (c.filtered.length === 0) return [];
     const color = this.chooseColor(c);
     const out = c.filtered

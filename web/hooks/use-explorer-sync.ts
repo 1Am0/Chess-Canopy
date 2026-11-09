@@ -107,6 +107,10 @@ export function useExplorerSync() {
       .catch((e) => {
         if (id !== queryId.current) return;
         useExplorerStore.getState().setResultLoading(false);
+        if (e instanceof Error && e.message.includes("Invalid move sequence")) {
+          useExplorerStore.getState().setLine([]);
+          return;
+        }
         toast.error(`Query failed: ${e instanceof Error ? e.message : String(e)}`);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
