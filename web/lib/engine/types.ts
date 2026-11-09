@@ -130,6 +130,8 @@ export interface GameSummary {
   url: string;
   source: Source;
   time_control: string;
+  /** The game's full move list (SAN), so the UI can load it into the line. */
+  moves: string[];
 }
 
 export interface ImportProgress {

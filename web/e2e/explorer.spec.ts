@@ -272,6 +272,34 @@ test("mobile: the line strip stays visible and the Moves / Games tabs switch con
   expect(await noHScroll()).toBe(true);
 });
 
+test("clicking a game in the Games tab loads it into the line; → steps through it", async ({ page }) => {
+  await importJsonFile(page, STABILITY_GAMES_JSON, "tester");
+  const white = page.getByRole("radio", { name: "View games as White" });
+  await white.click();
+  await expect(white).toBeChecked();
+  await moveRow(page, "e4").click();
+  await expect(page).toHaveURL(/line=e4$/);
+
+  await page.getByRole("tab", { name: "Games" }).click();
+  const first = page.getByRole("list", { name: "Recent games" }).getByRole("button", { name: /^Load game vs/ }).first();
+  await expect(first).toBeVisible();
+  await first.click();
+  await expect(first).toHaveAttribute("aria-pressed", "true");
+
+  // The whole game is in the strip, the board stays where it was (after 1.e4) and the rest is the redo branch.
+  const plies = page.getByRole("region", { name: "Line" }).locator("ol button");
+  await expect.poll(() => plies.count()).toBeGreaterThan(4);
+  await expect(page).toHaveURL(/line=e4$/);
+  await expect(page.getByRole("region", { name: "Line" }).getByRole("button", { name: "e4", exact: true })).toHaveAttribute("aria-current", "step");
+
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(() => new URL(page.url()).searchParams.get("line")?.split(",").length).toBe(2);
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(() => new URL(page.url()).searchParams.get("line")?.split(",").length).toBe(3);
+  await expect(first).toHaveAttribute("aria-pressed", "true");
+});
+
 test("line strip is a single scrolling row: long lines scroll sideways, never wrap or grow", async ({ page }) => {
   await importJsonFile(page, STABILITY_GAMES_JSON, "tester");
   const white = page.getByRole("radio", { name: "View games as White" });

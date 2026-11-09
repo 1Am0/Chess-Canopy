@@ -80,6 +80,14 @@ export interface ExplorerState {
   goTo: (cursor: number) => void;
   /** Replace the line with the legal prefix of `moves` (chess.js SAN). */
   setLine: (moves: string[]) => void;
+  /**
+   * Load a whole game into the line while keeping the current position: the line becomes
+   * the game's (legal) moves and the cursor stays at the visible depth, so → steps through
+   * the rest of the game. `key` identifies the game for the Games tab highlight.
+   */
+  loadGame: (moves: string[], key: string) => void;
+  /** Games tab: key + resulting line of the game loaded last (not persisted). */
+  loadedGame: { key: string; line: string } | null;
   flip: () => void;
   /** Explicit side switch: sets the viewed color + board orientation; keeps the current line. */
   setSide: (color: Color) => void;
@@ -155,6 +163,12 @@ export const useExplorerStore = create<ExplorerState>()(
       toStart: () => set({ cursor: 0, hoverMove: null }),
       toEnd: () => set((s) => ({ cursor: s.path.length, hoverMove: null })),
       goTo: (cursor) => set((s) => ({ cursor: Math.max(0, Math.min(cursor, s.path.length)), hoverMove: null })),
+      loadedGame: null,
+      loadGame: (moves, key) => {
+        const s = get();
+        const path = canonicalLine(moves);
+        set({ path, cursor: Math.min(s.cursor, path.length), hoverMove: null, loadedGame: { key, line: path.join(" ") } });
+      },
       setLine: (moves) => {
         const path = canonicalLine(moves);
         set({ path, cursor: path.length, hoverMove: null });

@@ -123,6 +123,11 @@ describe("selection/query vs python goldens", () => {
     const g = await svc.gamesAt([], 10);
     expect(g.map((x) => x.game_id)).toEqual(["sample-2", "sample-1"]);
     expect((await svc.gamesAt(["e4"], 10)).map((x) => x.game_id)).toEqual(["sample-1"]);
+    // Each summary carries the full move list so the UI can load the game into the line.
+    for (const game of await svc.gamesAt([], 10)) {
+      expect(game.moves.length).toBeGreaterThan(0);
+    }
+    expect((await svc.gamesAt(["e4"], 10))[0].moves[0]).toBe("e4");
     expect(await svc.gamesAt([], 1)).toHaveLength(1);
     await svc.setSelection(["json:hero"], { color: "black" });
     expect((await svc.gamesAt([], 10)).map((x) => x.game_id)).toEqual(["sample-3"]);

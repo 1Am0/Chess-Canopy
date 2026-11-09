@@ -337,6 +337,7 @@ export class ExplorerService implements ExplorerAPI {
         url: g.url,
         source: g.source,
         time_control: g.time_control,
+        moves: g.moves,
       });
     }
     return out;
