@@ -1,36 +1,66 @@
 "use client";
 
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist, type PersistStorage, type StorageValue } from "zustand/middleware";
 import type { Color, Filters, Player, QueryResult, SelectionSummary } from "@/lib/engine/types";
 import { DEFAULT_SOUND_THEME, setSoundTheme, setSoundsEnabled, type SoundTheme } from "@/lib/sound";
 import { canonicalLine, legalSan, linePositions } from "@/lib/position-cache";
 
 export type BoardTheme = "green" | "brown" | "blue" | "slate";
 
-const safeStorage = createJSONStorage(() => ({
-  getItem: (k: string) => {
-    try {
-      return window.localStorage.getItem(k);
-    } catch {
-      return null;
-    }
-  },
-  setItem: (k: string, v: string) => {
-    try {
-      window.localStorage.setItem(k, v);
-    } catch {
-      /* storage unavailable */
-    }
-  },
-  removeItem: (k: string) => {
-    try {
-      window.localStorage.removeItem(k);
-    } catch {
-      /* storage unavailable */
-    }
-  },
-}));
+function readLocal(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Persist storage that skips redundant work. Zustand's `persist` calls `setItem` after
+ * every `set()` (hover, cursor steps, results, ...), but `partialize` only picks a few
+ * settings. When none of those values changed (by reference) nothing is serialized or
+ * written, so hovering rows or holding an arrow key never touches localStorage.
+ */
+export function createChangeAwareStorage<S extends object>(): PersistStorage<S> {
+  let last: { state: S; version?: number } | null = null;
+  return {
+    getItem: (key) => {
+      const raw = readLocal(key);
+      if (raw == null) return null;
+      try {
+        return JSON.parse(raw) as StorageValue<S>;
+      } catch {
+        return null;
+      }
+    },
+    setItem: (key, value) => {
+      const prev = last;
+      if (
+        prev &&
+        prev.version === value.version &&
+        (Object.keys(value.state) as (keyof S)[]).every((k) => Object.is(prev.state[k], value.state[k])) &&
+        Object.keys(prev.state).length === Object.keys(value.state).length
+      ) {
+        return;
+      }
+      last = { state: value.state, version: value.version };
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+      } catch {
+        last = null; // storage unavailable: try again next time
+      }
+    },
+    removeItem: (key) => {
+      last = null;
+      try {
+        window.localStorage.removeItem(key);
+      } catch {
+        /* storage unavailable */
+      }
+    },
+  };
+}
 
 export interface ExplorerState {
   // persisted
@@ -96,7 +126,9 @@ export interface ExplorerState {
   loadedGame: { key: string; line: string } | null;
   flip: () => void;
   /** Explicit side switch: sets the viewed color + board orientation; keeps the current line. */
-  setSide: (color: Color) => void;
+  setSide: (color: Color, explicit?: boolean) => void;
+  /** Re-run the selection + position queries after a failed load (see `loadFailed`). */
+  retryLoad: () => void;
   /** One-time automatic side pick from the first summary; keeps the current line. */
   autoPickSide: (color: Color) => void;
 }
@@ -148,6 +180,10 @@ export const useExplorerStore = create<ExplorerState>()(
             const v = filters[k];
             if (v === null || v === undefined || v === "" || (typeof v === "number" && Number.isNaN(v))) delete filters[k];
           }
+          // An inverted range (min above max, "from" after "to") can never match: swap it.
+          swapIfInverted(filters, "min_my_rating", "max_my_rating");
+          swapIfInverted(filters, "min_opponent_rating", "max_opponent_rating");
+          swapIfInverted(filters, "date_from", "date_to");
           // The side is always explicit: never drop it. Prefer setSide() for switching.
           if (!filters.color) filters.color = s.filters.color ?? "white";
           const orientation = patch.color ? patch.color : s.orientation;
@@ -192,14 +228,18 @@ export const useExplorerStore = create<ExplorerState>()(
       flip: () => set({ orientation: get().orientation === "white" ? "black" : "white" }),
       // The line is kept (any legal line is valid for either side); only the side and
       // the board orientation change, so the board and the line panel stay put.
-      setSide: (color) =>
+      // `explicit` false is for a side taken from the address bar: it is applied without
+      // stopping the automatic pick (only a user click makes the choice permanent).
+      setSide: (color, explicit = true) =>
         set((s) => ({
           filters: { ...s.filters, color },
           orientation: color,
           sideChosen: true,
-          sideExplicit: true,
+          sideExplicit: explicit ? true : s.sideExplicit,
           hoverMove: null,
         })),
+      // A new filters object re-runs the selection effect, which then re-queries the position.
+      retryLoad: () => set((s) => ({ filters: { ...s.filters }, resultLoading: true })),
       // Never overrides an explicit choice (e.g. a summary landing after the user's click).
       autoPickSide: (color) =>
         set((s) =>
@@ -208,7 +248,7 @@ export const useExplorerStore = create<ExplorerState>()(
     }),
     {
       name: "chess-canopy:v1",
-      storage: safeStorage,
+      storage: createChangeAwareStorage(),
       version: 4,
       migrate: migratePersisted,
       skipHydration: true,
@@ -225,6 +265,23 @@ export const useExplorerStore = create<ExplorerState>()(
     },
   ),
 );
+
+function swapIfInverted(f: Filters, lo: "min_my_rating" | "min_opponent_rating" | "date_from", hi: "max_my_rating" | "max_opponent_rating" | "date_to") {
+  const a = f[lo] as number | string | null | undefined;
+  const b = f[hi] as number | string | null | undefined;
+  if (a != null && b != null && a > b) {
+    (f as Record<string, unknown>)[lo] = b;
+    (f as Record<string, unknown>)[hi] = a;
+  }
+}
+
+/**
+ * True when loading failed before any result existed: nothing is pending and there is no
+ * result to show (the sync hook toasts the error and clears the loading flag).
+ */
+export function loadFailed(s: Pick<ExplorerState, "ready" | "players" | "result" | "resultLoading">): boolean {
+  return s.ready && s.players.length > 0 && !s.result && !s.resultLoading;
+}
 
 /** Player ids that actually exist; falls back to "all". */
 export function effectiveSelection(selected: string[] | "all", players: Player[]): string[] | "all" {

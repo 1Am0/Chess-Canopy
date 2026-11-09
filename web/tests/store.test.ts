@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { Chess } from "chess.js";
 import {
   activeFilterCount,
+  createChangeAwareStorage,
+  loadFailed,
   isResultFresh,
   migratePersisted,
   selectionFilters,
@@ -200,5 +202,69 @@ describe("auto side (C12)", () => {
     expect(autoSide({ games: 0, counts: { white: 0, black: 5 } }, "white", true, 0)).toBe("black");
     expect(autoSide({ games: 0, counts: { white: 0, black: 5 } }, "white", true, 1)).toBeNull();
     expect(autoSide({ games: 1, counts: { white: 1, black: 5 } }, "white", true, 0)).toBeNull();
+  });
+});
+
+describe("change-aware persist storage (M6)", () => {
+  it("skips writes when the persisted fields did not change", () => {
+    const writes: string[] = [];
+    const g = globalThis as unknown as { window?: unknown };
+    const prev = g.window;
+    g.window = { localStorage: { getItem: () => null, setItem: (_k: string, v: string) => writes.push(v), removeItem: () => {} } };
+    try {
+      const storage = createChangeAwareStorage<{ a: number; b: object }>();
+      const b = { x: 1 };
+      storage.setItem("k", { state: { a: 1, b }, version: 1 });
+      storage.setItem("k", { state: { a: 1, b }, version: 1 }); // identical references: no write
+      storage.setItem("k", { state: { a: 1, b: { x: 1 } }, version: 1 }); // new reference: write
+      storage.setItem("k", { state: { a: 2, b }, version: 1 });
+      expect(writes).toHaveLength(3);
+      expect(JSON.parse(writes[2])).toEqual({ state: { a: 2, b: { x: 1 } }, version: 1 });
+    } finally {
+      g.window = prev;
+    }
+  });
+  it("hovering and stepping through the line do not change the persisted selection", () => {
+    const partial = (s: ReturnType<typeof st>) => [s.selected, s.filters, s.boardTheme, s.soundEnabled, s.soundTheme, s.orientation, s.sideChosen, s.sideExplicit];
+    st().setLine(["e4", "e5", "Nf3"]);
+    const before = partial(st());
+    st().setHoverMove("Nc6");
+    st().undo();
+    st().redo();
+    st().setHoverMove(null);
+    partial(st()).forEach((v, i) => expect(v).toBe(before[i]));
+  });
+});
+
+describe("filters and side (M5, L15)", () => {
+  it("setFilters swaps inverted rating and date ranges", () => {
+    st().setFilters({ min_my_rating: 2500, max_my_rating: 1000 });
+    expect(st().filters).toMatchObject({ min_my_rating: 1000, max_my_rating: 2500 });
+    st().setFilters({ date_from: "2024-05-01", date_to: "2024-01-01" });
+    expect(st().filters).toMatchObject({ date_from: "2024-01-01", date_to: "2024-05-01" });
+  });
+  it("setSide(color, false) applies a URL side without making it permanent", () => {
+    useExplorerStore.setState({ sideChosen: false, sideExplicit: false, filters: { color: "white" }, orientation: "white" });
+    st().setSide("black", false);
+    expect(st()).toMatchObject({ orientation: "black", sideChosen: true, sideExplicit: false });
+    expect(st().filters.color).toBe("black");
+  });
+});
+
+describe("loadFailed (M3)", () => {
+  it("is true only when nothing is pending and no result exists", () => {
+    const base = { ready: true, players: [{ id: "p" }] as never, result: null, resultLoading: false };
+    expect(loadFailed(base)).toBe(true);
+    expect(loadFailed({ ...base, resultLoading: true })).toBe(false);
+    expect(loadFailed({ ...base, ready: false })).toBe(false);
+    expect(loadFailed({ ...base, players: [] })).toBe(false);
+    expect(loadFailed({ ...base, result: { path: [] } as unknown as QueryResult })).toBe(false);
+  });
+  it("retryLoad replaces the filters object so the selection effect re-runs", () => {
+    const before = st().filters;
+    st().retryLoad();
+    expect(st().filters).not.toBe(before);
+    expect(st().filters).toEqual(before);
+    expect(st().resultLoading).toBe(true);
   });
 });
