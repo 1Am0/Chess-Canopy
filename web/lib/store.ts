@@ -76,7 +76,7 @@ export interface ExplorerState {
   goTo: (cursor: number) => void;
   setLine: (moves: string[]) => void;
   flip: () => void;
-  /** Explicit side switch: sets the viewed color + board orientation and resets the line. */
+  /** Explicit side switch: sets the viewed color + board orientation; keeps the current line. */
   setSide: (color: Color) => void;
   /** One-time automatic side pick from the first summary; keeps the current line. */
   autoPickSide: (color: Color) => void;
@@ -144,13 +144,13 @@ export const useExplorerStore = create<ExplorerState>()(
       goTo: (cursor) => set((s) => ({ cursor: Math.max(0, Math.min(cursor, s.path.length)), hoverMove: null })),
       setLine: (moves) => set({ path: moves, cursor: moves.length, hoverMove: null }),
       flip: () => set({ orientation: get().orientation === "white" ? "black" : "white" }),
+      // The line is kept (any legal line is valid for either side); only the side and
+      // the board orientation change, so the board and the line panel stay put.
       setSide: (color) =>
         set((s) => ({
           filters: { ...s.filters, color },
           orientation: color,
           sideChosen: true,
-          path: [],
-          cursor: 0,
           hoverMove: null,
         })),
       autoPickSide: (color) =>
