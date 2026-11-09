@@ -1,0 +1,10 @@
+{
+  "url": "https://www.chess.com/game/live/123456",
+  "pgn": "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2024.03.05\"]\n[White \"Hero\"]\n[Black \"Villain\"]\n[Result \"1-0\"]\n[TimeControl \"180+2\"]\n[Termination \"Hero won by checkmate\"]\n\n1. e4 {[%clk 0:03:00]} 1... e5 {[%clk 0:03:00]} 2. Nf3 {[%clk 0:02:59]} 2... Nc6 {[%clk 0:02:58]} 3. Bb5 a6 1-0",
+  "time_control": "180+2",
+  "time_class": "blitz",
+  "rules": "chess",
+  "end_time": 1709640000,
+  "white": { "username": "Hero", "rating": 1500, "result": "win" },
+  "black": { "username": "Villain", "rating": 1480, "result": "resigned" }
+}

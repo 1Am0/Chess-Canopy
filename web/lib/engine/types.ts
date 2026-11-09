@@ -83,7 +83,10 @@ export interface Filters {
   max_my_rating?: number | null;
   min_opponent_rating?: number | null;
   max_opponent_rating?: number | null;
-  /** Move-slice filter on game.moves (1-based move numbers as in Python) */
+  /**
+   * Move-slice filter: applied as `game.moves.slice(moves_start ?? 0, moves_end ?? undefined)`,
+   * i.e. a 0-based half-move (ply) slice with exclusive end, exactly like Python `moves[start:end]`.
+   */
   moves_start?: number | null;
   moves_end?: number | null;
 }

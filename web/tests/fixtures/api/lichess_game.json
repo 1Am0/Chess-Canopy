@@ -1,0 +1,15 @@
+{
+  "id": "abcd1234",
+  "rated": true,
+  "variant": "standard",
+  "speed": "ultraBullet",
+  "status": "mate",
+  "createdAt": 1709640000000,
+  "moves": "e4 e5 Nf3 Nc6 Bb5 a6",
+  "winner": "black",
+  "players": {
+    "white": { "user": { "name": "Villain", "id": "villain" }, "rating": 1800 },
+    "black": { "user": { "name": "Hero", "id": "hero" }, "rating": 1750 }
+  },
+  "clock": { "initial": 15, "increment": 0 }
+}
