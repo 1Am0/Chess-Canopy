@@ -3,6 +3,8 @@
 import { FilterX, RotateCcw } from "lucide-react";
 import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
+import { SideSwitch } from "@/components/layout/SideSwitch";
+import { LinePanel } from "@/components/explorer/LinePanel";
 import { OpeningHeader } from "@/components/explorer/OpeningHeader";
 import { PositionSummary } from "@/components/explorer/PositionSummary";
 import { MoveTable } from "@/components/explorer/MoveTable";
@@ -73,18 +75,24 @@ function MovesSection() {
 
 export function ExplorerPanel() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
+      <SideSwitch />
       <OpeningHeader />
-      <PositionSummary />
-      <Tabs defaultValue="moves" className="gap-3">
+      {/* Mobile: summary then tabs. Desktop (lg): tabs dissolve and sections stack in order. */}
+      <PositionSummary className="order-1 lg:order-2" />
+      <Tabs defaultValue="moves" className="order-2 gap-3 lg:contents">
         <TabsList className="w-full lg:hidden">
           <TabsTrigger value="moves">Moves</TabsTrigger>
+          <TabsTrigger value="line">Line</TabsTrigger>
           <TabsTrigger value="games">Games</TabsTrigger>
         </TabsList>
-        <TabsContent value="moves" forceMount className="data-[state=inactive]:hidden lg:data-[state=inactive]:block">
+        <TabsContent value="line" forceMount className="data-[state=inactive]:hidden lg:order-1 lg:data-[state=inactive]:block">
+          <LinePanel />
+        </TabsContent>
+        <TabsContent value="moves" forceMount className="data-[state=inactive]:hidden lg:order-3 lg:data-[state=inactive]:block">
           <MovesSection />
         </TabsContent>
-        <TabsContent value="games" forceMount className="data-[state=inactive]:hidden lg:mt-0 lg:data-[state=inactive]:block">
+        <TabsContent value="games" forceMount className="data-[state=inactive]:hidden lg:order-4 lg:data-[state=inactive]:block">
           <GamesList />
         </TabsContent>
       </Tabs>

@@ -45,7 +45,10 @@ export function GamesList() {
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="rounded-lg border">
       <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-        Recent games here
+        <span>
+          Recent games here
+          {games && games.length > 0 && <span className="ml-1.5 text-xs font-normal text-muted-foreground tabular-nums">{games.length}</span>}
+        </span>
         <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")} />
       </CollapsibleTrigger>
       <CollapsibleContent>
@@ -61,7 +64,7 @@ export function GamesList() {
           {games?.map((g) => {
             const r = resultLabel(g.result);
             return (
-              <li key={`${g.source}:${g.game_id}`} className="flex items-center gap-2 px-3 py-1.5 text-sm">
+              <li key={`${g.source}:${g.game_id}`} className="flex items-center gap-2 px-3 py-1 text-sm">
                 <span className={cn("w-11 shrink-0 rounded px-1.5 py-0.5 text-center text-xs font-medium", RESULT_STYLE[r])}>{r}</span>
                 <span
                   className={cn("size-3 shrink-0 rounded-full border", g.color === "white" ? "bg-white" : "bg-neutral-800")}
@@ -73,8 +76,10 @@ export function GamesList() {
                   {g.opponent_rating != null && <span className="ml-1 text-muted-foreground tabular-nums">({g.opponent_rating})</span>}
                 </span>
                 <span className="hidden text-xs text-muted-foreground tabular-nums sm:inline">{formatDate(g.date)}</span>
-                <Badge variant="outline" className="hidden text-[10px] sm:inline-flex">{sourceLabel(g.source)}</Badge>
-                {g.url && (
+                {(g.source === "chess.com" || g.source === "lichess") && (
+                  <Badge variant="outline" className="hidden text-[10px] sm:inline-flex">{sourceLabel(g.source)}</Badge>
+                )}
+                {g.url?.startsWith("http") && (
                   <a
                     href={g.url}
                     target="_blank"

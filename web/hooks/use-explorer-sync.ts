@@ -81,6 +81,13 @@ export function useExplorerSync() {
         const summary = await getExplorer().setSelection(effectiveSelection(selected, players), filters);
         const s = useExplorerStore.getState();
         s.setSummary(summary);
+        // One-time: if the user never chose a side, view the side with more games.
+        if (!s.sideChosen && summary.games > 0) {
+          const cur = s.filters.color ?? "white";
+          const other = cur === "white" ? "black" : "white";
+          if (summary.counts[other] > summary.counts[cur]) s.autoPickSide(other);
+          else useExplorerStore.setState({ sideChosen: true });
+        }
         s.bumpSelection();
       } catch (e) {
         toast.error(`Could not apply filters: ${e instanceof Error ? e.message : String(e)}`);

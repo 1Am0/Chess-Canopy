@@ -1,6 +1,9 @@
 import type { Stats } from "@/lib/engine/types";
 import { cn } from "@/lib/utils";
 
+/** Min segment width (percent) before its label is drawn. */
+const LABEL_MIN = 20;
+
 /** Single stacked win/draw/loss bar (player perspective). */
 export function WdlBar({
   stats,
@@ -16,23 +19,26 @@ export function WdlBar({
     { key: "w", n: stats.wins, cls: "bg-win", label: "Win" },
     { key: "d", n: stats.draws, cls: "bg-draw", label: "Draw" },
     { key: "l", n: stats.losses, cls: "bg-loss", label: "Loss" },
-  ];
-  const text = segs.map((s) => `${s.label} ${Math.round((s.n / t) * 100)}%`).join(", ");
+  ].map((s) => ({ ...s, p: (s.n / t) * 100 }));
+  const text = segs.map((s) => `${s.label} ${Math.round(s.p)}%`).join(" · ");
   return (
     <div
       role="img"
       aria-label={text}
-      className={cn("flex h-5 w-full overflow-hidden rounded-[5px] bg-muted text-[11px] font-medium text-white tabular-nums", className)}
+      className={cn(
+        "flex h-5 w-full overflow-hidden rounded-full bg-muted text-[11px] leading-none font-medium text-white tabular-nums",
+        className,
+      )}
     >
       {segs.map((s) =>
         s.n > 0 ? (
           <div
             key={s.key}
-            className={cn("flex items-center justify-center overflow-hidden", s.cls)}
-            style={{ width: `${(s.n / t) * 100}%` }}
-            title={`${s.label}: ${s.n} (${Math.round((s.n / t) * 100)}%)`}
+            className={cn("flex min-w-0 items-center justify-center overflow-hidden whitespace-nowrap", s.cls)}
+            style={{ width: `${s.p}%` }}
+            title={`${s.label}: ${s.n} (${Math.round(s.p)}%)`}
           >
-            {showLabels && (s.n / t) * 100 >= 9 ? `${Math.round((s.n / t) * 100)}%` : null}
+            {showLabels && s.p >= LABEL_MIN ? `${Math.round(s.p)}%` : null}
           </div>
         ) : null,
       )}

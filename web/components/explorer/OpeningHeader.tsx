@@ -13,7 +13,7 @@ export function OpeningHeader() {
   const crumbs = opening ? splitOpeningName(opening.name) : [];
 
   return (
-    <div className="flex min-h-10 items-center gap-2.5" aria-live="polite">
+    <div className="flex min-h-8 items-center gap-2.5" aria-live="polite">
       {opening ? (
         <>
           <Badge variant="secondary" className="font-mono">
@@ -32,7 +32,7 @@ export function OpeningHeader() {
         </>
       ) : (
         <span className="text-sm text-muted-foreground">
-          {visible.length === 0 ? "Starting position" : "No named opening"}
+          {visible.length === 0 ? "Starting position" : "Out of book"}
         </span>
       )}
     </div>

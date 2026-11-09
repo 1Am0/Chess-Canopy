@@ -36,6 +36,8 @@ export interface ExplorerState {
   filters: Filters;
   boardTheme: BoardTheme;
   orientation: Color;
+  /** true once the user picked a side (or the one-time auto pick ran) */
+  sideChosen: boolean;
 
   // session
   ready: boolean;
@@ -74,13 +76,18 @@ export interface ExplorerState {
   goTo: (cursor: number) => void;
   setLine: (moves: string[]) => void;
   flip: () => void;
+  /** Explicit side switch: sets the viewed color + board orientation and resets the line. */
+  setSide: (color: Color) => void;
+  /** One-time automatic side pick from the first summary; keeps the current line. */
+  autoPickSide: (color: Color) => void;
 }
 
 export const useExplorerStore = create<ExplorerState>()(
   persist(
     (set, get) => ({
       selected: "all",
-      filters: {},
+      filters: { color: "white" },
+      sideChosen: false,
       boardTheme: "green",
       orientation: "white",
 
@@ -108,11 +115,12 @@ export const useExplorerStore = create<ExplorerState>()(
             const v = filters[k];
             if (v === null || v === undefined || v === "" || (typeof v === "number" && Number.isNaN(v))) delete filters[k];
           }
-          // Switching color also flips the board to that side.
+          // The side is always explicit: never drop it. Prefer setSide() for switching.
+          if (!filters.color) filters.color = s.filters.color ?? "white";
           const orientation = patch.color ? patch.color : s.orientation;
           return { filters, orientation };
         }),
-      clearFilters: () => set({ filters: {} }),
+      clearFilters: () => set((s) => ({ filters: { color: s.filters.color ?? "white" } })),
       setBoardTheme: (boardTheme) => set({ boardTheme }),
       setHoverMove: (hoverMove) => set({ hoverMove }),
       setResult: (result) => set({ result }),
@@ -136,16 +144,40 @@ export const useExplorerStore = create<ExplorerState>()(
       goTo: (cursor) => set((s) => ({ cursor: Math.max(0, Math.min(cursor, s.path.length)), hoverMove: null })),
       setLine: (moves) => set({ path: moves, cursor: moves.length, hoverMove: null }),
       flip: () => set({ orientation: get().orientation === "white" ? "black" : "white" }),
+      setSide: (color) =>
+        set((s) => ({
+          filters: { ...s.filters, color },
+          orientation: color,
+          sideChosen: true,
+          path: [],
+          cursor: 0,
+          hoverMove: null,
+        })),
+      autoPickSide: (color) =>
+        set((s) => ({ filters: { ...s.filters, color }, orientation: color, sideChosen: true })),
     }),
     {
       name: "chess-canopy:v1",
       storage: safeStorage,
+      version: 1,
+      migrate: (persisted) => {
+        const p = (persisted ?? {}) as Partial<ExplorerState>;
+        const color: Color = p.filters?.color === "black" ? "black" : "white";
+        const explicit = p.filters?.color === "white" || p.filters?.color === "black";
+        return {
+          ...p,
+          filters: { ...(p.filters ?? {}), color },
+          orientation: explicit ? color : "white",
+          sideChosen: explicit,
+        } as ExplorerState;
+      },
       skipHydration: true,
       partialize: (s) => ({
         selected: s.selected,
         filters: s.filters,
         boardTheme: s.boardTheme,
         orientation: s.orientation,
+        sideChosen: s.sideChosen,
       }),
     },
   ),
@@ -160,10 +192,11 @@ export function effectiveSelection(selected: string[] | "all", players: Player[]
 }
 
 
+/** Number of active filters; the viewed side is not a filter. */
 export function activeFilterCount(f: Filters): number {
   // Rating / date / move ranges count as one filter each, not per bound.
   let n = 0;
-  for (const k of ["color", "result", "opponent", "time_control", "time_control_raw"] as const) if (f[k]) n++;
+  for (const k of ["result", "opponent", "time_control", "time_control_raw"] as const) if (f[k]) n++;
   if (f.date_from || f.date_to) n++;
   if (f.min_my_rating != null || f.max_my_rating != null) n++;
   if (f.min_opponent_rating != null || f.max_opponent_rating != null) n++;

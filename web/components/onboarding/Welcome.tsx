@@ -6,7 +6,7 @@ import { ImportForm } from "@/components/players/ImportForm";
 const STEPS = [
   { icon: Download, title: "Import", text: "Pull your games from chess.com or Lichess, or drop a PGN / JSON file." },
   { icon: Zap, title: "Explore", text: "Play moves on the board and see how you actually score from every position." },
-  { icon: Filter, title: "Filter", text: "Slice by color, result, time control, rating, date or opponent." },
+  { icon: Filter, title: "Filter", text: "Switch between White and Black, then slice by result, time control, rating, date or opponent." },
 ];
 
 export function Welcome() {

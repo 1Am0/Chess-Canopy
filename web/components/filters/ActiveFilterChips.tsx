@@ -17,7 +17,6 @@ export function ActiveFilterChips() {
   const clear = useExplorerStore((s) => s.clearFilters);
 
   const chips: { label: string; clear: Partial<Filters> }[] = [];
-  if (filters.color) chips.push({ label: `Color: ${filters.color}`, clear: { color: null } });
   if (filters.result)
     chips.push({
       label: `Result: ${filters.result === "1-0" ? "Win" : filters.result === "0-1" ? "Loss" : "Draw"}`,

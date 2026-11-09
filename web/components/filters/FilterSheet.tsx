@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
-import type { Color, Filters } from "@/lib/engine/types";
+import type { Filters } from "@/lib/engine/types";
 import { getExplorer } from "@/lib/explorer-client";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
 import { isoDaysAgo } from "@/lib/format";
@@ -163,20 +163,6 @@ export function FilterSheet() {
         </SheetHeader>
 
         <div className="flex-1 space-y-5 overflow-y-auto p-4">
-          <Field label="Color">
-            <ToggleGroup
-              type="single"
-              value={filters.color ?? "any"}
-              onValueChange={(v) => v && patch({ color: v === "any" ? null : (v as Color) })}
-              aria-label="Color"
-              className="w-full"
-            >
-              <ToggleGroupItem value="any" className="flex-1">Any</ToggleGroupItem>
-              <ToggleGroupItem value="white" className="flex-1">White</ToggleGroupItem>
-              <ToggleGroupItem value="black" className="flex-1">Black</ToggleGroupItem>
-            </ToggleGroup>
-          </Field>
-
           <Field label="Result">
             <ToggleGroup
               type="single"

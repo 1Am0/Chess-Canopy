@@ -3,20 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { useExplorerStore, type BoardTheme } from "@/lib/store";
+import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
-import { score } from "@/lib/format";
+import { BOARD_THEMES } from "@/lib/board-themes";
 
-const THEMES: Record<BoardTheme, { light: string; dark: string }> = {
-  green: { light: "#eeeed2", dark: "#769656" },
-  brown: { light: "#f0d9b5", dark: "#b58863" },
-  blue: { light: "#dee3e6", dark: "#8ca2ad" },
-  slate: { light: "#c8ccd4", dark: "#5d6b82" },
-};
+const MAX_ARROWS = 3;
+const MIN_ARROW_SHARE = 0.1;
+const CANDIDATE_RGB = "21,101,192";
+const HOVER_COLOR = "rgba(245,124,0,1)";
 
-function rgba(rgb: string, a: number) {
-  return `rgba(${rgb},${a.toFixed(2)})`;
-}
+const overlay = (rgba: string) => `linear-gradient(${rgba}, ${rgba})`;
 
 export function ExplorerBoard() {
   const { fen, visible, lastMove, key } = usePosition();
@@ -43,9 +39,11 @@ export function ExplorerBoard() {
   };
 
   const legalTargets = useMemo(() => {
-    if (!selected) return [] as string[];
+    if (!selected) return [] as { to: string; capture: boolean }[];
     try {
-      return new Chess(fen).moves({ square: selected as never, verbose: true }).map((m) => m.to);
+      return new Chess(fen)
+        .moves({ square: selected as never, verbose: true })
+        .map((m) => ({ to: m.to, capture: m.flags.includes("c") || m.flags.includes("e") }));
     } catch {
       return [];
     }
@@ -63,41 +61,56 @@ export function ExplorerBoard() {
         return null;
       }
     };
-    const top = result.next.slice(0, 3);
-    const max = top[0]?.stats.total || 1;
-    const out: { startSquare: string; endSquare: string; color: string }[] = [];
-    for (const n of top) {
-      if (n.move === hoverMove) continue;
-      const a = toArrow(n.move);
-      if (!a) continue;
-      const sc = score(n.stats);
-      const rgb = sc >= 0.55 ? "34,170,94" : sc <= 0.45 ? "226,75,75" : "230,160,30";
-      out.push({ ...a, color: rgba(rgb, 0.3 + 0.5 * (n.stats.total / max)) });
-    }
     if (hoverMove) {
       const a = toArrow(hoverMove);
-      if (a) out.push({ ...a, color: "rgba(59,130,246,0.92)" });
+      return a ? [{ ...a, color: HOVER_COLOR }] : [];
+    }
+    const total = result.next.reduce((n, m) => n + m.stats.total, 0) || 1;
+    const max = result.next[0]?.stats.total || 1;
+    const picked = result.next.filter((n, i) => i === 0 || n.stats.total / total >= MIN_ARROW_SHARE).slice(0, MAX_ARROWS);
+    const starts = new Set<string>();
+    const out: { startSquare: string; endSquare: string; color: string }[] = [];
+    for (const n of picked) {
+      const a = toArrow(n.move);
+      if (!a) continue;
+      let alpha = 0.4 + 0.5 * (n.stats.total / max);
+      // Shared start square: fade the less frequent one so both stay readable.
+      if (starts.has(a.startSquare)) alpha *= 0.6;
+      starts.add(a.startSquare);
+      out.push({ ...a, color: `rgba(${CANDIDATE_RGB},${alpha.toFixed(2)})` });
     }
     return out;
   }, [result, key, fen, hoverMove]);
 
   const squareStyles = useMemo(() => {
-    const s: Record<string, React.CSSProperties> = {};
-    if (lastMove) {
-      s[lastMove.from] = { backgroundColor: "rgba(255,213,0,0.38)" };
-      s[lastMove.to] = { backgroundColor: "rgba(255,213,0,0.5)" };
-    }
-    if (selected) s[selected] = { ...s[selected], backgroundColor: "rgba(59,130,246,0.55)" };
+    const layers: Record<string, string[]> = {};
+    const add = (sq: string, img: string) => (layers[sq] ||= []).push(img);
+    // Layers are painted first-listed on top; build in top-to-bottom order.
     for (const t of legalTargets) {
-      s[t] = { ...s[t], backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.28) 22%, transparent 24%)" };
+      add(
+        t.to,
+        t.capture
+          ? "radial-gradient(circle, transparent 62%, rgba(20,20,20,0.3) 64%)"
+          : "radial-gradient(circle, rgba(20,20,20,0.28) 21%, transparent 23%)",
+      );
     }
+    if (selected) add(selected, overlay("rgba(59,130,246,0.5)"));
+    if (lastMove) {
+      add(lastMove.from, overlay("rgba(255,214,10,0.42)"));
+      add(lastMove.to, overlay("rgba(255,214,10,0.42)"));
+    }
+    const s: Record<string, React.CSSProperties> = {};
+    for (const [sq, imgs] of Object.entries(layers)) s[sq] = { backgroundImage: imgs.join(", ") };
     return s;
   }, [lastMove, selected, legalTargets]);
 
-  const theme = THEMES[boardTheme];
+  const theme = BOARD_THEMES[boardTheme];
 
   return (
-    <div className="aspect-square w-full overflow-hidden rounded-lg shadow-sm ring-1 ring-border" aria-label="Chess board">
+    <div
+      className="@container aspect-square w-full overflow-hidden rounded-md shadow-md ring-1 ring-black/15"
+      aria-label="Chess board"
+    >
       <Chessboard
         options={{
           id: "explorer-board",
@@ -109,21 +122,34 @@ export function ExplorerBoard() {
           animationDurationInMs: 150,
           arrows,
           arrowOptions: {
-            colors: { default: "#f59e0b", shift: "#22c55e", ctrl: "#ef4444", alt: "#3b82f6", meta: "#a855f7" },
-            color: "#f59e0b",
-            secondaryColor: "#22c55e",
-            tertiaryColor: "#ef4444",
+            colors: {
+              default: "rgba(22,163,74,0.85)",
+              shift: "rgba(220,38,38,0.85)",
+              ctrl: "rgba(245,124,0,0.85)",
+              alt: "rgba(21,101,192,0.85)",
+              meta: "rgba(147,51,234,0.85)",
+            },
+            color: "rgba(22,163,74,0.85)",
+            secondaryColor: "rgba(220,38,38,0.85)",
+            tertiaryColor: "rgba(245,124,0,0.85)",
             arrowLengthReducerDenominator: 8,
             sameTargetArrowLengthReducerDenominator: 4,
-            arrowWidthDenominator: 5,
+            arrowWidthDenominator: 5.5,
             activeArrowWidthMultiplier: 0.9,
             opacity: 1,
-            activeOpacity: 0.5,
+            activeOpacity: 0.6,
             arrowStartOffset: 0.15,
           },
           squareStyles,
           lightSquareStyle: { backgroundColor: theme.light },
           darkSquareStyle: { backgroundColor: theme.dark },
+          // Coordinates take the opposite square color.
+          lightSquareNotationStyle: { color: theme.dark },
+          darkSquareNotationStyle: { color: theme.light },
+          alphaNotationStyle: { fontSize: "clamp(10px, 2.9cqw, 13px)", fontWeight: 700, bottom: 2, right: 4, userSelect: "none" },
+          numericNotationStyle: { fontSize: "clamp(10px, 2.9cqw, 13px)", fontWeight: 700, top: 2, left: 3, userSelect: "none" },
+          dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,255,255,0.7)" },
+          draggingPieceStyle: { transform: "scale(1.1)" },
           onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare ? tryMove(sourceSquare, targetSquare) : false),
           onSquareClick: ({ square }) => {
             if (selected && selected !== square && tryMove(selected, square)) return;

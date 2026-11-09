@@ -13,15 +13,15 @@ export function Header({ showTools }: { showTools: boolean }) {
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-3 sm:px-5">
-        <div className="mr-1 flex items-center gap-2 font-semibold tracking-tight">
+      <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:px-4">
+        <div className="mr-1 flex shrink-0 items-center gap-2 font-semibold tracking-tight">
           <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <Trees className="size-4" />
           </span>
           <span className="hidden sm:inline">Chess Canopy</span>
         </div>
-        {showTools && <PlayerSwitcher />}
-        <div className="ml-auto flex items-center gap-1">
+        {showTools && <div className="min-w-0 shrink"><PlayerSwitcher /></div>}
+        <div className="ml-auto flex shrink-0 items-center gap-1">
           {showTools && (
             <Button variant="outline" size="sm" onClick={() => setUi({ filtersOpen: true })} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
               <Filter />

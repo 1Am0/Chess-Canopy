@@ -95,8 +95,10 @@ export class ExplorerService implements ExplorerAPI {
         this.gamesCache.set(idsKey, games);
       }
       const filtered = filterGames(games, nf);
+      // Per-side counts ignore the color filter so the side switch can show both.
+      const forCounts = nf.color ? filterGames(games, { ...nf, color: null }) : filtered;
       const counts = { white: 0, black: 0 };
-      for (const g of filtered) if (g.color === "white" || g.color === "black") counts[g.color]++;
+      for (const g of forCounts) if (g.color === "white" || g.color === "black") counts[g.color]++;
       c = { tries: buildColorTries(filtered), counts, filtered };
     }
     this.lru.set(key, c);
