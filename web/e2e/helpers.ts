@@ -50,3 +50,22 @@ export async function importSampleJson(page: Page, username = "tester") {
 }
 
 export const moveRow = (page: Page, san: string) => page.getByRole("row").filter({ has: page.getByText(san, { exact: true }) });
+
+/**
+ * Records Content-Security-Policy violations for the page: Chromium's
+ * "Refused to ..." console errors plus `securitypolicyviolation` events (reported
+ * through an init script). Call before navigation; assert `violations` is empty at the end.
+ */
+export async function trackCspViolations(page: Page): Promise<{ readonly violations: string[] }> {
+  const violations = new Set<string>();
+  page.on("console", (msg) => {
+    const text = msg.text();
+    if (msg.type() === "error" && /Refused to|CSP violation/i.test(text)) violations.add(text);
+  });
+  await page.addInitScript(() => {
+    document.addEventListener("securitypolicyviolation", (e) => {
+      console.error(`CSP violation: ${e.violatedDirective} blocked ${e.blockedURI || "inline"}`);
+    });
+  });
+  return { get violations() { return [...violations]; } };
+}

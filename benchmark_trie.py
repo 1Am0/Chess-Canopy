@@ -6,18 +6,18 @@ import time
 from pathlib import Path
 
 from chess_explorer.filter_games import build_color_tries
-from chess_explorer.storage import load_games, path_for_player
+from chess_explorer.storage import find_player_path, list_players, load_games
 
 
 def benchmark_trie(username: str, games_dir: Path = Path("games")) -> None:
     """Load games for a player and time trie construction."""
-    player_path = path_for_player(username, games_dir)
-    
-    if not player_path.exists():
-        print(f"❌ Player file not found: {player_path}")
+    player_path = find_player_path(username, games_dir)
+
+    if player_path is None:
+        print(f"❌ Player file not found for '{username}' in {games_dir}")
         print(f"\nAvailable players in {games_dir}:")
-        for p in sorted(games_dir.glob("*.json")):
-            print(f"  - {p.stem}")
+        for name in list_players(games_dir):
+            print(f"  - {name}")
         return
     
     print(f"Loading games from: {player_path}")

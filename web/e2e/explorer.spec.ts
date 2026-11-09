@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importJsonFile, importSampleJson, MANY_GAMES_JSON, mockApis, moveRow } from "./helpers";
+import { importJsonFile, importSampleJson, MANY_GAMES_JSON, mockApis, moveRow, trackCspViolations } from "./helpers";
 import path from "node:path";
 
 const PGN_SAMPLE = path.join(process.cwd(), "tests/fixtures/golden/sample.pgn");
@@ -9,12 +9,14 @@ test.beforeEach(async ({ context }) => {
 });
 
 test("onboarding -> JSON import shows move table and game count", async ({ page }) => {
+  const csp = await trackCspViolations(page);
   await importSampleJson(page);
   await expect(page.getByRole("button", { name: /Players:/ })).toContainText("3");
   await expect(page.getByRole("region", { name: "Position summary" })).toContainText("2");
   await expect(moveRow(page, "e4")).toBeVisible();
   await expect(moveRow(page, "d4")).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Explorer" }).getByText("Starting position")).toBeVisible();
+  expect(csp.violations).toEqual([]);
 });
 
 test("PGN import (username Hero) shows move rows in the explorer", async ({ page }) => {
