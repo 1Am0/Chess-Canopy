@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
+import { openingsVersion, subscribeOpenings } from "@/lib/openings/lookup";
 import { useExplorerStore } from "@/lib/store";
-import { canonicalLine, linePositions } from "@/lib/position-cache";
+import { linePositions } from "@/lib/position-cache";
 
 export interface Position {
   /** moves up to the cursor */
@@ -20,7 +21,11 @@ export interface Position {
 export function usePosition(): Position {
   const path = useExplorerStore((s) => s.path);
   const cursor = useExplorerStore((s) => s.cursor);
+  // The opening names load in their own chunk. When they arrive, `visible` gets a new
+  // identity so memoised `lookupOpening(visible)` calls in the components recompute.
+  const openings = useSyncExternalStore(subscribeOpenings, openingsVersion, () => 0);
   return useMemo(() => {
+    void openings;
     const lp = linePositions(path);
     const visible = path.slice(0, cursor);
     const at = Math.min(cursor, lp.sans.length);
@@ -32,10 +37,5 @@ export function usePosition(): Position {
       turn: fen.split(" ")[1] === "b" ? "b" : "w",
       lastMove: at > 0 ? lp.lastMoves[at - 1] : null,
     };
-  }, [path, cursor]);
-}
-
-/** Validate a SAN line: the legal prefix, as chess.js SAN (so "Bxf7" becomes the stored "Bxf7+"). */
-export function validateLine(moves: string[]): string[] {
-  return canonicalLine(moves);
+  }, [path, cursor, openings]);
 }

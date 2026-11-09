@@ -1,5 +1,32 @@
-import { describe, expect, it } from "vitest";
-import { lookupOpening, openingCount } from "@/lib/openings/lookup";
+import { beforeAll, describe, expect, it } from "vitest";
+import { buildIndex, loadOpenings, lookupOpening, openingCount } from "@/lib/openings/lookup";
+
+beforeAll(async () => {
+  await loadOpenings();
+});
+
+describe("transpositions (M10)", () => {
+  it("names 1.Nf3 d5 2.d4 like 1.d4 d5 2.Nf3 (not just 'Zukertort Opening')", () => {
+    const direct = lookupOpening(["d4", "d5", "Nf3"]);
+    expect(direct?.name).toBe("Queen's Pawn Game: Zukertort Variation");
+    expect(lookupOpening(["Nf3", "d5", "d4"])).toEqual(direct);
+  });
+  it("names 1.c4 e6 2.Nc3 d5 3.d4 like 1.d4 d5 2.c4 e6 3.Nc3", () => {
+    const direct = lookupOpening(["d4", "d5", "c4", "e6", "Nc3"]);
+    expect(direct?.name).toContain("Queen's Gambit Declined");
+    expect(lookupOpening(["c4", "e6", "Nc3", "d5", "d4"])).toEqual(direct);
+  });
+  it("prefers the shortest line when several reach one position", () => {
+    const idx = buildIndex([
+      ["A00", "Long alias", "d4 d5 c4 e6 Nc3 Nf6"],
+      ["A00", "Short alias", "Nc3 Nf6 c4 e6 d4 d5"],
+      ["D37", "Short", "d4"],
+    ]);
+    expect(idx.byLine.size).toBe(3);
+    expect(idx.byEpd.size).toBe(2);
+    expect([...idx.byEpd.values()].map((e) => e.name).sort()).toEqual(["Long alias", "Short"].sort());
+  });
+});
 
 describe("lookupOpening", () => {
   it("finds the Sicilian Defense after 1.e4 c5", () => {
