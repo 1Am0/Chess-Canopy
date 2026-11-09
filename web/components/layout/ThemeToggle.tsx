@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useExplorerStore, type BoardTheme } from "@/lib/store";
 import { BOARD_THEMES } from "@/lib/board-themes";
+import { SOUND_THEMES, playSound, unlockSound } from "@/lib/sound";
 
 const BOARDS: { id: BoardTheme; label: string }[] = [
   { id: "green", label: "Green" },
@@ -26,6 +27,8 @@ export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const boardTheme = useExplorerStore((s) => s.boardTheme);
   const setBoardTheme = useExplorerStore((s) => s.setBoardTheme);
+  const soundTheme = useExplorerStore((s) => s.soundTheme);
+  const setSoundTheme = useExplorerStore((s) => s.setSoundTheme);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -54,6 +57,22 @@ export function ThemeToggle() {
             </span>
             {b.label}
             {boardTheme === b.id && <Check className="ml-auto" />}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Move sounds</DropdownMenuLabel>
+        {SOUND_THEMES.map((t) => (
+          <DropdownMenuItem
+            key={t.id}
+            onSelect={() => {
+              unlockSound();
+              setSoundTheme(t.id);
+              // Preview the new theme with a capture once its samples have loaded.
+              setTimeout(() => playSound("capture"), 150);
+            }}
+          >
+            {t.label}
+            {soundTheme === t.id && <Check className="ml-auto" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

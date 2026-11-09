@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { useExplorerStore } from "@/lib/store";
-import { playSound } from "@/lib/sound";
 import { usePosition } from "@/hooks/use-position";
 import { BOARD_THEMES } from "@/lib/board-themes";
 import { BoardOverlay, type OverlayArrow } from "@/components/board/BoardOverlay";
@@ -29,8 +28,7 @@ export function ExplorerBoard() {
   // Clear click-selection whenever the position changes.
   useEffect(() => setSelected(null), [key]);
 
-  /** `refuse`: play the "illegal" buzz when the move is not legal (used for drag and drop). */
-  const tryMove = (from: string, to: string, refuse = false): boolean => {
+  const tryMove = (from: string, to: string): boolean => {
     try {
       const chess = new Chess(fen);
       const m = chess.move({ from, to, promotion: "q" });
@@ -38,7 +36,6 @@ export function ExplorerBoard() {
       setSelected(null);
       return true;
     } catch {
-      if (refuse && from !== to) playSound("illegal");
       return false;
     }
   };
@@ -177,7 +174,7 @@ export function ExplorerBoard() {
           darkSquareStyle: { backgroundColor: theme.dark },
           dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,255,255,0.7)" },
           draggingPieceStyle: { transform: "scale(1.1)" },
-          onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare ? tryMove(sourceSquare, targetSquare, true) : false),
+          onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare ? tryMove(sourceSquare, targetSquare) : false),
           onSquareClick: ({ square }) => {
             if (selected && selected !== square && tryMove(selected, square)) return;
             try {

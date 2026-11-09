@@ -53,10 +53,7 @@ export function useImport() {
         if (aborted) {
           toast("Import cancelled");
           await refreshPlayers().catch(() => {});
-        } else {
-          playSound("illegal");
-          toast.error(e instanceof Error && e.message ? e.message : "Import failed");
-        }
+        } else toast.error(e instanceof Error && e.message ? e.message : "Import failed");
         return null;
       } finally {
         setRunning(false);

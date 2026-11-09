@@ -342,8 +342,18 @@ test("moves make sounds, the mute button silences them, and loading a ?line= URL
   await page.waitForTimeout(300);
   expect(await audio()).toEqual(muted);
 
-  // Unmute (plays a confirmation tap), and the choice survives a reload.
+  // Unmute (plays a confirmation tap), pick a theme, and both choices survive a reload.
   await page.getByRole("button", { name: "Unmute sounds" }).click();
+
+  // Sound themes load their own recordings.
+  const requested: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/sounds/")) requested.push(new URL(r.url()).pathname);
+  });
+  await page.getByRole("button", { name: "Appearance" }).click();
+  await page.getByRole("menuitem", { name: "Piano" }).click();
+  await expect.poll(() => requested.filter((u) => u.startsWith("/sounds/piano/")).length).toBeGreaterThanOrEqual(5);
+  await page.keyboard.press("Escape");
   await page.reload();
   await expect(page.getByRole("button", { name: "Mute sounds" })).toBeVisible();
 });

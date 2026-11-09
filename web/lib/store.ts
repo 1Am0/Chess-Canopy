@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Color, Filters, Player, QueryResult, SelectionSummary } from "@/lib/engine/types";
-import { setSoundsEnabled } from "@/lib/sound";
+import { DEFAULT_SOUND_THEME, setSoundTheme, setSoundsEnabled, type SoundTheme } from "@/lib/sound";
 import { canonicalLine, legalSan, linePositions } from "@/lib/position-cache";
 
 export type BoardTheme = "green" | "brown" | "blue" | "slate";
@@ -39,6 +39,8 @@ export interface ExplorerState {
   boardTheme: BoardTheme;
   /** Sound feedback on moves and imports (persisted). */
   soundEnabled: boolean;
+  soundTheme: SoundTheme;
+  setSoundTheme: (theme: SoundTheme) => void;
   setSoundEnabled: (on: boolean) => void;
   orientation: Color;
   /** true once the user picked a side (or the one-time auto pick ran) */
@@ -108,6 +110,11 @@ export const useExplorerStore = create<ExplorerState>()(
       sideExplicit: false,
       boardTheme: "green",
       soundEnabled: true,
+      soundTheme: DEFAULT_SOUND_THEME,
+      setSoundTheme: (soundTheme) => {
+        setSoundTheme(soundTheme);
+        set({ soundTheme });
+      },
       setSoundEnabled: (soundEnabled) => {
         setSoundsEnabled(soundEnabled);
         set({ soundEnabled });
@@ -210,6 +217,7 @@ export const useExplorerStore = create<ExplorerState>()(
         filters: s.filters,
         boardTheme: s.boardTheme,
         soundEnabled: s.soundEnabled,
+        soundTheme: s.soundTheme,
         orientation: s.orientation,
         sideChosen: s.sideChosen,
         sideExplicit: s.sideExplicit,

@@ -50,55 +50,53 @@ describe("soundForStep", () => {
   });
 });
 
-/** A minimal fake Web Audio graph that counts what each sound creates. */
+/** A minimal fake Web Audio graph + fetch that counts which samples were started. */
 function installFakeAudio() {
-  const created = { osc: 0, noise: 0, gain: 0 };
-  const node = () => {
-    const n: Record<string, unknown> = {
-      connect: (x: unknown) => x ?? n,
-      start: () => {},
-      stop: () => {},
-      gain: { value: 1, setValueAtTime() {}, exponentialRampToValueAtTime() {} },
-      frequency: { value: 1, setValueAtTime() {}, exponentialRampToValueAtTime() {} },
-      Q: { value: 1 },
-    };
-    return n;
-  };
+  const started: { at: number; rate: number; gain: number }[] = [];
+  const fetched: string[] = [];
+  const param = (v = 1) => ({ value: v });
   class FakeAudioContext {
     state = "running";
     currentTime = 0;
-    sampleRate = 8000;
-    destination = node();
+    destination = {};
     resume() {
       return Promise.resolve();
     }
     createDynamicsCompressor() {
-      return node();
+      return { connect: (x: unknown) => x };
     }
     createGain() {
-      created.gain++;
-      return node();
-    }
-    createBiquadFilter() {
-      return node();
-    }
-    createOscillator() {
-      created.osc++;
-      return node();
+      const g = { gain: param(), connect: (x: unknown) => x };
+      return g;
     }
     createBufferSource() {
-      created.noise++;
-      return node();
+      const node: Record<string, unknown> = {
+        buffer: null,
+        playbackRate: param(),
+        connect: (g: { gain?: { value: number } }) => {
+          node.gainNode = g;
+          return { connect: () => ({}) };
+        },
+        start: (at: number) =>
+          started.push({ at, rate: (node.playbackRate as { value: number }).value, gain: (node.gainNode as { gain: { value: number } }).gain.value }),
+      };
+      return node;
     }
-    createBuffer(_c: number, len: number) {
-      return { getChannelData: () => new Float32Array(len) };
+    decodeAudioData(data: ArrayBuffer) {
+      return Promise.resolve({ duration: 0.2, byteLength: data.byteLength });
     }
   }
   (globalThis as unknown as { window: unknown }).window = { AudioContext: FakeAudioContext };
-  return created;
+  vi.stubGlobal("fetch", (url: string) => {
+    fetched.push(url);
+    return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+  });
+  return { started, fetched };
 }
 
-describe("playSound", () => {
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
+describe("playSound (recorded Lichess samples)", () => {
   let now = 1000;
   beforeEach(() => {
     vi.resetModules();
@@ -107,57 +105,95 @@ describe("playSound", () => {
   });
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     delete (globalThis as { window?: unknown }).window;
   });
 
   it("does nothing, and never throws, without Web Audio", async () => {
-    const { playSound } = await import("@/lib/sound");
+    const { playSound, unlockSound } = await import("@/lib/sound");
     expect(() => playSound("move")).not.toThrow();
+    expect(() => unlockSound()).not.toThrow();
   });
 
-  it("each kind of move sounds different (different graphs)", async () => {
-    const created = installFakeAudio();
-    const { playSound } = await import("@/lib/sound");
-    const shape = (kind: Parameters<typeof playSound>[0]) => {
-      const before = { ...created };
-      playSound(kind);
-      return `${created.osc - before.osc}/${created.noise - before.noise}`;
+  it("each kind of move starts its own combination of recorded samples", async () => {
+    const { started } = installFakeAudio();
+    const { playSound, preloadSounds } = await import("@/lib/sound");
+    await preloadSounds();
+    const play = async (kind: Parameters<typeof playSound>[0], soft = false) => {
+      started.length = 0;
+      playSound(kind, { soft });
+      await flush();
+      return started.map((s) => ({ ...s }));
     };
-    const shapes = new Map<string, string>();
-    for (const kind of ["move", "capture", "castle", "check", "promote", "mate", "illegal", "reset", "done"] as const) shapes.set(kind, shape(kind));
-    expect(shapes.get("move")).toBe("1/1");
-    expect(shapes.get("capture")).toBe("2/2");
-    expect(shapes.get("castle")).toBe("2/2");
-    expect(shapes.get("check")).toBe("3/1");
-    expect(shapes.get("promote")).toBe("5/1");
-    expect(shapes.get("mate")).toBe("4/1");
-    expect(shapes.get("illegal")).toBe("2/0");
-    expect(shapes.get("done")).toBe("2/0");
-    // Kinds with the same node count (capture/castle, illegal/done) differ in pitch and timing,
-    // but every other kind has its own graph.
-    const distinct = new Set(["move", "check", "promote", "mate", "capture"].map((k) => shapes.get(k)));
-    expect(distinct.size).toBe(5);
+    expect(await play("move")).toHaveLength(1);
+    expect(await play("capture")).toHaveLength(1);
+    expect(await play("check")).toHaveLength(1);
+    expect(await play("done")).toHaveLength(1);
+    const castle = await play("castle");
+    expect(castle).toHaveLength(2); // king, then rook
+    expect(castle[1].at).toBeGreaterThan(castle[0].at);
+    expect(await play("promote")).toHaveLength(2); // move + chime
+    expect(await play("mate")).toHaveLength(2); // check + victory jingle
+    const reset = await play("reset");
+    expect(reset).toHaveLength(1);
+    expect(reset[0].rate).toBeLessThan(1); // slower
+    expect(reset[0].gain).toBeLessThan(0.6); // and quieter
+  });
+
+  it("loads the samples of the selected theme from /sounds/<theme>/ and switches themes", async () => {
+    const { fetched } = installFakeAudio();
+    const { preloadSounds, setSoundTheme } = await import("@/lib/sound");
+    await preloadSounds();
+    expect(fetched.sort()).toEqual(["Capture", "Check", "GenericNotify", "Move", "Victory"].map((n) => `/sounds/sfx/${n}.mp3`).sort());
+    fetched.length = 0;
+    setSoundTheme("piano");
+    await flush();
+    expect(fetched.every((u) => u.startsWith("/sounds/piano/"))).toBe(true);
+    expect(fetched).toHaveLength(5);
+  });
+
+  it("soft sounds are quieter", async () => {
+    const { started } = installFakeAudio();
+    const { playSound, preloadSounds } = await import("@/lib/sound");
+    await preloadSounds();
+    playSound("move");
+    await flush();
+    playSound("move", { soft: true });
+    await flush();
+    expect(started[1].gain).toBeLessThan(started[0].gain);
   });
 
   it("is silent when sounds are disabled", async () => {
-    const created = installFakeAudio();
-    const { playSound, setSoundsEnabled } = await import("@/lib/sound");
+    const { started } = installFakeAudio();
+    const { playSound, setSoundsEnabled, preloadSounds } = await import("@/lib/sound");
+    await preloadSounds();
     setSoundsEnabled(false);
     playSound("capture");
-    expect(created.osc + created.noise).toBe(0);
+    await flush();
+    expect(started).toHaveLength(0);
     setSoundsEnabled(true);
     playSound("capture");
-    expect(created.osc + created.noise).toBeGreaterThan(0);
+    await flush();
+    expect(started).toHaveLength(1);
+  });
+
+  it("survives a missing sample file", async () => {
+    installFakeAudio();
+    vi.stubGlobal("fetch", () => Promise.resolve({ ok: false, status: 404 }));
+    const { playSound, preloadSounds } = await import("@/lib/sound");
+    await expect(preloadSounds()).resolves.toBeUndefined();
+    expect(() => playSound("move")).not.toThrow();
   });
 
   it("rate-limits a burst (held arrow key)", async () => {
-    const created = installFakeAudio();
+    const { started } = installFakeAudio();
     vi.spyOn(performance, "now").mockReturnValue(5000);
-    const { playSound } = await import("@/lib/sound");
+    const { playSound, preloadSounds } = await import("@/lib/sound");
+    await preloadSounds();
     playSound("move");
-    const first = created.osc;
     playSound("move");
     playSound("move");
-    expect(created.osc).toBe(first);
+    await flush();
+    expect(started).toHaveLength(1);
   });
 });
