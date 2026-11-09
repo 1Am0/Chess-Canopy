@@ -1,0 +1,50 @@
+"use client";
+
+import { Filter, HelpCircle, Plus, Trees } from "lucide-react";
+import { activeFilterCount, useExplorerStore } from "@/lib/store";
+import { Button } from "@/components/ui/button";
+import { PlayerSwitcher } from "@/components/players/PlayerSwitcher";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+
+export function Header({ showTools }: { showTools: boolean }) {
+  const filters = useExplorerStore((s) => s.filters);
+  const setUi = useExplorerStore((s) => s.setUi);
+  const count = activeFilterCount(filters);
+
+  return (
+    <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
+      <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-3 sm:px-5">
+        <div className="mr-1 flex items-center gap-2 font-semibold tracking-tight">
+          <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Trees className="size-4" />
+          </span>
+          <span className="hidden sm:inline">Chess Canopy</span>
+        </div>
+        {showTools && <PlayerSwitcher />}
+        <div className="ml-auto flex items-center gap-1">
+          {showTools && (
+            <Button variant="outline" size="sm" onClick={() => setUi({ filtersOpen: true })} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
+              <Filter />
+              <span className="hidden sm:inline">Filters</span>
+              {count > 0 && (
+                <span className="ml-0.5 flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground tabular-nums">
+                  {count}
+                </span>
+              )}
+            </Button>
+          )}
+          {showTools && (
+            <Button variant="outline" size="sm" onClick={() => setUi({ importOpen: true })} aria-label="Import games">
+              <Plus />
+              <span className="hidden sm:inline">Import</span>
+            </Button>
+          )}
+          <ThemeToggle />
+          <Button variant="ghost" size="icon" className="hidden sm:inline-flex" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
+            <HelpCircle />
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
