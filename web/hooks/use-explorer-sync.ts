@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { Color, SelectionSummary } from "@/lib/engine/types";
+import { onDataChanged } from "@/lib/cross-tab";
 import { getExplorer, isExplorerRestart, onExplorerRestart } from "@/lib/explorer-client";
 import { activeFilterCount, effectiveSelection, selectionFilters, useExplorerStore } from "@/lib/store";
-import { usePosition, validateLine } from "@/hooks/use-position";
+import { usePosition } from "@/hooks/use-position";
+import { canonicalLine } from "@/lib/position-cache";
 
 /**
  * Parse `?line=`: URLSearchParams turns a raw "+" into a space ("Bxf7+" -> "Bxf7 "), so
@@ -13,7 +15,7 @@ import { usePosition, validateLine } from "@/hooks/use-position";
  */
 export function parseLineParam(raw: string | null): string[] {
   if (!raw) return [];
-  return validateLine(raw.replace(/ /g, "+").split(",").map((m) => m.trim()).filter(Boolean));
+  return canonicalLine(raw.replace(/ /g, "+").split(",").map((m) => m.trim()).filter(Boolean));
 }
 
 /**
@@ -69,6 +71,38 @@ export function useExplorerSync() {
       }),
     [],
   );
+
+  // Another tab imported, synced or deleted: drop this tab's cached games and reload the
+  // players (the changed list re-applies the selection), debounced for bursts of messages.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const off = onDataChanged(() => {
+      clearTimeout(timer);
+      timer = setTimeout(async () => {
+        try {
+          await getExplorer().invalidate?.();
+          await refreshPlayers();
+        } catch {
+          /* the next user action reports real problems */
+        }
+      }, 150);
+    });
+    return () => {
+      off();
+      clearTimeout(timer);
+    };
+  }, []);
+
+  // Settings (filters, theme, sounds, selection) changed in another tab: pick them up.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== null && e.key !== "chess-canopy:v1") return;
+      if (!useExplorerStore.getState().ready) return;
+      void Promise.resolve(useExplorerStore.persist.rehydrate()).catch(() => {});
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   // Bootstrap once on the client.
   useEffect(() => {
@@ -180,7 +214,7 @@ export function useExplorerSync() {
         if (e instanceof Error && e.message.includes("Invalid move sequence")) {
           // Keep the legal prefix rather than wiping the whole line.
           const s = useExplorerStore.getState();
-          const legal = validateLine(s.path);
+          const legal = canonicalLine(s.path);
           if (legal.length !== s.path.length || legal.some((m, i) => m !== s.path[i])) {
             useExplorerStore.setState({ path: legal, cursor: Math.min(s.cursor, legal.length), hoverMove: null });
           }
