@@ -118,7 +118,7 @@ export function useExplorerSync() {
         const line = parseLineParam(params.get("line"));
         if (line.length) useExplorerStore.getState().setLine(line);
         const side = params.get("side");
-        if (side === "white" || side === "black") useExplorerStore.getState().setSide(side);
+        if (side === "white" || side === "black") useExplorerStore.getState().setSide(side, false);
       } catch {
         /* ignore */
       }
@@ -229,6 +229,7 @@ export function useExplorerSync() {
 export function useKeyboardShortcuts() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return; // a widget (tabs, toggle group, menu) already handled the key
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const t = e.target as HTMLElement | null;
       if (t) {
