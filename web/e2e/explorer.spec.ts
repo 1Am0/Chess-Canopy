@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importJsonFile, importSampleJson, MANY_GAMES_JSON, mockApis, moveRow, trackCspViolations } from "./helpers";
+import { importJsonFile, importSampleJson, MANY_GAMES_JSON, mockApis, moveRow, STABILITY_GAMES_JSON, trackCspViolations } from "./helpers";
 import path from "node:path";
 
 const PGN_SAMPLE = path.join(process.cwd(), "tests/fixtures/golden/sample.pgn");
@@ -205,7 +205,7 @@ test("line panel lists moves with numbers; clicking a move rewinds; Reset return
   await expect(page).toHaveURL(/line=e4,e5$/);
 
   const line = page.getByRole("region", { name: "Line" });
-  await expect(line.getByRole("listitem").first()).toHaveText(/^1\s*e4\s*e5$/);
+  await expect(line.getByRole("listitem").first()).toHaveText(/^1\.\s*e4\s*e5$/);
   await expect(line.getByRole("button", { name: "e5", exact: true })).toHaveAttribute("aria-current", "step");
 
   await line.getByRole("button", { name: "e4", exact: true }).click();
@@ -252,28 +252,68 @@ test("copy share link shows a Copied toast", async ({ page, context }) => {
   expect(copied.searchParams.get("side")).toBe("white");
 });
 
-test("mobile tabs: Moves / Line / Games switch content without horizontal scroll", async ({ page }) => {
+test("mobile: the line strip stays visible and the Moves / Games tabs switch content without horizontal scroll", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await importSampleJson(page);
   const noHScroll = () => page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth);
   const line = page.getByRole("region", { name: "Line" });
 
   await moveRow(page, "e4").click();
-  await page.getByRole("tab", { name: "Line" }).click();
   await expect(line).toBeVisible();
   await expect(line.getByRole("button", { name: "e4", exact: true })).toBeVisible();
-  await expect(page.getByRole("table")).toBeHidden();
-  expect(await noHScroll()).toBe(true);
-
-  await page.getByRole("tab", { name: "Moves" }).click();
   await expect(page.getByRole("table")).toBeVisible();
-  await expect(line).toBeHidden();
+  await expect(page.getByRole("tab", { name: "Line" })).toHaveCount(0);
   expect(await noHScroll()).toBe(true);
 
   await page.getByRole("tab", { name: "Games" }).click();
   await expect(page.getByText("Recent games here")).toBeVisible();
   await expect(page.getByRole("table")).toBeHidden();
+  await expect(line).toBeVisible();
   expect(await noHScroll()).toBe(true);
+});
+
+test("line strip is a single scrolling row: long lines scroll sideways, never wrap or grow", async ({ page }) => {
+  await importJsonFile(page, STABILITY_GAMES_JSON, "tester");
+  const white = page.getByRole("radio", { name: "View games as White" });
+  await white.click();
+  await expect(white).toBeChecked();
+  await expect(page.locator("tbody tr[id^=move-row-]").first()).toBeVisible();
+  const line = page.getByRole("region", { name: "Line" });
+  const before = await line.boundingBox();
+  // Play as many plies as the dataset allows by always taking the top row.
+  const plies = line.locator("ol button");
+  let played = 0;
+  for (let ply = 1; ply <= 14; ply++) {
+    const rows = page.locator("tbody tr[id^=move-row-]");
+    await expect(rows.first()).toBeVisible();
+    await rows.first().click();
+    await expect.poll(() => plies.count()).toBe(ply);
+    played = ply;
+    // Wait until the next position's result is in (the table is not busy) before continuing.
+    await expect(page.getByTestId("explorer-region").locator("[aria-busy=true]")).toHaveCount(0);
+  }
+  expect(played).toBeGreaterThan(4);
+  const after = await line.boundingBox();
+  expect(after!.height).toBeCloseTo(before!.height, 0);
+  expect(after!.y).toBeCloseTo(before!.y, 0);
+  // The strip scrolls smoothly, so poll until the current move has settled into view.
+  const stripState = () =>
+    line.evaluate((el) => {
+      const sc = el.querySelector("div")!;
+      const buttons = [...el.querySelectorAll<HTMLElement>("ol button")];
+      const cur = el.querySelector<HTMLElement>('[data-current="true"]')!.getBoundingClientRect();
+      const box = sc.getBoundingClientRect();
+      return {
+        overflows: sc.scrollWidth > sc.clientWidth,
+        oneRow: new Set(buttons.map((b) => Math.round(b.getBoundingClientRect().top))).size === 1,
+        currentVisible: cur.left >= box.left - 1 && cur.right <= box.right - 24,
+      };
+    });
+  expect((await stripState()).oneRow).toBe(true);
+  await expect.poll(async () => (await stripState()).currentVisible).toBe(true);
+  // Stepping back to the start scrolls the strip back to its beginning.
+  await page.getByRole("button", { name: "Reset to start" }).click();
+  await expect.poll(() => line.evaluate((el) => el.querySelector("div")!.scrollLeft)).toBe(0);
 });
 
 test("clicking the already-active White side before the first summary is not overridden by the auto pick", async ({ page }) => {

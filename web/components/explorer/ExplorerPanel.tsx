@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { SideSwitch } from "@/components/layout/SideSwitch";
 import { FilterRow } from "@/components/filters/FilterRow";
 import { LinePanel } from "@/components/explorer/LinePanel";
@@ -11,7 +10,7 @@ import { MoveTable } from "@/components/explorer/MoveTable";
 import { GamesList } from "@/components/explorer/GamesList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type Tab = "moves" | "line" | "games";
+type Tab = "moves" | "games";
 
 const TRIGGER =
   "h-full flex-1 rounded-none border-0 bg-transparent px-3 text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_-2px_0_var(--color-primary)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent lg:flex-none lg:px-4";
@@ -24,23 +23,21 @@ const PANEL = "min-h-0 flex-none overflow-hidden data-[state=inactive]:hidden lg
  * are played (Lichess / chess.com style):
  *
  *   desktop (lg+, exactly the viewport height under the header, no outer scroll):
- *     SideSwitch 44 · opening 28 · filters 32 · Line (fixed body) · summary 52 ·
+ *     SideSwitch 44 · opening 28 · filters 32 · Line strip 44 · summary 52 ·
  *     explorer region (flex 1) with tabs Moves | Games, each its own scroll region.
- *   mobile: SideSwitch · opening · filters · summary · tabs Moves | Line | Games over a
+ *   mobile: SideSwitch · opening · filters · summary · tabs Moves | Games over a
  *     panel of fixed height max(22rem, 45vh), so tab switches never change page height.
  */
 export function ExplorerPanel() {
-  const desktop = useMediaQuery("(min-width: 64rem)");
   const [tab, setTab] = useState<Tab>("moves");
-  // The Line tab exists only on mobile; on desktop the line has its own slot.
-  const value: Tab = desktop && tab === "line" ? "moves" : tab;
+  const value: Tab = tab;
 
   return (
     <div className="flex min-w-0 flex-col gap-2 lg:h-full lg:min-h-0">
       <SideSwitch />
       <OpeningHeader />
       <FilterRow />
-      <LinePanel className="hidden lg:flex" active={desktop} />
+      <LinePanel />
       <PositionSummary />
       <Tabs
         value={value}
@@ -50,14 +47,10 @@ export function ExplorerPanel() {
       >
         <TabsList aria-label="Explorer views" className="h-9 w-full shrink-0 justify-start gap-0 rounded-none border-b bg-transparent p-0">
           <TabsTrigger value="moves" className={TRIGGER}>Moves</TabsTrigger>
-          <TabsTrigger value="line" className={`${TRIGGER} lg:hidden`}>Line</TabsTrigger>
           <TabsTrigger value="games" className={TRIGGER}>Games</TabsTrigger>
         </TabsList>
         <TabsContent value="moves" forceMount className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
           <MoveTable />
-        </TabsContent>
-        <TabsContent value="line" forceMount className={`${PANEL} h-[max(22rem,45vh)] lg:hidden`}>
-          <LinePanel variant="fill" className="h-full" active={!desktop && value === "line"} />
         </TabsContent>
         <TabsContent value="games" forceMount className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
           <GamesList />

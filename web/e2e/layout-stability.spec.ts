@@ -169,7 +169,7 @@ test.describe("layout stability: mobile 390x844", () => {
     const h0 = await docHeight();
 
     // Switching tabs: the page height must not change at all.
-    for (const tab of ["Line", "Games", "Moves", "Line", "Moves"]) {
+    for (const tab of ["Games", "Moves", "Games", "Moves"]) {
       await page.getByRole("tab", { name: tab }).click();
       await settle(page);
       assertStable(`tab ${tab}`, base, await snapshot(page, keys));
@@ -185,7 +185,7 @@ test.describe("layout stability: mobile 390x844", () => {
       assertStable(`ply ${ply}`, base, await snapshot(page, keys));
     }
     const h1 = await docHeight();
-    for (const tab of ["Line", "Games", "Moves"]) {
+    for (const tab of ["Games", "Moves"]) {
       await page.getByRole("tab", { name: tab }).click();
       await settle(page);
       assertStable(`tab ${tab} after moves`, base, await snapshot(page, keys));
