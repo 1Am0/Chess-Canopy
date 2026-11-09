@@ -300,6 +300,54 @@ test("clicking a game in the Games tab loads it into the line; → steps through
   await expect(first).toHaveAttribute("aria-pressed", "true");
 });
 
+/** Count the audio nodes the page creates, so tests can tell whether (and what) something played. */
+async function countAudio(page: import("@playwright/test").Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __audio: { osc: number; noise: number }; AudioContext: typeof AudioContext };
+    w.__audio = { osc: 0, noise: 0 };
+    const proto = w.AudioContext.prototype;
+    const osc = proto.createOscillator;
+    const src = proto.createBufferSource;
+    proto.createOscillator = function (this: AudioContext) {
+      w.__audio.osc++;
+      return osc.call(this);
+    };
+    proto.createBufferSource = function (this: AudioContext) {
+      w.__audio.noise++;
+      return src.call(this);
+    };
+  });
+  return () => page.evaluate(() => (window as unknown as { __audio: { osc: number; noise: number } }).__audio);
+}
+
+test("moves make sounds, the mute button silences them, and loading a ?line= URL is silent", async ({ page }) => {
+  const audio = await countAudio(page);
+  await importSampleJson(page);
+  await page.goto("/?line=e4,e5");
+  await expect(page.getByRole("table")).toBeVisible();
+  await page.waitForTimeout(1000);
+  expect(await audio()).toEqual({ osc: 0, noise: 0 }); // restoring a line never plays
+
+  await moveRow(page, "Nf3").click();
+  await expect.poll(async () => (await audio()).noise).toBe(1); // a plain move: one tap
+  await page.keyboard.press("ArrowLeft");
+  await expect.poll(async () => (await audio()).noise).toBe(2); // stepping back: a soft tap
+
+  // Mute: no more sound.
+  const mute = page.getByRole("button", { name: "Mute sounds" });
+  await mute.click();
+  await expect(page.getByRole("button", { name: "Unmute sounds" })).toHaveAttribute("aria-pressed", "true");
+  const muted = await audio();
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(300);
+  expect(await audio()).toEqual(muted);
+
+  // Unmute (plays a confirmation tap), and the choice survives a reload.
+  await page.getByRole("button", { name: "Unmute sounds" }).click();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Mute sounds" })).toBeVisible();
+});
+
 test("line strip is a single scrolling row: long lines scroll sideways, never wrap or grow", async ({ page }) => {
   await importJsonFile(page, STABILITY_GAMES_JSON, "tester");
   const white = page.getByRole("radio", { name: "View games as White" });

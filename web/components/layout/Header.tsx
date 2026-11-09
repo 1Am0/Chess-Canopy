@@ -4,6 +4,7 @@ import { Filter, HelpCircle, Plus, Trees } from "lucide-react";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { PlayerSwitcher } from "@/components/players/PlayerSwitcher";
+import { SoundToggle } from "@/components/layout/SoundToggle";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export function Header({ showTools }: { showTools: boolean }) {
@@ -39,6 +40,7 @@ export function Header({ showTools }: { showTools: boolean }) {
               <span className="hidden sm:inline">Import</span>
             </Button>
           )}
+          <SoundToggle />
           <ThemeToggle />
           <Button variant="ghost" size="icon" className="hidden sm:inline-flex" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
             <HelpCircle />

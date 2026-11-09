@@ -18,6 +18,7 @@ A fast, private opening explorer for your own chess.com and Lichess games.
 - **Recent games.** See the games that reached the current position, with links to the original game.
 - **Shareable lines.** The current line is kept in the URL (`?line=e4,c5,Nf3`) with `replaceState`, so refresh and sharing work (the Back button leaves the app rather than stepping through moves; use the arrow keys). The board toolbar's copy-link button also adds `&side=white|black`, which is read on load.
 - **Light and dark themes.**
+- **Move sounds.** Synthesised in the browser (no audio files): a different sound for a plain move, capture, castling, check, promotion and checkmate, a buzz for a refused drag, a chime when an import finishes, and softer taps when stepping back. Nothing plays when a page loads. The speaker button in the header mutes it, and the choice is remembered.
 - **Keyboard shortcuts:**
 
 | Key | Action |

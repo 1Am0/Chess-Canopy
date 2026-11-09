@@ -1,6 +1,7 @@
 "use client";
 
 import { useExplorerSync, useKeyboardShortcuts } from "@/hooks/use-explorer-sync";
+import { useMoveSounds } from "@/hooks/use-move-sounds";
 import { useExplorerStore } from "@/lib/store";
 import { Header } from "@/components/layout/Header";
 import { ShortcutsDialog } from "@/components/layout/ShortcutsDialog";
@@ -50,6 +51,7 @@ function LoadingShell() {
 export function AppShell() {
   useExplorerSync();
   useKeyboardShortcuts();
+  useMoveSounds();
   const ready = useExplorerStore((s) => s.ready);
   const hasPlayers = useExplorerStore((s) => s.players.length > 0);
   const explorer = ready && hasPlayers;
