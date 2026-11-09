@@ -132,6 +132,26 @@ describe("URL ?line= (C16)", () => {
   });
 });
 
+describe("explicit side choice", () => {
+  it("autoSide never switches after an explicit choice", () => {
+    expect(autoSide({ games: 0, counts: { white: 0, black: 5 } }, "white", true, 0, true)).toBeNull();
+    expect(autoSide({ games: 3, counts: { white: 3, black: 9 } }, "white", false, 0, true)).toBeNull();
+  });
+  it("setSide marks the choice explicit; autoPickSide is then a no-op, otherwise it is not explicit", () => {
+    useExplorerStore.setState({ sideChosen: false, sideExplicit: false, filters: { color: "white" }, orientation: "white" });
+    useExplorerStore.getState().autoPickSide("black");
+    expect(useExplorerStore.getState()).toMatchObject({ sideChosen: true, sideExplicit: false, orientation: "black" });
+    useExplorerStore.getState().setSide("white");
+    useExplorerStore.getState().autoPickSide("black");
+    expect(useExplorerStore.getState()).toMatchObject({ sideExplicit: true, orientation: "white" });
+    expect(useExplorerStore.getState().filters.color).toBe("white");
+  });
+  it("migration: v2 state gets sideExplicit=false; v0 explicit colour is explicit", () => {
+    expect(migratePersisted({ filters: { color: "black" }, sideChosen: true }, 2)).toMatchObject({ sideExplicit: false });
+    expect(migratePersisted({ filters: { color: "black" } }, 0)).toMatchObject({ sideExplicit: true });
+  });
+});
+
 describe("auto side (C12)", () => {
   it("first summary: the side with more games, including a Black-only player", () => {
     expect(autoSide({ games: 0, counts: { white: 0, black: 2 } }, "white", false, 0)).toBe("black");

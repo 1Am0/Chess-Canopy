@@ -39,6 +39,8 @@ export interface ExplorerState {
   orientation: Color;
   /** true once the user picked a side (or the one-time auto pick ran) */
   sideChosen: boolean;
+  /** true once the user explicitly chose a side (setSide); auto-pick never overrides it */
+  sideExplicit: boolean;
 
   // session
   ready: boolean;
@@ -91,6 +93,7 @@ export const useExplorerStore = create<ExplorerState>()(
       selected: "all",
       filters: { color: "white" },
       sideChosen: false,
+      sideExplicit: false,
       boardTheme: "green",
       orientation: "white",
 
@@ -164,15 +167,19 @@ export const useExplorerStore = create<ExplorerState>()(
           filters: { ...s.filters, color },
           orientation: color,
           sideChosen: true,
+          sideExplicit: true,
           hoverMove: null,
         })),
+      // Never overrides an explicit choice (e.g. a summary landing after the user's click).
       autoPickSide: (color) =>
-        set((s) => ({ filters: { ...s.filters, color }, orientation: color, sideChosen: true })),
+        set((s) =>
+          s.sideExplicit ? {} : { filters: { ...s.filters, color }, orientation: color, sideChosen: true },
+        ),
     }),
     {
       name: "chess-canopy:v1",
       storage: safeStorage,
-      version: 2,
+      version: 3,
       migrate: migratePersisted,
       skipHydration: true,
       partialize: (s) => ({
@@ -181,6 +188,7 @@ export const useExplorerStore = create<ExplorerState>()(
         boardTheme: s.boardTheme,
         orientation: s.orientation,
         sideChosen: s.sideChosen,
+        sideExplicit: s.sideExplicit,
       }),
     },
   ),
@@ -229,13 +237,15 @@ export function isResultFresh(s: Pick<ExplorerState, "result" | "path" | "cursor
  * - v0 -> v1: the side became explicit (filters.color always set).
  * - v1 -> v2: drop the move-range filter (`moves_start`/`moves_end`), which the UI no longer
  *   offers; a stored start value made every root move illegal from the start position.
+ * - v2 -> v3: `sideExplicit` (a stored side with sideChosen may have come from the auto pick, so
+ *   it starts false).
  */
 export function migratePersisted(persisted: unknown, version: number): ExplorerState {
   let p = { ...((persisted ?? {}) as Partial<ExplorerState>) };
   if (version < 1) {
     const color: Color = p.filters?.color === "black" ? "black" : "white";
     const explicit = p.filters?.color === "white" || p.filters?.color === "black";
-    p = { ...p, filters: { ...(p.filters ?? {}), color }, orientation: explicit ? color : "white", sideChosen: explicit };
+    p = { ...p, filters: { ...(p.filters ?? {}), color }, orientation: explicit ? color : "white", sideChosen: explicit, sideExplicit: explicit };
   }
   if (version < 2 && p.filters) {
     const filters = { ...p.filters };
@@ -243,5 +253,6 @@ export function migratePersisted(persisted: unknown, version: number): ExplorerS
     delete filters.moves_end;
     p = { ...p, filters };
   }
+  if (version < 3 && p.sideExplicit === undefined) p = { ...p, sideExplicit: false };
   return p as ExplorerState;
 }

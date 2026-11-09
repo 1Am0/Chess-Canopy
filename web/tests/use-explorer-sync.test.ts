@@ -43,7 +43,7 @@ beforeEach(async () => {
   calls.setSelection = [];
   calls.query = [];
   useExplorerStore.setState({
-    ready: false, players: [], path: [], cursor: 0, filters: { color: "white" }, sideChosen: false, selectionVersion: 0, summary: null, result: null,
+    ready: false, players: [], path: [], cursor: 0, filters: { color: "white" }, sideChosen: false, sideExplicit: false, selectionVersion: 0, summary: null, result: null,
   });
   const el = document.createElement("div");
   root = createRoot(el);
@@ -68,6 +68,38 @@ describe("useExplorerSync", () => {
     await wait(220);
     expect(calls.setSelection).toHaveLength(2);
     expect(calls.setSelection[1].filters).toMatchObject({ color: "black" });
+  });
+
+  it("an explicit side choice before the first summary wins over the auto pick", async () => {
+    await wait(220);
+    await act(async () => useExplorerStore.getState().setSide("white")); // click on the already-active side
+    await wait(220);
+    // summary of the older selection (Black has more games) lands after the click
+    await act(async () => calls.setSelection[0].d.resolve(sum(2, 5)));
+    await act(async () => calls.setSelection[calls.setSelection.length - 1].d.resolve(sum(2, 5)));
+    await wait(220);
+    expect(useExplorerStore.getState().filters.color).toBe("white");
+    expect(useExplorerStore.getState().orientation).toBe("white");
+  });
+
+  it("an explicit choice is not overridden even when the side has 0 games", async () => {
+    await wait(220);
+    await act(async () => useExplorerStore.getState().setSide("white"));
+    await wait(220);
+    await act(async () => calls.setSelection[calls.setSelection.length - 1].d.resolve(sum(0, 4)));
+    await wait(220);
+    expect(useExplorerStore.getState().filters.color).toBe("white");
+  });
+
+  it("players refresh after the choice (import completion) keeps the explicit side", async () => {
+    await wait(220);
+    await act(async () => useExplorerStore.getState().setSide("white"));
+    await act(async () => useExplorerStore.getState().setPlayers([{ id: "p2" } as never]));
+    await wait(220);
+    await act(async () => calls.setSelection[calls.setSelection.length - 1].d.resolve(sum(1, 9)));
+    await wait(220);
+    expect(useExplorerStore.getState()).toMatchObject({ sideExplicit: true });
+    expect(useExplorerStore.getState().filters.color).toBe("white");
   });
 
   it("ignores a stale setSelection and waits for the pending one before querying (C8)", async () => {

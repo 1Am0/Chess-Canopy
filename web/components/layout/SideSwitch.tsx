@@ -25,7 +25,10 @@ export function SideSwitch({ className }: { className?: string }) {
       type="single"
       value={side}
       onValueChange={(v) => {
+        // Clicking the already-selected side deselects it (v === ""): still an explicit choice,
+        // so it must stop the one-time auto pick from moving to the other side.
         if (v === "white" || v === "black") setSide(v);
+        else setSide(side);
       }}
       aria-label="Side to view"
       className={cn("grid h-11 w-full shrink-0 grid-cols-2 gap-1 rounded-lg bg-muted p-1", className)}

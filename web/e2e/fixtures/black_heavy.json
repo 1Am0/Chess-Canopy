@@ -1,0 +1,61 @@
+{
+ "version": 1,
+ "games": [
+  {
+   "game_id": "blk-0",
+   "moves": [
+    "e4",
+    "c5",
+    "Nf3",
+    "d6"
+   ],
+   "result": "1-0",
+   "color": "white",
+   "date": "2024-03-01",
+   "opponent": "opp_0",
+   "my_rating": 1500
+  },
+  {
+   "game_id": "blk-1",
+   "moves": [
+    "e4",
+    "c5",
+    "Nf3",
+    "d6"
+   ],
+   "result": "1-0",
+   "color": "black",
+   "date": "2024-03-02",
+   "opponent": "opp_1",
+   "my_rating": 1500
+  },
+  {
+   "game_id": "blk-2",
+   "moves": [
+    "e4",
+    "c5",
+    "Nf3",
+    "d6"
+   ],
+   "result": "1-0",
+   "color": "black",
+   "date": "2024-03-03",
+   "opponent": "opp_2",
+   "my_rating": 1500
+  },
+  {
+   "game_id": "blk-3",
+   "moves": [
+    "e4",
+    "c5",
+    "Nf3",
+    "d6"
+   ],
+   "result": "1-0",
+   "color": "black",
+   "date": "2024-03-04",
+   "opponent": "opp_3",
+   "my_rating": 1500
+  }
+ ]
+}

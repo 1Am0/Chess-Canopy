@@ -19,7 +19,8 @@ export function parseLineParam(raw: string | null): string[] {
 /**
  * Side to view after a selection summary, or null to keep the current one.
  * - Until the user picks a side: the side with more games (also when the current side has 0).
- * - Afterwards: only when the current side has no games at all, the other side has some, and
+ * - After an explicit choice (setSide): never; the empty state offers "View as Black (N games)".
+ * - Afterwards (auto-picked): only when the current side has no games at all, the other side has some, and
  *   no filter is active (so the player simply never played that color).
  */
 export function autoSide(
@@ -27,7 +28,9 @@ export function autoSide(
   cur: Color,
   sideChosen: boolean,
   filterCount: number,
+  sideExplicit = false,
 ): Color | null {
+  if (sideExplicit) return null;
   const other: Color = cur === "white" ? "black" : "white";
   if (summary.counts.white + summary.counts.black === 0) return null;
   if (!sideChosen) return summary.counts[other] > summary.counts[cur] ? other : null;
@@ -134,7 +137,7 @@ export function useExplorerSync() {
         const s = useExplorerStore.getState();
         s.setSummary(summary);
         const cur = s.filters.color ?? "white";
-        const pick = autoSide(summary, cur, s.sideChosen, activeFilterCount(s.filters));
+        const pick = autoSide(summary, cur, s.sideChosen, activeFilterCount(s.filters), s.sideExplicit);
         if (pick) {
           // Changes filters.color, which re-runs this effect; the query follows that selection.
           s.autoPickSide(pick);

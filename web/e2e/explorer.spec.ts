@@ -275,3 +275,18 @@ test("mobile tabs: Moves / Line / Games switch content without horizontal scroll
   await expect(page.getByRole("table")).toBeHidden();
   expect(await noHScroll()).toBe(true);
 });
+
+test("clicking the already-active White side before the first summary is not overridden by the auto pick", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("tab", { name: "JSON" }).click();
+  await page.getByLabel("Drop a JSON file exported by the Python CLI").setInputFiles(path.join(process.cwd(), "e2e/fixtures/black_heavy.json"));
+  await page.getByLabel(/Player label/).fill("tester");
+  await page.getByRole("button", { name: "Import games" }).click();
+  const white = page.getByLabel("View games as White");
+  await white.waitFor({ state: "visible" });
+  await white.click(); // White is the default: clicking it must still count as an explicit choice
+  await expect(page.getByRole("table")).toBeVisible();
+  await page.waitForTimeout(1000);
+  await expect(white).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByLabel("View games as Black")).toHaveAttribute("aria-checked", "false");
+});
