@@ -1,24 +1,25 @@
 /**
- * Sound feedback using recorded chess sounds from Lichess (lichess-org/lila, public/sound),
- * licensed AGPL-3.0-or-later (see public/sounds/ATTRIBUTION.md). The mp3 files are
- * fetched lazily on the first user gesture and played through the Web Audio API for low
- * latency. Each kind of move gets its own treatment, built from the recorded samples:
+ * Sound feedback using recorded chess sounds from Lichess (lichess-org/lila, public/sound).
+ * The mp3 files are fetched lazily on the first user gesture and played through the Web
+ * Audio API for low latency. Only the three *piece* sounds (Move, Capture, Check) are used.
+ * Lichess's game-over / victory / notification sounds are deliberately NOT bundled, so
+ * nothing here can be mistaken for a Lichess game ending.
+ *
+ * Each kind of move gets its own treatment, built from those recordings:
  *
  *   move      the recorded move sound
  *   capture   the recorded capture sound
- *   check     the recorded check sound
- *   castle    the move sound twice (king, then rook)
- *   promote   the move sound followed by a soft notification chime
- *   mate      the check sound, then a victory jingle
+ *   check     the recorded check sound (Standard has none: a quick rising double tap)
+ *   castle    the move sound twice, evenly spaced (king, then rook)
+ *   promote   three rising taps
+ *   mate      a heavy double thud: the capture sound, then a lower one
  *   reset     a slower, quieter move sound (jumping back to the start)
- *   done      the notification chime (an import finished)
  *
  * Five themes are bundled: standard (the Lichess default, used by default), sfx, piano,
- * nes and futuristic. Everything is a
- * no-op without Web Audio (SSR, old browsers, tests).
+ * nes and futuristic. Everything is a no-op without Web Audio (SSR, old browsers, tests).
  */
 
-export type SoundKind = "move" | "capture" | "castle" | "check" | "promote" | "mate" | "reset" | "done";
+export type SoundKind = "move" | "capture" | "castle" | "check" | "promote" | "mate" | "reset";
 
 export const SOUND_THEMES = [
   { id: "standard", label: "Lichess (default)" },
@@ -31,15 +32,14 @@ export type SoundTheme = (typeof SOUND_THEMES)[number]["id"];
 export const DEFAULT_SOUND_THEME: SoundTheme = "standard";
 
 /**
- * Lichess's Standard set only has real recordings for move, capture and a notification
- * chime (Lichess itself plays the move sound for check). So for this theme the check and
- * victory samples are mapped onto those, and a check gets a soft chime on top so it still
- * sounds different from a plain move.
+ * Lichess's Standard set has recordings for move and capture only (Lichess itself plays
+ * the move sound for check). For this theme the check sample is the move sound, and a
+ * check is played as a quick, rising double tap so it still differs from a plain move.
  */
 const SAMPLE_FILE: Partial<Record<SoundTheme, Partial<Record<string, string>>>> = {
-  standard: { Check: "Move", Victory: "GenericNotify" },
+  standard: { Check: "Move" },
 };
-const CHECK_CHIME: Partial<Record<SoundTheme, boolean>> = { standard: true };
+const NO_CHECK_RECORDING: Partial<Record<SoundTheme, boolean>> = { standard: true };
 
 /** What kind of sound a SAN move makes. Mate beats check, check beats castling, then promotion, then capture. */
 export function classifyMove(san: string | undefined): SoundKind {
@@ -110,7 +110,7 @@ function audioContext(): AudioContext | null {
   }
 }
 
-const SAMPLES = ["Move", "Capture", "Check", "Victory", "GenericNotify"] as const;
+const SAMPLES = ["Move", "Capture", "Check"] as const;
 type Sample = (typeof SAMPLES)[number];
 
 /** Fetch + decode one sample of the current theme (cached; null if it cannot be loaded). */
@@ -181,8 +181,10 @@ export function playSound(kind: SoundKind, opts: { soft?: boolean } = {}): void 
       hit("Capture", { gain: v });
       break;
     case "check":
-      hit("Check", { gain: v });
-      if (CHECK_CHIME[theme]) hit("GenericNotify", { at: 0.07, gain: 0.4 * v });
+      if (NO_CHECK_RECORDING[theme]) {
+        hit("Move", { gain: v });
+        hit("Move", { at: 0.08, gain: 0.75 * v, rate: 1.5 });
+      } else hit("Check", { gain: v });
       break;
     case "castle":
       hit("Move", { gain: v });
@@ -190,18 +192,15 @@ export function playSound(kind: SoundKind, opts: { soft?: boolean } = {}): void 
       break;
     case "promote":
       hit("Move", { gain: v });
-      hit("GenericNotify", { at: 0.1, gain: 0.55 * v });
+      hit("Move", { at: 0.07, gain: 0.85 * v, rate: 1.25 });
+      hit("Move", { at: 0.14, gain: 0.8 * v, rate: 1.5 });
       break;
     case "mate":
-      hit("Check", { gain: v });
-      if (CHECK_CHIME[theme]) hit("GenericNotify", { at: 0.07, gain: 0.4 * v });
-      hit("Victory", { at: 0.22, gain: 0.7 * v });
+      hit("Capture", { gain: v });
+      hit("Capture", { at: 0.12, gain: 0.9 * v, rate: 0.75 });
       break;
     case "reset":
       hit("Move", { gain: 0.45 * v, rate: 0.75 });
-      break;
-    case "done":
-      hit("GenericNotify", { gain: v });
       break;
   }
 }

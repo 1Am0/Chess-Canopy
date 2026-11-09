@@ -352,7 +352,7 @@ test("moves make sounds, the mute button silences them, and loading a ?line= URL
   });
   await page.getByRole("button", { name: "Appearance" }).click();
   await page.getByRole("menuitem", { name: "Piano" }).click();
-  await expect.poll(() => requested.filter((u) => u.startsWith("/sounds/piano/")).length).toBeGreaterThanOrEqual(5);
+  await expect.poll(() => requested.filter((u) => u.startsWith("/sounds/piano/")).length).toBeGreaterThanOrEqual(3);
   await page.keyboard.press("Escape");
   await page.reload();
   await expect(page.getByRole("button", { name: "Mute sounds" })).toBeVisible();

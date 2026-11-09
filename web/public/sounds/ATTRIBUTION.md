@@ -14,11 +14,11 @@ The move sounds in this folder are recorded sounds from **Lichess**, copied unmo
 
 Per Lila's [COPYING.md](https://github.com/lichess-org/lila/blob/master/COPYING.md) these four sets
 are listed as free exceptions under the AGPL-3.0-or-later. Only five files of each AGPL set are used
-(`Move`, `Capture`, `Check`, `Victory`, `GenericNotify`).
+(`Move`, `Capture`, `Check`). Lichess's game-over, victory and notification sounds are deliberately not included.
 
 ## The Standard set
 
-`standard/` is Lichess's default sound set (`Move`, `Capture`, `GenericNotify`). In Lila's
+`standard/` is Lichess's default sound set (`Move`, `Capture`). In Lila's
 [COPYING.md](https://github.com/lichess-org/lila/blob/master/COPYING.md) the "other sounds in
 `public/sound`" are listed under *Exceptions (non-free)*, so their license for redistribution is
 **not clearly free**. It is bundled at the project owner's request so the app sounds like the

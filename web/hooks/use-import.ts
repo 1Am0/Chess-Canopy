@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import type { ImportOutcome, ImportProgress, ImportRequest } from "@/lib/engine/types";
 import { getExplorer } from "@/lib/explorer-client";
 import { refreshPlayers } from "@/hooks/use-explorer-sync";
-import { playSound } from "@/lib/sound";
 import { effectiveSelection, useExplorerStore } from "@/lib/store";
 
 export function useImport() {
@@ -30,7 +29,6 @@ export function useImport() {
     const skipped = outcome.skipped
       ? ` · skipped ${outcome.skipped.toLocaleString()} non-standard game${outcome.skipped === 1 ? "" : "s"}`
       : "";
-    playSound("done");
     toast.success(
       outcome.added > 0
         ? `Imported ${outcome.added.toLocaleString()} new games (${outcome.total.toLocaleString()} total)${skipped}`

@@ -127,26 +127,33 @@ describe("playSound (recorded Lichess samples)", () => {
     };
     expect(await play("move")).toHaveLength(1);
     expect(await play("capture")).toHaveLength(1);
-    expect(await play("check")).toHaveLength(2); // Standard has no check recording: move + a soft chime
-    expect(await play("done")).toHaveLength(1);
+    const check = await play("check"); // Standard has no check recording: a quick rising double tap
+    expect(check).toHaveLength(2);
+    expect(check[1].rate).toBeGreaterThan(1);
     const castle = await play("castle");
     expect(castle).toHaveLength(2); // king, then rook
     expect(castle[1].at).toBeGreaterThan(castle[0].at);
-    expect(await play("promote")).toHaveLength(2); // move + chime
-    expect(await play("mate")).toHaveLength(3); // check (+ chime) + victory jingle
+    const promote = await play("promote"); // three rising taps
+    expect(promote).toHaveLength(3);
+    expect(promote.map((p) => p.rate)).toEqual([1, 1.25, 1.5]);
+    const mate = await play("mate"); // a heavy double thud, the second one lower
+    expect(mate).toHaveLength(2);
+    expect(mate[1].rate).toBeLessThan(1);
     const reset = await play("reset");
     expect(reset).toHaveLength(1);
     expect(reset[0].rate).toBeLessThan(1); // slower
     expect(reset[0].gain).toBeLessThan(0.6); // and quieter
   });
 
-  it("defaults to Lichess's Standard theme, which only has move, capture and a chime", async () => {
+  it("defaults to Lichess's Standard theme, which only has move and capture recordings", async () => {
     const { fetched } = installFakeAudio();
     const { preloadSounds, DEFAULT_SOUND_THEME } = await import("@/lib/sound");
     expect(DEFAULT_SOUND_THEME).toBe("standard");
     await preloadSounds();
-    // Check and Victory are mapped onto those files, so only three are fetched.
-    expect(fetched.sort()).toEqual(["Capture", "GenericNotify", "Move"].map((n) => `/sounds/standard/${n}.mp3`));
+    // Check is mapped onto the move recording, so only two files are fetched.
+    expect(fetched.sort()).toEqual(["Capture", "Move"].map((n) => `/sounds/standard/${n}.mp3`));
+    // Never any game-over / victory / notification sample.
+    expect(fetched.some((u) => /Victory|Defeat|Draw|GenericNotify/.test(u))).toBe(false);
   });
 
   it("themes with a real check recording play it alone", async () => {
@@ -167,7 +174,7 @@ describe("playSound (recorded Lichess samples)", () => {
     setSoundTheme("piano");
     await flush();
     expect(fetched.every((u) => u.startsWith("/sounds/piano/"))).toBe(true);
-    expect(fetched).toHaveLength(5);
+    expect(fetched.sort()).toEqual(["Capture", "Check", "Move"].map((n) => `/sounds/piano/${n}.mp3`));
   });
 
   it("soft sounds are quieter", async () => {
