@@ -1,0 +1,66 @@
+[
+  {
+    "input": "",
+    "output": "rapid"
+  },
+  {
+    "input": "60",
+    "output": "bullet"
+  },
+  {
+    "input": "120+1",
+    "output": "bullet"
+  },
+  {
+    "input": "180",
+    "output": "blitz"
+  },
+  {
+    "input": "180+2",
+    "output": "blitz"
+  },
+  {
+    "input": "300",
+    "output": "blitz"
+  },
+  {
+    "input": "600",
+    "output": "rapid"
+  },
+  {
+    "input": "600+5",
+    "output": "rapid"
+  },
+  {
+    "input": "900+10",
+    "output": "rapid"
+  },
+  {
+    "input": "1800",
+    "output": "rapid"
+  },
+  {
+    "input": "3600",
+    "output": "classical"
+  },
+  {
+    "input": "5400+30",
+    "output": "classical"
+  },
+  {
+    "input": "1/86400",
+    "output": "daily"
+  },
+  {
+    "input": "86400",
+    "output": "daily"
+  },
+  {
+    "input": "abc",
+    "output": "rapid"
+  },
+  {
+    "input": "300+x",
+    "output": "rapid"
+  }
+]

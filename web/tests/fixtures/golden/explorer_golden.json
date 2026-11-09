@@ -1,0 +1,3437 @@
+{
+  "source": "examples/sample_games.json",
+  "games_total": 3,
+  "first_game_id": "sample-1",
+  "opponent_upper": "OPPONENT_A",
+  "combos": [
+    {
+      "filters": {},
+      "filtered_count": 3
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "filtered_count": 2
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "filtered_count": 1
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "filtered_count": 1
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "filtered_count": 2
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "filtered_count": 3
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "filtered_count": 3
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "filtered_count": 3
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "filtered_count": 1
+    }
+  ],
+  "cases": [
+    {
+      "filters": {},
+      "color": "white",
+      "path": [],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 1,
+        "draws": 0,
+        "total": 2,
+        "winRate": 0.5,
+        "drawRate": 0.0,
+        "lossRate": 0.5
+      },
+      "next": [
+        {
+          "move": "e4",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        },
+        {
+          "move": "d4",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {},
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {},
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {},
+      "color": "white",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Bb5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {},
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {},
+      "color": "white",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 1,
+        "draws": 0,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 1.0
+      },
+      "next": [
+        {
+          "move": "d5",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {},
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {},
+      "color": "black",
+      "path": [],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 1,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 1.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 0,
+            "losses": 0,
+            "draws": 1,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 1.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {},
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {},
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {},
+      "color": "black",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {},
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {},
+      "color": "black",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {},
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "white",
+      "path": [],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 1,
+        "draws": 0,
+        "total": 2,
+        "winRate": 0.5,
+        "drawRate": 0.0,
+        "lossRate": 0.5
+      },
+      "next": [
+        {
+          "move": "e4",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        },
+        {
+          "move": "d4",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Bb5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "white",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 1,
+        "draws": 0,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 1.0
+      },
+      "next": [
+        {
+          "move": "d5",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "black",
+      "path": [],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "black",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "white"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "white",
+      "path": [],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "white",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "black",
+      "path": [],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 1,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 1.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 0,
+            "losses": 0,
+            "draws": 1,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 1.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "black",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "color": "black"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "white",
+      "path": [],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e4",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Bb5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "white",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "black",
+      "path": [],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "black",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "result": "1-0"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "white",
+      "path": [],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e4",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Bb5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "white",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "black",
+      "path": [],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 1,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 1.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 0,
+            "losses": 0,
+            "draws": 1,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 1.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "black",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "time_control": "blitz"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 2,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "white",
+      "path": [],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 1,
+        "draws": 0,
+        "total": 2,
+        "winRate": 0.5,
+        "drawRate": 0.0,
+        "lossRate": 0.5
+      },
+      "next": [
+        {
+          "move": "e4",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        },
+        {
+          "move": "d4",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Bb5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "white",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 1,
+        "draws": 0,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 1.0
+      },
+      "next": [
+        {
+          "move": "d5",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "black",
+      "path": [],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 1,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 1.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 0,
+            "losses": 0,
+            "draws": 1,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 1.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "black",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "min_opponent_rating": 1200
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "white",
+      "path": [],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 1,
+        "draws": 0,
+        "total": 2,
+        "winRate": 0.5,
+        "drawRate": 0.0,
+        "lossRate": 0.5
+      },
+      "next": [
+        {
+          "move": "e4",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        },
+        {
+          "move": "d4",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Bb5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "white",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 1,
+        "draws": 0,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 1.0
+      },
+      "next": [
+        {
+          "move": "d5",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "black",
+      "path": [],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 1,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 1.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 0,
+            "losses": 0,
+            "draws": 1,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 1.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "black",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "date_from": "2023-01-01"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "white",
+      "path": [],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 1,
+        "draws": 0,
+        "total": 2,
+        "winRate": 0.5,
+        "drawRate": 0.0,
+        "lossRate": 0.5
+      },
+      "next": [
+        {
+          "move": "e4",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        },
+        {
+          "move": "d4",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "white",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 1,
+        "draws": 0,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 1.0
+      },
+      "next": [
+        {
+          "move": "d5",
+          "stats": {
+            "wins": 0,
+            "losses": 1,
+            "draws": 0,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 0.0,
+            "lossRate": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "black",
+      "path": [],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 1,
+        "total": 1,
+        "winRate": 0.0,
+        "drawRate": 1.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 0,
+            "losses": 0,
+            "draws": 1,
+            "total": 1,
+            "winRate": 0.0,
+            "drawRate": 1.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "black",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "moves_start": 0,
+        "moves_end": 4
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 3,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "white",
+      "path": [],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e4",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Bb5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "white",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "e5",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "white",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "white",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 1,
+        "losses": 0,
+        "draws": 0,
+        "total": 1,
+        "winRate": 1.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": [
+        {
+          "move": "Nf3",
+          "stats": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 0,
+            "total": 1,
+            "winRate": 1.0,
+            "drawRate": 0.0,
+            "lossRate": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "black",
+      "path": [],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5",
+        "Nf3",
+        "Nc6"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "black",
+      "path": [
+        "e4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "black",
+      "path": [
+        "d4"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    },
+    {
+      "filters": {
+        "opponent": "OPPONENT_A"
+      },
+      "color": "black",
+      "path": [
+        "e4",
+        "e5"
+      ],
+      "filtered_count": 1,
+      "stats": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 0,
+        "total": 0,
+        "winRate": 0.0,
+        "drawRate": 0.0,
+        "lossRate": 0.0
+      },
+      "next": []
+    }
+  ]
+}
