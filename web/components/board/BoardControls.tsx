@@ -50,7 +50,10 @@ function Tip({ label, keys, children }: { label: string; keys?: string; children
   );
 }
 
-const btn = "size-9 min-h-9 min-w-9";
+// Below sm (640px) buttons are 32px and the groups are tight so both groups fit on one row
+// in the 276px-wide toolbar of a 320px viewport. From sm up, the original 36px / gap-0.5 look.
+const btn = "size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9";
+const group = "flex items-center gap-0 sm:gap-0.5 rounded-lg border bg-card p-0.5 shadow-xs";
 
 export function BoardControls() {
   const cursor = useExplorerStore((s) => s.cursor);
@@ -89,7 +92,7 @@ export function BoardControls() {
 
   return (
     <div role="toolbar" aria-label="Board controls" className="flex flex-wrap items-center justify-between gap-x-1 gap-y-1">
-      <div className="flex items-center gap-0.5 rounded-lg border bg-card p-0.5 shadow-xs">
+      <div className={group}>
         <Tip label="Start" keys="↑">
           <Button variant="ghost" size="icon" className={btn} onClick={toStart} disabled={atStart} aria-label="Go to start (↑)">
             <ChevronsLeft />
@@ -111,13 +114,13 @@ export function BoardControls() {
           </Button>
         </Tip>
       </div>
-      <div className="flex items-center gap-0.5 rounded-lg border bg-card p-0.5 shadow-xs">
+      <div className={group}>
         <Tip label="Flip board" keys="F">
           <Button variant="ghost" size="icon" className={btn} onClick={flip} aria-label="Flip board (F)">
             <FlipVertical2 />
           </Button>
         </Tip>
-        <span className="mx-0.5 h-5 w-px bg-border" aria-hidden />
+        <span className="mx-0 h-5 w-px bg-border sm:mx-0.5" aria-hidden />
         <Tip label="Copy FEN">
           <Button variant="ghost" size="icon" className={btn} onClick={copyFen} aria-label="Copy FEN">
             <Copy />
