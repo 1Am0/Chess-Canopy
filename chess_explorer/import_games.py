@@ -3,7 +3,7 @@ import concurrent.futures
 import datetime as dt
 import functools
 import io
-import json
+import re
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -13,24 +13,44 @@ import requests
 from tqdm import tqdm
 
 from .constants import USER_AGENT
-from .storage import load_store, resolve_store_path, save_store
+from .storage import load_store, save_store
 
+MAX_ARCHIVE_WORKERS = 2
 HEADERS = {"User-Agent": USER_AGENT, "Accept-Encoding": "gzip, deflate"}
 
 
 def _make_session() -> requests.Session:
     session = requests.Session()
-    adapter = requests.adapters.HTTPAdapter(pool_connections=8, pool_maxsize=16)
+    adapter = requests.adapters.HTTPAdapter(pool_connections=4, pool_maxsize=8)
     session.mount("https://", adapter)
     session.mount("http://", adapter)
     session.headers.update(HEADERS)
     return session
 
 
+_RETRY_STATUSES = {403, 429, 500, 502, 503, 504}
+_MAX_ATTEMPTS = 4
+_sleep = time.sleep  # indirection so tests can avoid real waits
+
+
+def _get_with_retry(session: requests.Session, url: str, timeout: int) -> requests.Response:
+    """GET with exponential backoff (honouring Retry-After) on throttling/server errors."""
+    for attempt in range(_MAX_ATTEMPTS):
+        r = session.get(url, timeout=timeout)
+        if r.status_code not in _RETRY_STATUSES or attempt == _MAX_ATTEMPTS - 1:
+            r.raise_for_status()
+            return r
+        try:
+            delay = float(r.headers.get("Retry-After", ""))
+        except (TypeError, ValueError):
+            delay = 2.0 * (2**attempt)
+        _sleep(min(delay, 30.0))
+    raise RuntimeError("unreachable")  # pragma: no cover
+
+
 def _fetch_month(session: requests.Session, idx_url: Tuple[int, str]) -> Tuple[int, List[Dict]]:
     idx, archive_url = idx_url
-    r = session.get(archive_url, timeout=30)
-    r.raise_for_status()
+    r = _get_with_retry(session, archive_url, 30)
     monthly_games = r.json().get("games", [])
     return idx, list(reversed(monthly_games))
 
@@ -39,18 +59,18 @@ def fetch_all_archives(username: str, *, show_progress: bool = True) -> List[Dic
     archives_url = f"https://api.chess.com/pub/player/{username}/games/archives"
     session = _make_session()
     try:
-        r = session.get(archives_url, timeout=15)
-        r.raise_for_status()
+        r = _get_with_retry(session, archives_url, 15)
         archives = r.json().get("archives", [])
         if not archives:
             return []
 
         items: List[Tuple[int, str]] = [(i, url) for i, url in enumerate(reversed(archives))]
         total = len(items)
-        all_games: List[Dict] = []
+        all_games: List[Tuple[int, List[Dict]]] = []
 
+        # chess.com throttles heavy crawls (403/429), so keep concurrency low.
         fetch = functools.partial(_fetch_month, session)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, total)) as ex:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(MAX_ARCHIVE_WORKERS, total)) as ex:
             with tqdm(total=total, disable=not show_progress, desc="Fetching archives") as pbar:
                 for idx, games in ex.map(fetch, items):
                     all_games.append((idx, games))
@@ -66,10 +86,13 @@ def fetch_all_archives(username: str, *, show_progress: bool = True) -> List[Dic
 
 
 def time_control_label(tc: str) -> str:
-    """Map chess.com TimeControl to bullet/blitz/rapid/daily."""
+    """Map a raw TimeControl to bullet/blitz/rapid/classical/daily.
+
+    Must stay identical to ``timeControlLabel`` in ``web/lib/importers/timeControl.ts``.
+    """
     if not tc:
         return "rapid"
-    if "/" in tc:
+    if "/" in tc or tc == "-" or re.search(r"day", tc, re.IGNORECASE):
         return "daily"
     parts = tc.split("+")
     try:
@@ -90,16 +113,59 @@ def time_control_label(tc: str) -> str:
     return "classical"
 
 
+START_PLACEMENT = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+START_FEN = f"{START_PLACEMENT} w KQkq - 0 1"
+_STANDARD_VARIANTS = {"", "standard", "chess"}
+
+
+def _is_start_fen(fen: str) -> bool:
+    parts = fen.split()
+    return len(parts) >= 2 and parts[0] == START_PLACEMENT and parts[1] == "w"
+
+
+def is_standard_headers(headers) -> bool:
+    """True for a standard chess game starting from the initial position."""
+    if str(headers.get("Variant", "")).strip().lower() not in _STANDARD_VARIANTS:
+        return False
+    if str(headers.get("SetUp", "")).strip() == "1":
+        return False
+    fen = str(headers.get("FEN", "")).strip()
+    return not fen or _is_start_fen(fen)
+
+
+def is_standard_record(raw: Dict) -> bool:
+    """True for a chess.com archive record that is standard chess from the initial position."""
+    if str(raw.get("rules", "chess")).strip().lower() != "chess":
+        return False
+    setup = str(raw.get("initial_setup") or "").strip()
+    return not setup or _is_start_fen(setup)
+
+
+def _parse_elo(value: str | None) -> Optional[int]:
+    """Parse an Elo header; missing, ``?`` or non-numeric values become None."""
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+
+
 def parse_game(
     pgn_text: str,
     username: str,
     time_class: str | None = None,
     time_control_raw: str | None = None,
-) -> Dict:
+) -> Optional[Dict]:
+    """Parse one PGN into a game record.
+
+    Returns None for variant / from-position games (``Variant`` other than Standard,
+    ``SetUp "1"``, or a non-initial ``FEN``); raises ValueError for unreadable PGN.
+    """
     game = chess.pgn.read_game(io.StringIO(pgn_text))
     if game is None:
         raise ValueError("Invalid PGN")
     headers = game.headers
+    if not is_standard_headers(headers):
+        return None
     white = headers.get("White", "")
     black = headers.get("Black", "")
     username_l = username.lower()
@@ -126,7 +192,7 @@ def parse_game(
     try:
         date = dt.datetime.strptime(date_tag, "%Y.%m.%d").date().isoformat()
     except ValueError:
-        date = dt.date.today().isoformat()
+        date = ""
 
     if time_class:
         tc = time_class.lower()
@@ -137,8 +203,8 @@ def parse_game(
     url = headers.get("Link") or headers.get("Site", "")
     game_id = url.rstrip("/").split("/")[-1] if url else headers.get("Event", "")
 
-    my_rating = int(headers.get("WhiteElo" if color == "white" else "BlackElo", 0))
-    opp_rating = int(headers.get("BlackElo" if color == "white" else "WhiteElo", 0))
+    my_rating = _parse_elo(headers.get("WhiteElo" if color == "white" else "BlackElo"))
+    opp_rating = _parse_elo(headers.get("BlackElo" if color == "white" else "WhiteElo"))
 
     return {
         "game_id": game_id,
@@ -157,10 +223,10 @@ def parse_game(
 
 
 def _parse_single_game(args: Tuple[Dict, str]) -> Optional[Dict]:
-    """Helper to parse a single game dict - returns None if PGN is empty or invalid."""
+    """Parse one chess.com archive record; None if empty, invalid, or not standard chess."""
     g, username = args
     pgn = g.get("pgn", "")
-    if not pgn:
+    if not pgn or not is_standard_record(g):
         return None
     try:
         return parse_game(
@@ -226,6 +292,8 @@ def import_games(
         else:
             parsed_games = list(ex.map(_parse_single_game, parse_args))
     
+    variant_count = sum(1 for g in raw_games if not is_standard_record(g))
+
     # Filter out None values and duplicates
     for game in parsed_games:
         if game is None:
@@ -238,6 +306,7 @@ def import_games(
     t5 = time.perf_counter()
     if not quiet:
         print(f"Parsed {len(raw_games)} games in {(t5-t4)*1000:.0f}ms ({len(new_entries)} new)")
+        print(f"Skipped {variant_count} non-standard (variant / from-position) games")
 
     if new_entries:
         store["games"] = new_entries + store["games"]
@@ -263,7 +332,7 @@ def import_games(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Import Chess.com games into games.json")
     parser.add_argument("username", nargs="?", help="Chess.com username")
-    parser.add_argument("--player", help="Name to store under games/<player>.json (default: username)")
+    parser.add_argument("--player", help="Name to store under games/chess.com/<player>.json (default: username)")
     parser.add_argument(
         "--output",
         "-o",

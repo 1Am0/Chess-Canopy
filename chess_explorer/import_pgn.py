@@ -1,13 +1,12 @@
 import argparse
-import io
-import sys
+import sys  # noqa: F401  (tests monkeypatch import_pgn.sys.argv)
 from pathlib import Path
 from typing import Iterable, List
 
 import chess.pgn
 from tqdm import tqdm
 
-from .import_games import parse_game
+from .import_games import is_standard_headers, parse_game
 from .storage import load_store, resolve_store_path, save_store
 
 
@@ -41,6 +40,8 @@ def import_pgn_files(
     store = load_store(target_path)
     existing_ids = {g.get("game_id") for g in store["games"]}
     new_entries = []
+    variant_count = 0
+    error_count = 0
 
     for file in files:
         with file.open("r", encoding="utf-8") as f:
@@ -58,14 +59,28 @@ def import_pgn_files(
                     bar.update(1)
                     continue
 
+                if not is_standard_headers(headers):
+                    variant_count += 1
+                    bar.update(1)
+                    continue
+
                 exporter = chess.pgn.StringExporter(headers=True, variations=True, comments=True)
                 pgn_text = game.accept(exporter)
-                parsed = parse_game(
-                    pgn_text,
-                    username,
-                    time_class=headers.get("TimeClass"),
-                    time_control_raw=headers.get("TimeControl"),
-                )
+                try:
+                    parsed = parse_game(
+                        pgn_text,
+                        username,
+                        time_class=headers.get("TimeClass"),
+                        time_control_raw=headers.get("TimeControl"),
+                    )
+                except ValueError:
+                    error_count += 1
+                    bar.update(1)
+                    continue
+                if parsed is None:
+                    variant_count += 1
+                    bar.update(1)
+                    continue
                 if not parsed.get("game_id"):
                     parsed["game_id"] = f"{file.name}-{game_idx}"
 
@@ -84,6 +99,10 @@ def import_pgn_files(
 
     if not quiet:
         print(f"Imported {len(new_entries)} new games to {target_path}")
+        if variant_count:
+            print(f"Skipped {variant_count} non-standard (variant / from-position) games")
+        if error_count:
+            print(f"Skipped {error_count} unreadable games")
 
 
 def main() -> None:

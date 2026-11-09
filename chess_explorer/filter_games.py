@@ -91,12 +91,17 @@ def filter_games_to_json(games: Iterable[Dict], **kwargs) -> str:
     return json.dumps({"version": 1, "games": filtered}, indent=2)
 
 
+KNOWN_RESULTS = {"1-0", "0-1", "1/2-1/2"}
+
+
 def build_trie_from_games(games: Iterable[Dict]) -> Trie:
     """Create a Trie populated with the given games."""
     trie = Trie()
     for game in games:
         moves = game.get("moves") or []
         result = game.get("result", "*")
+        if result not in KNOWN_RESULTS:
+            continue  # unfinished/aborted games ("*") have no outcome to count
         trie.add_game(moves, result)
     return trie
 
@@ -110,6 +115,8 @@ def build_color_tries(games: Iterable[Dict]) -> Dict[str, Trie]:
             continue
         moves = game.get("moves") or []
         result = game.get("result", "*")
+        if result not in KNOWN_RESULTS:
+            continue
         tries[color].add_game(moves, result)
     return tries
 

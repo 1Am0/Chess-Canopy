@@ -1,10 +1,10 @@
 """Import games from Lichess.org"""
 import argparse
-import datetime as dt
 import io
+import re
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Generator, Set
+from typing import Dict, Generator, List, Optional, Set
 
 import chess.pgn
 import requests
@@ -12,16 +12,61 @@ from tqdm import tqdm
 
 from .constants import USER_AGENT
 from .import_games import parse_game
-from .storage import load_store, resolve_store_path, save_store
-
-# Try to import path_for_player, handle if it's not exposed in .storage
-try:
-    from .storage import path_for_player
-except ImportError:
-    # Fallback or ensure it is imported inside the function as in original code
-    path_for_player = None
+from .storage import load_store, path_for_player, save_store
 
 HEADERS = {"User-Agent": USER_AGENT, "Accept": "application/x-chess-pgn"}
+
+_EVENT_SPEED_RE = re.compile(r"\b(ultrabullet|bullet|blitz|rapid|classical|correspondence)\b", re.IGNORECASE)
+_SPEED_ALIASES = {"ultrabullet": "bullet", "correspondence": "daily"}
+_DAYS_RE = re.compile(r"^\s*(\d+)\s+days?\s+per\s+move\s*$", re.IGNORECASE)
+
+
+def lichess_speed_label(tc: str, event: str = "") -> str:
+    """Time-control label for a Lichess game, matching the web importer's rule.
+
+    Uses Lichess's own speed (the ``Event`` header, e.g. "Rated Blitz game") and maps
+    ultraBullet -> bullet, correspondence -> daily. Without a speed in ``Event``, falls back
+    to Lichess thresholds on base + 40 * increment (<180 bullet, <480 blitz, <1500 rapid,
+    else classical); correspondence/daily controls are "daily".
+    """
+    m = _EVENT_SPEED_RE.search(event or "")
+    if m:
+        speed = m.group(1).lower()
+        return _SPEED_ALIASES.get(speed, speed)
+    if not tc or tc == "-" or "/" in tc or re.search(r"day", tc, re.IGNORECASE):
+        return "daily"
+    try:
+        base, _, inc = tc.partition("+")
+        total = int(base) + 40 * (int(inc) if inc else 0)
+    except ValueError:
+        return "rapid"
+    if total < 180:
+        return "bullet"
+    if total < 480:
+        return "blitz"
+    if total < 1500:
+        return "rapid"
+    return "classical"
+
+
+def lichess_raw_time_control(tc: str) -> str:
+    """Normalise "N days per move" to the web importer's ``1/<seconds>`` form."""
+    m = _DAYS_RE.match(tc or "")
+    return f"1/{int(m.group(1)) * 86400}" if m else (tc or "")
+
+
+def parse_lichess_game(pgn_text: str, username: str) -> Optional[Dict]:
+    """parse_game with Lichess speed labels; None for variant / from-position games."""
+    headers = chess.pgn.read_headers(io.StringIO(pgn_text))
+    if headers is None:
+        raise ValueError("Invalid PGN")
+    tc = headers.get("TimeControl", "")
+    return parse_game(
+        pgn_text,
+        username,
+        time_class=lichess_speed_label(tc, headers.get("Event", "")),
+        time_control_raw=lichess_raw_time_control(tc),
+    )
 
 
 def fetch_lichess_games(
@@ -112,12 +157,7 @@ def import_lichess_games(
     if out_path:
         target_path = out_path
     else:
-        # Handle the dynamic import if it wasn't available at top level
-        if path_for_player is None:
-            from .storage import path_for_player as local_path_for_player
-            target_path = local_path_for_player(player or username, source="lichess")
-        else:
-            target_path = path_for_player(player or username, source="lichess")
+        target_path = path_for_player(player or username, source="lichess")
 
     t0 = time.perf_counter()
     if not quiet:
@@ -133,7 +173,7 @@ def import_lichess_games(
 
     new_entries: List[Dict] = []
     duplicate_count = 0
-    skipped_count = 0
+    variant_count = 0
     error_count = 0
 
     # Stream games and process them one by one
@@ -151,10 +191,10 @@ def import_lichess_games(
     for pgn_str in iterator:
         try:
             # Parse the game
-            parsed = parse_game(pgn_str, username)
-            
-            if not parsed:
-                skipped_count += 1
+            parsed = parse_lichess_game(pgn_str, username)
+
+            if parsed is None:
+                variant_count += 1  # variant or from-position game
                 continue
 
             game_id = parsed.get("game_id")
@@ -178,7 +218,7 @@ def import_lichess_games(
     summary = (
         f"Processed stream in {(t_end_fetch - t1):.2f}s. "
         f"New: {len(new_entries)}, Duplicates: {duplicate_count}, "
-        f"Skipped/Errors: {skipped_count + error_count}"
+        f"Variants skipped: {variant_count}, Errors: {error_count}"
     )
     
     if not quiet:
@@ -210,7 +250,7 @@ def import_lichess_games(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Import Lichess games into games.json")
     parser.add_argument("username", nargs="?", help="Lichess username")
-    parser.add_argument("--player", help="Name to store under games/<player>.json (default: username)")
+    parser.add_argument("--player", help="Name to store under games/lichess/<player>.json (default: username)")
     parser.add_argument(
         "--output",
         "-o",

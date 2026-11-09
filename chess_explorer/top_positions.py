@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 from .constants import USER_AGENT
-from .storage import path_for_player
+from .storage import resolve_games_path
 from .filter_games import filter_games, load_games
 
 try:
@@ -144,11 +144,11 @@ def main() -> None:
         description="Show the most common positions (as FEN) after N plies with Lichess evals."
     )
     ap.add_argument("--input", default="games.json", help="Path to games JSON (default games.json)")
-    ap.add_argument("--player", help="Player store in games/<player>.json (overridden by --input)")
+    ap.add_argument("--player", help="Player store in games/<player>.json or games/<source>/<player>.json (overridden by --input)")
     ap.add_argument("--color", choices=["white", "black"])
     ap.add_argument("--result", choices=["1-0", "0-1", "1/2-1/2"])
     ap.add_argument("--opponent")
-    ap.add_argument("--time-control", dest="time_control", choices=["bullet", "blitz", "rapid", "classical"])
+    ap.add_argument("--time-control", dest="time_control", choices=["bullet", "blitz", "rapid", "classical", "daily"])
     ap.add_argument("--time-control-raw", dest="time_control_raw")
     ap.add_argument("--date-from")
     ap.add_argument("--date-to")
@@ -170,9 +170,10 @@ def main() -> None:
     ap.add_argument("--output-csv", help="Write results to a CSV file")
     args = ap.parse_args()
 
-    games_path = Path(args.input)
-    if args.player and args.input == "games.json":
-        games_path = path_for_player(args.player)
+    games_path = resolve_games_path(args.input, args.player)
+    if games_path is None:
+        print(f"Player '{args.player}' not found under games/ (looked in games/ and games/<source>/).")
+        return
 
     games = load_games(games_path)
     filtered = filter_games(

@@ -137,3 +137,17 @@ def find_player_path(player: str, games_dir: Path = GAMES_DIR) -> Optional[Path]
                 return source_path
     
     return None
+
+
+def resolve_games_path(
+    input_path: str | Path, player: Optional[str] = None, games_dir: Path = GAMES_DIR
+) -> Optional[Path]:
+    """Resolve the games file for the explorer CLIs.
+
+    ``--player`` (when ``--input`` is left at its default) is looked up in
+    ``games/<name>.json`` and ``games/<source>/<name>.json``. Returns ``None``
+    when the player has no file.
+    """
+    if player and str(input_path) == str(DEFAULT_GAMES_FILE):
+        return find_player_path(player, games_dir)
+    return Path(input_path)
