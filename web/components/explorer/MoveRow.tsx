@@ -1,12 +1,27 @@
-import type { NextMove } from "@/lib/engine/types";
-import { WdlBar } from "@/components/explorer/WdlBar";
+import type { Color, NextMove } from "@/lib/engine/types";
+import { WdbBar } from "@/components/explorer/WdbBar";
+import { scoreTextClass } from "@/components/explorer/wdb";
 import { compact, pct, score } from "@/lib/format";
-import { scoreClass, shareLabel } from "@/lib/explorer-format";
+import { shareLabel } from "@/lib/explorer-format";
 import { cn } from "@/lib/utils";
+
+/**
+ * Column classes shared by the header, the move rows, the total row and the skeleton,
+ * so every row lines up and has the same single-line 32px geometry. Share shows from a
+ * 24rem wide table and the inline opening name from 28rem (else it is only a tooltip).
+ */
+export const COL = {
+  move: "overflow-hidden whitespace-nowrap pr-2 pl-3",
+  games: "w-16 px-2 text-right tabular-nums whitespace-nowrap",
+  share: "hidden w-14 px-2 text-right tabular-nums whitespace-nowrap @sm:table-cell",
+  bar: "w-[38%] px-2",
+  score: "w-14 pr-3 pl-1 text-right tabular-nums whitespace-nowrap",
+} as const;
 
 export function MoveRow({
   id,
   item,
+  side,
   positionTotal,
   active,
   openingName,
@@ -16,6 +31,7 @@ export function MoveRow({
 }: {
   id: string;
   item: NextMove;
+  side: Color;
   positionTotal: number;
   active: boolean;
   /** Opening reached by this move, only when it differs from the current one */
@@ -33,29 +49,20 @@ export function MoveRow({
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       aria-selected={active}
-      className={cn(
-        "group cursor-pointer border-t transition-colors hover:bg-accent/70",
-        active && "bg-accent shadow-[inset_2px_0_0_var(--color-primary)]",
-      )}
+      className={cn("h-8 cursor-pointer transition-colors even:bg-muted/45 hover:bg-accent/80", active && "bg-accent even:bg-accent")}
     >
-      <td className={cn("max-w-0 min-w-16 py-1.5 pr-2 pl-3", dim && "opacity-60")}>
-        <div className="font-mono text-[15px] leading-tight font-semibold">{item.move}</div>
-        {openingName && (
-          <div className="truncate text-[11px] leading-tight text-muted-foreground" title={openingName}>
-            {openingName}
-          </div>
-        )}
+      <td className={cn(COL.move, active && "shadow-[inset_2px_0_0_var(--color-primary)]")} title={openingName ?? undefined}>
+        <div className={cn("flex min-w-0 items-baseline gap-2", dim && "opacity-60")}>
+          <span className="shrink-0 font-mono text-sm font-semibold">{item.move}</span>
+          {openingName && <span className="hidden min-w-0 truncate text-xs text-muted-foreground @md:inline">{openingName}</span>}
+        </div>
       </td>
-      <td className={cn("pr-3 pl-2 text-right text-sm tabular-nums sm:pr-2", dim && "opacity-60")}>{compact(item.stats.total)}</td>
-      <td className={cn("hidden px-2 text-right text-sm tabular-nums text-muted-foreground sm:table-cell", dim && "opacity-60")}>
-        {shareLabel(item.stats.total, positionTotal)}
+      <td className={cn(COL.games, "text-[13px]", dim && "opacity-60")}>{compact(item.stats.total)}</td>
+      <td className={cn(COL.share, "text-xs text-muted-foreground", dim && "opacity-60")}>{shareLabel(item.stats.total, positionTotal)}</td>
+      <td className={cn(COL.bar, dim && "opacity-60")}>
+        <WdbBar stats={item.stats} side={side} />
       </td>
-      <td className={cn("pr-2 pl-3 sm:px-2", dim && "opacity-60")}>
-        <WdlBar stats={item.stats} />
-      </td>
-      <td className={cn("py-1.5 pr-3 pl-1 text-right text-sm font-medium tabular-nums", scoreClass(sc), dim && "opacity-70")}>
-        {pct(sc)}
-      </td>
+      <td className={cn(COL.score, "text-[13px] font-semibold", scoreTextClass(sc, item.stats.total), dim && "opacity-70")}>{pct(sc)}</td>
     </tr>
   );
 }

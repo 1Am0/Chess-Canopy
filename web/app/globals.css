@@ -85,6 +85,26 @@
   --loss-foreground: oklch(1 0 0);
   --loss-text: oklch(0.47 0.19 27);
 
+  /*
+   * Result bars use the chess convention (White wins | Draws | Black wins), never the
+   * player's win/loss colors. --bar-*: explorer table + summary bars. --eval-*: the
+   * eval-style bar beside the board. The thin border keeps the white segment readable
+   * on light surfaces.
+   */
+  --bar-white: #ffffff;
+  --bar-draw: #a0a0a0;
+  --bar-black: #555555;
+  --bar-border: rgb(0 0 0 / 0.17);
+  --bar-white-fg: #222;
+  --bar-draw-fg: #fff;
+  --bar-black-fg: #fff;
+  --bar-gloss-white: inset 0 -5px 7px rgb(0 0 0 / 0.1);
+  --bar-gloss: inset 0 5px 7px rgb(255 255 255 / 0.2);
+  --eval-white: #ffffff;
+  --eval-draw: #9a9a9a;
+  --eval-black: #403d39;
+  --eval-border: rgb(0 0 0 / 0.2);
+
   /* Board (default theme = "green", mirrors BOARD_THEMES.green) */
   --board-light: #ecefd6;
   --board-dark: #6e9358;
@@ -140,6 +160,17 @@
   --loss-foreground: oklch(1 0 0);
   --loss-text: oklch(0.76 0.15 25);
 
+  --bar-white: #cccccc;
+  --bar-draw: #666666;
+  --bar-black: #333333;
+  --bar-border: rgb(255 255 255 / 0.12);
+  --bar-gloss-white: inset 0 -5px 7px rgb(0 0 0 / 0.25);
+  --bar-gloss: inset 0 5px 7px rgb(255 255 255 / 0.1);
+  --eval-white: #d9d9d9;
+  --eval-draw: #6b6b6b;
+  --eval-black: #2b2a28;
+  --eval-border: rgb(255 255 255 / 0.1);
+
   /* Board colors are theme-independent constants; arrows stay legible on all themes. */
 }
 
@@ -185,6 +216,17 @@
   --color-draw-text: var(--draw-text);
   --color-loss-foreground: var(--loss-foreground);
   --color-loss-text: var(--loss-text);
+  --color-bar-white: var(--bar-white);
+  --color-bar-draw: var(--bar-draw);
+  --color-bar-black: var(--bar-black);
+  --color-bar-border: var(--bar-border);
+  --color-bar-white-fg: var(--bar-white-fg);
+  --color-bar-draw-fg: var(--bar-draw-fg);
+  --color-bar-black-fg: var(--bar-black-fg);
+  --color-eval-white: var(--eval-white);
+  --color-eval-draw: var(--eval-draw);
+  --color-eval-black: var(--eval-black);
+  --color-eval-border: var(--eval-border);
   --color-arrow-candidate: var(--arrow-candidate);
   --color-arrow-preview: var(--arrow-preview);
   --color-highlight-last: var(--highlight-last);
@@ -218,6 +260,16 @@
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Neutral striped fill for a result bar with no games (out of book). */
+@utility bar-empty {
+  background-color: color-mix(in oklab, var(--bar-draw) 12%, transparent);
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 4px,
+    color-mix(in oklab, var(--bar-draw) 32%, transparent) 4px 8px
+  );
 }
 
 @layer base {

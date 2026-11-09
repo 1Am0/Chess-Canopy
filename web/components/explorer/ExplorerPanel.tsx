@@ -1,98 +1,65 @@
 "use client";
 
-import { FilterX, RotateCcw } from "lucide-react";
-import { useExplorerStore } from "@/lib/store";
-import { usePosition } from "@/hooks/use-position";
+import { useState } from "react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { SideSwitch } from "@/components/layout/SideSwitch";
+import { FilterRow } from "@/components/filters/FilterRow";
 import { LinePanel } from "@/components/explorer/LinePanel";
 import { OpeningHeader } from "@/components/explorer/OpeningHeader";
 import { PositionSummary } from "@/components/explorer/PositionSummary";
 import { MoveTable } from "@/components/explorer/MoveTable";
 import { GamesList } from "@/components/explorer/GamesList";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-function MovesSection() {
-  const result = useExplorerStore((s) => s.result);
-  const summary = useExplorerStore((s) => s.summary);
-  const loading = useExplorerStore((s) => s.resultLoading);
-  const clearFilters = useExplorerStore((s) => s.clearFilters);
-  const toStart = useExplorerStore((s) => s.toStart);
-  const undo = useExplorerStore((s) => s.undo);
-  const { visible } = usePosition();
+type Tab = "moves" | "line" | "games";
 
-  if (!result) {
-    return (
-      <div className="space-y-2" aria-busy="true" aria-label="Loading moves">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-9 w-full" />
-        ))}
-      </div>
-    );
-  }
-  if (summary && summary.games === 0) {
-    return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed px-4 py-8 text-center">
-        <FilterX className="size-6 text-muted-foreground" />
-        <div>
-          <p className="font-medium">No games match these filters</p>
-          <p className="text-sm text-muted-foreground">Loosen or clear the filters to see your moves.</p>
-        </div>
-        <Button size="sm" variant="outline" onClick={clearFilters}>Clear filters</Button>
-      </div>
-    );
-  }
-  if (result.next.length === 0) {
-    const outOfBook = visible.length > 0;
-    return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed px-4 py-8 text-center">
-        <div>
-          <p className="font-medium">{outOfBook ? "Out of book" : "No moves found"}</p>
-          <p className="text-sm text-muted-foreground">
-            {outOfBook
-              ? result.stats.total > 0
-                ? "Your games end here. No further moves were played from this position."
-                : "None of your games reached this position."
-              : "There are no games for the current selection."}
-          </p>
-        </div>
-        {outOfBook && (
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={undo}>Step back</Button>
-            <Button size="sm" variant="outline" onClick={toStart}><RotateCcw /> Start</Button>
-          </div>
-        )}
-      </div>
-    );
-  }
-  return (
-    <div className={loading ? "opacity-70 transition-opacity" : "transition-opacity"}>
-      <MoveTable next={result.next} total={result.stats.total} />
-    </div>
-  );
-}
+const TRIGGER =
+  "h-full flex-1 rounded-none border-0 bg-transparent px-3 text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_-2px_0_var(--color-primary)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent lg:flex-none lg:px-4";
 
+/** Panels are always mounted (state and data stay warm); inactive ones are display:none. */
+const PANEL = "min-h-0 flex-none overflow-hidden data-[state=inactive]:hidden lg:flex-1";
+
+/**
+ * The workspace column, as a stack of fixed-height slots so nothing moves when moves
+ * are played (Lichess / chess.com style):
+ *
+ *   desktop (lg+, exactly the viewport height under the header, no outer scroll):
+ *     SideSwitch 44 · opening 28 · filters 32 · Line (fixed body) · summary 52 ·
+ *     explorer region (flex 1) with tabs Moves | Games, each its own scroll region.
+ *   mobile: SideSwitch · opening · filters · summary · tabs Moves | Line | Games over a
+ *     panel of fixed height max(22rem, 45vh), so tab switches never change page height.
+ */
 export function ExplorerPanel() {
+  const desktop = useMediaQuery("(min-width: 64rem)");
+  const [tab, setTab] = useState<Tab>("moves");
+  // The Line tab exists only on mobile; on desktop the line has its own slot.
+  const value: Tab = desktop && tab === "line" ? "moves" : tab;
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-2 lg:h-full lg:min-h-0">
       <SideSwitch />
       <OpeningHeader />
-      {/* Mobile: summary then tabs. Desktop (lg): tabs dissolve and sections stack in order. */}
-      <PositionSummary className="order-1 lg:order-2" />
-      <Tabs defaultValue="moves" className="order-2 gap-3 lg:contents">
-        <TabsList className="w-full lg:hidden">
-          <TabsTrigger value="moves">Moves</TabsTrigger>
-          <TabsTrigger value="line">Line</TabsTrigger>
-          <TabsTrigger value="games">Games</TabsTrigger>
+      <FilterRow />
+      <LinePanel className="hidden lg:flex" active={desktop} />
+      <PositionSummary />
+      <Tabs
+        value={value}
+        onValueChange={(v) => setTab(v as Tab)}
+        data-testid="explorer-region"
+        className="gap-0 overflow-hidden rounded-lg border bg-card lg:min-h-[13rem] lg:flex-1"
+      >
+        <TabsList aria-label="Explorer views" className="h-9 w-full shrink-0 justify-start gap-0 rounded-none border-b bg-transparent p-0">
+          <TabsTrigger value="moves" className={TRIGGER}>Moves</TabsTrigger>
+          <TabsTrigger value="line" className={`${TRIGGER} lg:hidden`}>Line</TabsTrigger>
+          <TabsTrigger value="games" className={TRIGGER}>Games</TabsTrigger>
         </TabsList>
-        <TabsContent value="line" forceMount className="data-[state=inactive]:hidden lg:order-1 lg:data-[state=inactive]:block">
-          <LinePanel />
+        <TabsContent value="moves" forceMount className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
+          <MoveTable />
         </TabsContent>
-        <TabsContent value="moves" forceMount className="data-[state=inactive]:hidden lg:order-3 lg:data-[state=inactive]:block">
-          <MovesSection />
+        <TabsContent value="line" forceMount className={`${PANEL} h-[max(22rem,45vh)] lg:hidden`}>
+          <LinePanel variant="fill" className="h-full" active={!desktop && value === "line"} />
         </TabsContent>
-        <TabsContent value="games" forceMount className="data-[state=inactive]:hidden lg:order-4 lg:data-[state=inactive]:block">
+        <TabsContent value="games" forceMount className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
           <GamesList />
         </TabsContent>
       </Tabs>

@@ -33,7 +33,7 @@ export function PlayerSwitcher() {
         <Button variant="outline" className="max-w-[11rem] justify-between gap-2 sm:max-w-xs" aria-label={`Players: ${label}`}>
           <Users className="text-muted-foreground" />
           <span className="truncate">{label}</span>
-          <span className="hidden text-xs text-muted-foreground tabular-nums sm:inline">{total.toLocaleString()}</span>
+          <span className="hidden min-w-[5ch] text-right text-xs text-muted-foreground tabular-nums sm:inline">{total.toLocaleString()}</span>
           <ChevronsUpDown className="size-3.5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>

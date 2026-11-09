@@ -1,21 +1,47 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, ArrowUp, ChevronDown, FilterX, RotateCcw, Undo2 } from "lucide-react";
 import type { NextMove } from "@/lib/engine/types";
-import { useExplorerStore } from "@/lib/store";
-import { score } from "@/lib/format";
+import { activeFilterCount, useExplorerStore } from "@/lib/store";
+import { compact, pct, score } from "@/lib/format";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { usePosition } from "@/hooks/use-position";
-import { MoveRow } from "@/components/explorer/MoveRow";
+import { COL, MoveRow } from "@/components/explorer/MoveRow";
+import { WdbBar } from "@/components/explorer/WdbBar";
+import { scoreTextClass } from "@/components/explorer/wdb";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type SortKey = "games" | "score" | "move";
 
-export function MoveTable({ next, total }: { next: NextMove[]; total: number }) {
+/** Sticky header (28px) and sticky total row (32px) heights, for keeping rows in view. */
+const HEAD_PX = 28;
+const FOOT_PX = 32;
+const NO_ROWS: NextMove[] = [];
+
+/**
+ * The Moves tab: a scroll region with a sticky header and a sticky Σ total row
+ * (Lichess explorer style). Every row is a single 32px line. Rare moves, the loading
+ * state and the empty / out-of-book states all live inside the same region, so the
+ * region's size never depends on the position.
+ */
+export function MoveTable({ className }: { className?: string }) {
+  const result = useExplorerStore((s) => s.result);
+  const summary = useExplorerStore((s) => s.summary);
+  const loading = useExplorerStore((s) => s.resultLoading);
+  const side = useExplorerStore((s) => s.filters.color ?? "white");
   const playMove = useExplorerStore((s) => s.playMove);
   const setHoverMove = useExplorerStore((s) => s.setHoverMove);
+  const clearFilters = useExplorerStore((s) => s.clearFilters);
+  const filterCount = useExplorerStore((s) => activeFilterCount(s.filters));
+  const setSide = useExplorerStore((s) => s.setSide);
+  const toStart = useExplorerStore((s) => s.toStart);
+  const undo = useExplorerStore((s) => s.undo);
   const { visible, key: posKey } = usePosition();
+  const scroller = useRef<HTMLDivElement>(null);
+
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({ key: "games", dir: "desc" });
   const [active, setActive] = useState(0);
   const [focused, setFocused] = useState(false);
@@ -29,6 +55,18 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
     setActive(0);
   }
 
+  // A new position starts at the top of the list.
+  useEffect(() => {
+    if (scroller.current) scroller.current.scrollTop = 0;
+  }, [posKey]);
+
+  // The rows belong to the position the result was computed for. While a new result is
+  // pending (or the shown one is for another position) rows stay visible but inert, so
+  // a double click can't play a move from a stale table.
+  const fresh = !!result && result.path.join(" ") === posKey;
+  const inert = loading || !fresh;
+  const next = result?.next ?? NO_ROWS;
+  const total = result?.stats.total ?? 0;
   const currentName = useMemo(() => lookupOpening(visible)?.name ?? null, [visible]);
 
   const sorted = useMemo(() => {
@@ -46,12 +84,23 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
   const { common, rare } = useMemo(() => {
     const c = sorted.filter((r) => r.stats.total >= threshold);
     // If nothing is common, never hide everything.
-    if (c.length === 0) return { common: sorted, rare: [] as NextMove[] };
+    if (c.length === 0) return { common: sorted, rare: NO_ROWS };
     return { common: c, rare: sorted.filter((r) => r.stats.total < threshold) };
   }, [sorted, threshold]);
 
   const rows = showRare ? [...common, ...rare] : common;
   const idx = Math.min(active, Math.max(rows.length - 1, 0));
+
+  // Keep the keyboard-selected row visible between the sticky header and total row.
+  useEffect(() => {
+    const box = scroller.current;
+    if (!box || !focused) return;
+    const el = box.querySelector<HTMLElement>(`#move-row-${idx}`);
+    if (!el) return;
+    const top = el.offsetTop;
+    if (top - HEAD_PX < box.scrollTop) box.scrollTop = top - HEAD_PX;
+    else if (top + el.offsetHeight + FOOT_PX > box.scrollTop + box.clientHeight) box.scrollTop = top + el.offsetHeight + FOOT_PX - box.clientHeight;
+  }, [idx, focused]);
 
   const openingFor = (san: string) => {
     const name = lookupOpening([...visible, san])?.name ?? null;
@@ -63,6 +112,10 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.target !== e.currentTarget || !rows.length) return;
+    if (inert && e.key === "Enter") {
+      e.preventDefault();
+      return;
+    }
     if (e.key === "ArrowDown") {
       e.preventDefault();
       const n = Math.min(idx + 1, rows.length - 1);
@@ -81,7 +134,7 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
   };
 
   const Th = ({ k, label, className }: { k: SortKey; label: string; className?: string }) => (
-    <th scope="col" className={cn("px-2 py-1.5 font-medium", className)} aria-sort={sort.key === k ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
+    <th scope="col" className={cn("font-medium", className)} aria-sort={sort.key === k ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
       <button
         type="button"
         onClick={() => toggle(k)}
@@ -96,13 +149,24 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
     </th>
   );
 
+  const firstLoad = !result;
+  const noGames = !!summary && summary.games === 0;
+  const empty = !firstLoad && (noGames || next.length === 0);
+  const outOfBook = visible.length > 0;
+  const busy = inert && !firstLoad;
+  const other = side === "white" ? "black" : "white";
+  const otherCount = summary?.counts[other] ?? 0;
+  const sc = result ? score(result.stats) : 0;
+
   return (
     <div
+      ref={scroller}
       data-local-keys
       tabIndex={0}
       role="group"
       aria-label="Candidate moves. Use up and down arrows to select, Enter to play."
-      aria-activedescendant={rows.length ? `move-row-${idx}` : undefined}
+      aria-activedescendant={rows.length && !empty ? `move-row-${idx}` : undefined}
+      aria-busy={inert}
       onKeyDown={onKeyDown}
       onFocus={(e) => {
         if (e.target === e.currentTarget) setFocused(true);
@@ -115,31 +179,46 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
         setFocused(false);
         setHoverMove(null);
       }}
-      className="overflow-hidden rounded-lg border bg-card outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      className={cn(
+        "@container relative h-full min-h-0 overflow-y-auto overscroll-contain outline-none [scrollbar-gutter:stable] [scrollbar-width:thin] focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset",
+        className,
+      )}
     >
-      <table className="w-full table-fixed border-collapse text-left sm:table-auto">
-        <thead className="text-xs text-muted-foreground">
-          <tr className="bg-muted/50">
-            <Th k="move" label="Move" className="pl-3" />
-            <Th k="games" label="Games" className="w-16 pr-3 text-right sm:w-auto sm:pr-2" />
-            <th scope="col" className="hidden px-2 py-1.5 text-right font-medium sm:table-cell">Share</th>
-            <th scope="col" className="w-[7.5rem] pr-2 pl-3 py-1.5 font-medium sm:w-[34%] sm:px-2">W / D / L</th>
-            <Th k="score" label="Score" className="w-12 pr-3 text-right sm:w-auto" />
+      <table className="w-full table-fixed border-separate border-spacing-0 text-left text-sm">
+        <thead className="sticky top-0 z-10">
+          <tr className="h-7 bg-muted text-xs text-muted-foreground [&>th]:border-b">
+            <Th k="move" label="Move" className={COL.move} />
+            <Th k="games" label="Games" className={COL.games} />
+            <th scope="col" className={cn(COL.share, "font-medium")}>Share</th>
+            <th scope="col" className={cn(COL.bar, "font-medium whitespace-nowrap")}>
+              <span className="hidden @[22rem]:inline">White / Draw / Black</span>
+              <span className="@[22rem]:hidden">W / D / B</span>
+            </th>
+            <Th k="score" label="Score" className={COL.score} />
           </tr>
         </thead>
-        <tbody>
-          {common.map((item, i) => (
-            <MoveRow key={item.move} {...rowProps(item, i)} />
-          ))}
-          {rare.length > 0 && (
-            <tr className="border-t">
-              {([["sm:hidden", 4], ["hidden sm:table-cell", 5]] as const).map(([cls, span]) => (
-                <td key={span} colSpan={span} className={cn("p-0", cls)}>
+        <tbody className={cn("transition-opacity duration-200", busy && "pointer-events-none opacity-50")}>
+          {firstLoad &&
+            Array.from({ length: 6 }).map((_, i) => (
+              <tr key={i} className="h-8">
+                <td className={COL.move}><Skeleton className="h-4 w-10" /></td>
+                <td className={COL.games}><Skeleton className="ml-auto h-4 w-8" /></td>
+                <td className={COL.share}><Skeleton className="ml-auto h-4 w-7" /></td>
+                <td className={COL.bar}><Skeleton className="h-4 w-full" /></td>
+                <td className={COL.score}><Skeleton className="ml-auto h-4 w-8" /></td>
+              </tr>
+            ))}
+          {!empty &&
+            common.map((item, i) => <MoveRow key={item.move} {...rowProps(item, i)} />)}
+          {!empty && rare.length > 0 && (
+            <tr className="h-8">
+              {([["@sm:hidden", 4], ["hidden @sm:table-cell", 5]] as const).map(([cls, span]) => (
+                <td key={span} colSpan={span} className={cn("border-y p-0", cls)}>
                   <button
                     type="button"
                     aria-expanded={showRare}
                     onClick={() => setShowRare((v) => !v)}
-                    className="flex w-full items-center justify-center gap-1 px-3 py-1.5 text-xs text-muted-foreground outline-none hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
+                    className="flex h-8 w-full items-center justify-center gap-1 px-3 text-xs text-muted-foreground outline-none hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
                   >
                     {showRare ? "Hide" : "Show"} {rare.length} rare {rare.length === 1 ? "move" : "moves"}
                     <ChevronDown className={cn("size-3.5 transition-transform", showRare && "rotate-180")} />
@@ -148,9 +227,68 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
               ))}
             </tr>
           )}
-          {showRare && rare.map((item, j) => <MoveRow key={item.move} {...rowProps(item, common.length + j, true)} />)}
+          {!empty && showRare && rare.map((item, j) => <MoveRow key={item.move} {...rowProps(item, common.length + j, true)} />)}
         </tbody>
+        {result && !empty && (
+          <tfoot className="sticky bottom-0 z-10">
+            <tr className="h-8 bg-[color-mix(in_oklab,var(--color-primary)_9%,var(--color-card))] font-semibold [&>td]:border-t">
+              <td className={COL.move}>
+                <span className="font-mono text-sm" aria-label="Total">Σ</span>
+              </td>
+              <td className={cn(COL.games, "text-[13px]")}>{compact(total)}</td>
+              <td className={cn(COL.share, "text-xs font-normal text-muted-foreground")}>100%</td>
+              <td className={COL.bar}>
+                <WdbBar stats={result.stats} side={side} />
+              </td>
+              <td className={cn(COL.score, "text-[13px]", scoreTextClass(sc, total))}>{total ? pct(sc) : "–"}</td>
+            </tr>
+          </tfoot>
+        )}
       </table>
+
+      {empty && (
+        <div className="absolute inset-x-0 top-7 bottom-0 flex flex-col items-center justify-center gap-3 px-4 text-center">
+          {noGames && filterCount === 0 && otherCount > 0 ? (
+            <>
+              <div>
+                <p className="font-medium">No games as {side === "white" ? "White" : "Black"}</p>
+                <p className="text-sm text-muted-foreground">This selection only has games with the other color.</p>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => setSide(other)}>
+                View as {other === "white" ? "White" : "Black"} ({otherCount.toLocaleString()} {otherCount === 1 ? "game" : "games"})
+              </Button>
+            </>
+          ) : noGames ? (
+            <>
+              <FilterX className="size-6 text-muted-foreground" />
+              <div>
+                <p className="font-medium">No games match these filters</p>
+                <p className="text-sm text-muted-foreground">Loosen or clear the filters to see your moves.</p>
+              </div>
+              <Button size="sm" variant="outline" onClick={clearFilters}>Clear filters</Button>
+            </>
+          ) : (
+            <>
+              <div>
+                <p className="font-medium">{outOfBook ? "Out of book" : "No moves found"}</p>
+                <p className="text-sm text-muted-foreground">
+                  {outOfBook
+                    ? total > 0
+                      ? "Your games end here. No further moves were played from this position."
+                      : "None of your games reached this position."
+                    : "There are no games for the current selection."}
+                </p>
+              </div>
+              {outOfBook && (
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={undo}><Undo2 /> Step back</Button>
+                  <Button size="sm" variant="outline" onClick={toStart}><RotateCcw /> Start</Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 
@@ -158,11 +296,13 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
     return {
       id: `move-row-${i}`,
       item,
+      side,
       positionTotal: total,
       active: focused && i === idx,
       openingName: openingFor(item.move),
       rare: isRare,
       onPlay: () => {
+        if (inert) return;
         playMove(item.move);
         setActive(0);
       },

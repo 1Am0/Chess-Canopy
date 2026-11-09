@@ -252,30 +252,6 @@ export function FilterSheet() {
               )}
             </div>
           </Field>
-
-          <Field label="Move range (game move numbers)">
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={1}
-                inputMode="numeric"
-                placeholder="From"
-                aria-label="Move range start"
-                value={filters.moves_start ?? ""}
-                onChange={(e) => patch({ moves_start: numOrNull(e.target.value) })}
-              />
-              <span className="text-muted-foreground">–</span>
-              <Input
-                type="number"
-                min={1}
-                inputMode="numeric"
-                placeholder="To"
-                aria-label="Move range end"
-                value={filters.moves_end ?? ""}
-                onChange={(e) => patch({ moves_end: numOrNull(e.target.value) })}
-              />
-            </div>
-          </Field>
         </div>
 
         <SheetFooter className="flex-row border-t">

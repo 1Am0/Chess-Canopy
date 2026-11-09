@@ -6,7 +6,6 @@ import { Header } from "@/components/layout/Header";
 import { ShortcutsDialog } from "@/components/layout/ShortcutsDialog";
 import { BoardColumn } from "@/components/board/BoardColumn";
 import { ExplorerPanel } from "@/components/explorer/ExplorerPanel";
-import { ActiveFilterChips } from "@/components/filters/ActiveFilterChips";
 import { FilterSheet } from "@/components/filters/FilterSheet";
 import { ImportDialog } from "@/components/players/ImportDialog";
 import { PlayerManager } from "@/components/players/PlayerManager";
@@ -25,14 +24,24 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 const BOARD_COLUMN =
   "[--board-size:calc(100vw-1.5rem-20px)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-3rem),52rem),calc(100dvh-12rem))]";
 
+/** Placeholder with the same slots as the explorer, so the first paint doesn't jump. */
 function LoadingShell() {
   return (
-    <div className={`mx-auto grid w-full max-w-[1600px] gap-4 px-3 py-3 sm:px-4 lg:grid-cols-[auto_minmax(0,1fr)] ${BOARD_COLUMN}`}>
-      <Skeleton className="aspect-square w-[var(--board-size)]" />
-      <div className="space-y-3">
+    <div className={`mx-auto grid w-full max-w-[1600px] grid-cols-1 lg:grid-cols-[auto_minmax(0,1fr)] ${BOARD_COLUMN}`} aria-busy="true">
+      <div className="px-3 pt-3 pb-2 sm:px-4 lg:pr-4 lg:pb-3">
+        <div className="flex flex-col gap-1.5 pl-5" style={{ width: "calc(var(--board-size) + 20px)", maxWidth: "100%" }}>
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="aspect-square w-full" />
+          <Skeleton className="h-7 w-40" />
+        </div>
+      </div>
+      <div className="flex min-w-0 flex-col gap-2 px-3 sm:px-4 lg:pt-3 lg:pl-1">
         <Skeleton className="h-11 w-full" />
-        <Skeleton className="h-14 w-2/3" />
-        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-7 w-2/3" />
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="hidden h-[154px] w-full lg:block" />
+        <Skeleton className="h-[52px] w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     </div>
   );
@@ -52,18 +61,24 @@ export function AppShell() {
         {!ready && <LoadingShell />}
         {ready && !hasPlayers && <Welcome />}
         {explorer && (
-          <main className={`mx-auto grid min-h-0 w-full max-w-[1600px] flex-1 grid-cols-1 lg:grid-cols-[auto_minmax(0,1fr)] ${BOARD_COLUMN}`}>
+          <main
+            className={`mx-auto grid min-h-0 w-full max-w-[1600px] flex-1 grid-cols-1 lg:grid-cols-[auto_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] ${BOARD_COLUMN}`}
+          >
             <section
               aria-label="Board"
               className="px-3 pt-3 pb-2 sm:px-4 lg:h-[calc(100dvh-3.5rem)] lg:overflow-hidden lg:pr-4 lg:pb-3"
             >
               <BoardColumn />
             </section>
+            {/*
+              Desktop: exactly the height under the header, like the board column. Every
+              slot inside has a fixed height and the explorer region takes the rest, so
+              there is no outer scroll (only very short viewports fall back to scrolling).
+            */}
             <aside
               aria-label="Explorer"
-              className="flex min-w-0 flex-col gap-3 px-3 pb-6 sm:px-4 lg:h-[calc(100dvh-3.5rem)] lg:overflow-y-auto lg:pt-3 lg:pb-6 lg:pl-1"
+              className="flex min-w-0 flex-col px-3 pb-6 sm:px-4 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pt-3 lg:pb-3 lg:pl-1"
             >
-              <ActiveFilterChips />
               <ExplorerPanel />
             </aside>
           </main>

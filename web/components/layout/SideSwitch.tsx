@@ -10,7 +10,11 @@ const SIDES: { id: Color; label: string; glyph: string }[] = [
   { id: "black", label: "Black", glyph: "♚" },
 ];
 
-/** Prominent White | Black switch: which side's repertoire is being explored. */
+/**
+ * Prominent White | Black switch: which side's repertoire is being explored.
+ * Fixed 44px; counts are tabular with a reserved width, so new counts never resize it.
+ * Switching keeps the current line and only flips the side and the board.
+ */
 export function SideSwitch({ className }: { className?: string }) {
   const side = useExplorerStore((s) => s.filters.color ?? "white");
   const counts = useExplorerStore((s) => s.summary?.counts);
@@ -24,7 +28,7 @@ export function SideSwitch({ className }: { className?: string }) {
         if (v === "white" || v === "black") setSide(v);
       }}
       aria-label="Side to view"
-      className={cn("grid w-full grid-cols-2 gap-1 rounded-lg bg-muted p-1", className)}
+      className={cn("grid h-11 w-full shrink-0 grid-cols-2 gap-1 rounded-lg bg-muted p-1", className)}
     >
       {SIDES.map((s) => {
         const n = counts?.[s.id];
@@ -33,7 +37,7 @@ export function SideSwitch({ className }: { className?: string }) {
             key={s.id}
             value={s.id}
             aria-label={`View games as ${s.label}`}
-            className="h-10 min-w-0 flex-1 justify-center gap-2 rounded-md border-0 bg-transparent px-2 first:rounded-md last:rounded-md [&:not(:first-child)]:ml-0 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm data-[state=on]:ring-1 data-[state=on]:ring-border"
+            className="h-9 min-w-0 flex-1 justify-center gap-2 rounded-md border-0 bg-transparent px-2 first:rounded-md last:rounded-md [&:not(:first-child)]:ml-0 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm data-[state=on]:ring-1 data-[state=on]:ring-border"
           >
             <span
               aria-hidden
@@ -45,7 +49,7 @@ export function SideSwitch({ className }: { className?: string }) {
               {s.glyph}
             </span>
             <span className="font-semibold">{s.label}</span>
-            <span className="text-xs font-normal text-muted-foreground tabular-nums">
+            <span className="min-w-[5ch] text-left text-xs font-normal text-muted-foreground tabular-nums">
               {n == null ? "–" : n.toLocaleString("en-US")}
             </span>
           </ToggleGroupItem>

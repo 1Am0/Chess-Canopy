@@ -6,8 +6,25 @@ import { useExplorerStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/** Lichess-style two-column move list; moves past the cursor are the redo branch. */
-export function LinePanel({ className }: { className?: string }) {
+/**
+ * Lichess-style move list: each pair is an index cell plus a White and a Black cell
+ * (28px rows); pairs flow into as many columns as the width allows. The body has a
+ * fixed height and scrolls internally, keeping the current move in view, so the
+ * panel never grows with the line. Moves past the cursor are the redo branch.
+ *
+ * variant "card": standalone bordered panel with a fixed 7.5rem body (desktop).
+ * variant "fill": borderless, the body fills the parent (mobile tab panel).
+ */
+export function LinePanel({
+  className,
+  variant = "card",
+  active = true,
+}: {
+  className?: string;
+  variant?: "card" | "fill";
+  /** Re-run "keep the current move in view" when the panel becomes visible. */
+  active?: boolean;
+}) {
   const path = useExplorerStore((s) => s.path);
   const cursor = useExplorerStore((s) => s.cursor);
   const goTo = useExplorerStore((s) => s.goTo);
@@ -16,31 +33,35 @@ export function LinePanel({ className }: { className?: string }) {
 
   useEffect(() => {
     const box = scroller.current;
-    const el = box?.querySelector<HTMLElement>('[aria-current="step"]');
-    if (!box) return;
-    if (!el) {
+    if (!box || !active) return;
+    const el = box.querySelector<HTMLElement>('[data-current="true"]');
+    if (!el || cursor === 0) {
       box.scrollTop = 0;
       return;
     }
-    const top = el.offsetTop - box.offsetTop;
-    if (top < box.scrollTop) box.scrollTop = top - 4;
-    else if (top + el.offsetHeight > box.scrollTop + box.clientHeight) box.scrollTop = top + el.offsetHeight - box.clientHeight + 4;
-  }, [cursor, path]);
+    const b = box.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const top = r.top - b.top + box.scrollTop;
+    const pad = 4;
+    if (top - pad < box.scrollTop) box.scrollTop = top - pad;
+    else if (top + r.height + pad > box.scrollTop + box.clientHeight) box.scrollTop = top + r.height + pad - box.clientHeight;
+  }, [cursor, path, active]);
 
   const rowCount = Math.ceil(path.length / 2);
   const cell = (i: number) => {
     const san = path[i];
-    if (san === undefined) return <span />;
+    if (san === undefined) return <span aria-hidden className="h-7" />;
     const current = i === cursor - 1;
     return (
       <button
         type="button"
         onClick={() => goTo(i + 1)}
         aria-current={current ? "step" : undefined}
+        data-current={current || undefined}
         className={cn(
-          "truncate rounded-full px-2.5 py-0.5 text-left font-mono text-sm font-medium outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60",
-          current && "bg-foreground font-bold text-background hover:bg-foreground",
-          i >= cursor && "text-muted-foreground/70 italic",
+          "h-7 min-w-0 truncate px-2 text-left font-mono text-sm font-medium outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60",
+          current && "bg-primary font-bold text-primary-foreground hover:bg-primary",
+          !current && i >= cursor && "font-normal text-muted-foreground/75 italic",
         )}
       >
         {san}
@@ -49,34 +70,48 @@ export function LinePanel({ className }: { className?: string }) {
   };
 
   return (
-    <section aria-label="Line" className={cn("@container rounded-lg border bg-card", className)}>
-      <div className="flex items-center justify-between border-b px-3 py-1">
-        <h2 className="text-sm font-medium">
-          Line <span className="ml-1 text-xs font-normal text-muted-foreground tabular-nums">{path.length} ply</span>
+    <section
+      aria-label="Line"
+      className={cn("@container flex min-h-0 flex-col overflow-hidden", variant === "card" && "shrink-0 rounded-lg border bg-card", className)}
+    >
+      <div className="flex h-8 shrink-0 items-center justify-between gap-2 border-b px-3">
+        <h2 className="truncate text-sm font-medium">
+          Line
+          <span className="ml-1.5 text-xs font-normal text-muted-foreground tabular-nums">
+            {cursor < path.length ? `${cursor} / ${path.length} ply` : `${path.length} ply`}
+          </span>
         </h2>
-        <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs" onClick={toStart} disabled={cursor === 0} aria-label="Reset to start">
+        <Button variant="ghost" size="sm" className="h-6 gap-1 px-2 text-xs" onClick={toStart} disabled={cursor === 0} aria-label="Reset to start">
           <RotateCcw className="size-3.5" /> Reset
         </Button>
       </div>
-      <div ref={scroller} className="relative max-h-[15.5rem] overflow-y-auto p-1">
+      <div
+        ref={scroller}
+        className={cn(
+          "overflow-y-auto overscroll-contain p-1 [scrollbar-gutter:stable] [scrollbar-width:thin]",
+          variant === "card" ? "h-[7.5rem]" : "min-h-0 flex-1",
+        )}
+      >
         <button
           type="button"
           onClick={() => goTo(0)}
-          aria-current={cursor === 0 && path.length > 0 ? "step" : undefined}
+          aria-current={cursor === 0 ? "step" : undefined}
           className={cn(
-            "mb-0.5 block w-full rounded px-2 py-1 text-left text-xs text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60",
-            cursor === 0 && path.length > 0 && "bg-accent text-foreground",
+            "flex h-7 w-full items-center rounded-sm px-2 text-left text-xs text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60",
+            cursor === 0 && "bg-accent font-medium text-accent-foreground",
           )}
         >
           Start
         </button>
         {path.length === 0 ? (
-          <p className="px-2 py-3 text-sm text-muted-foreground">Play a move on the board or pick one below</p>
+          <p className="flex h-7 items-center px-2 text-sm text-muted-foreground">Play a move on the board or pick one from the table</p>
         ) : (
-          <ol className={cn(rowCount > 5 && "@lg:columns-2 @lg:gap-x-4")}>
+          <ol className="grid grid-cols-1 gap-x-1.5 @[22rem]:grid-cols-2 @[34rem]:grid-cols-3 @[46rem]:grid-cols-4">
             {Array.from({ length: rowCount }).map((_, r) => (
-              <li key={r} className="grid grid-cols-[2.25rem_minmax(0,6.5rem)_minmax(0,6.5rem)] items-center break-inside-avoid py-px">
-                <span className="pr-1.5 text-right font-mono text-xs text-muted-foreground tabular-nums">{r + 1}</span>
+              <li key={r} className="grid h-7 grid-cols-[2.25rem_minmax(0,1fr)_minmax(0,1fr)] items-stretch overflow-hidden rounded-sm">
+                <span className="flex items-center justify-center border-r bg-muted/70 font-mono text-xs text-muted-foreground tabular-nums">
+                  {r + 1}
+                </span>
                 {cell(r * 2)}
                 {cell(r * 2 + 1)}
               </li>

@@ -14,6 +14,16 @@ import { cn } from "@/lib/utils";
 
 type Tab = "chess.com" | "lichess" | "pgn" | "json";
 
+/**
+ * Default JSON player label from the file name, so unlabelled imports of different
+ * files don't all merge into one player: strips the extension and the web export's
+ * "chess.com-" / "lichess-" prefix ("chess.com-hikaru.json" -> "hikaru").
+ */
+export function labelFromFileName(name: string): string {
+  const base = name.replace(/\.[^.]+$/, "").replace(/^(chess\.com|lichess|pgn|json)-/i, "").trim();
+  return base || "cli";
+}
+
 function FileDrop({ accept, label, file, onFile }: { accept: string; label: string; file: File | null; onFile: (f: File | null) => void }) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
@@ -65,7 +75,7 @@ export function ImportForm({ initialTab = "chess.com", onDone, idPrefix = "imp" 
         toast.error("Could not read that file");
         return;
       }
-      req = tab === "pgn" ? { kind: "pgn", username: username.trim(), text } : { kind: "json", username: username.trim() || "cli", text };
+      req = tab === "pgn" ? { kind: "pgn", username: username.trim(), text } : { kind: "json", username: username.trim() || labelFromFileName((file as File).name), text };
     } else {
       req = { kind: tab as "chess.com" | "lichess", username: username.trim() };
     }
@@ -109,7 +119,15 @@ export function ImportForm({ initialTab = "chess.com", onDone, idPrefix = "imp" 
           id={userId}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder={tab === "lichess" ? "e.g. DrNykterstein" : tab === "chess.com" ? "e.g. hikaru" : "username"}
+          placeholder={
+            tab === "lichess"
+              ? "e.g. DrNykterstein"
+              : tab === "chess.com"
+                ? "e.g. hikaru"
+                : tab === "json" && file
+                  ? `Defaults to "${labelFromFileName(file.name)}"`
+                  : "username"
+          }
           autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
