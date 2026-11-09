@@ -151,7 +151,12 @@ export class ExplorerService implements ExplorerAPI {
     this.fetchImpl = opts.fetchImpl;
   }
 
-  private invalidate() {
+  /** Drops cached games and trees; the next setSelection/query rebuilds them from IndexedDB. */
+  async invalidate(): Promise<void> {
+    this.invalidateCaches();
+  }
+
+  private invalidateCaches() {
     this.gen++;
     this.lru.clear();
     this.inflight.clear();
@@ -173,7 +178,7 @@ export class ExplorerService implements ExplorerAPI {
 
   async deletePlayer(id: string): Promise<void> {
     await dbm.deletePlayer(id);
-    this.invalidate();
+    this.invalidateCaches();
   }
 
   async exportPlayer(id: string): Promise<string> {
@@ -300,7 +305,13 @@ export class ExplorerService implements ExplorerAPI {
   async query(path: string[]): Promise<QueryResult> {
     const { c, label } = await this.current();
     if (c.filtered.length === 0) {
-      return { player: label, games: 0, path, fen: START_FEN, stats: emptyStats(), next: [] };
+      let fen = START_FEN;
+      try {
+        fen = this.board.seek(path, path.length).fen();
+      } catch {
+        /* not playable: the start position */
+      }
+      return { player: label, games: 0, path, fen, stats: emptyStats(), next: [] };
     }
     const color = this.chooseColor(c);
     const { index, boardAt, node } = this.locate(c, color, path);
@@ -310,7 +321,7 @@ export class ExplorerService implements ExplorerAPI {
     return { player: label, color, games: c.filtered.length, path, fen, stats, next };
   }
 
-  async gamesAt(path: string[], limit: number): Promise<GameSummary[]> {
+  async gamesAt(path: string[], limit: number, offset = 0): Promise<GameSummary[]> {
     const { c } = await this.current();
     if (c.filtered.length === 0) return [];
     const color = this.chooseColor(c);
@@ -323,8 +334,9 @@ export class ExplorerService implements ExplorerAPI {
     const { index, node } = found;
     if (!node) return [];
     const out: GameSummary[] = [];
-    const n = Math.min(Math.max(0, limit), node.idx.length);
-    for (let k = 0; k < n; k++) {
+    const from = Math.max(0, Math.floor(offset) || 0);
+    const n = Math.min(from + Math.max(0, Math.floor(limit) || 0), node.idx.length);
+    for (let k = from; k < n; k++) {
       const g = index.games[node.idx[k]];
       out.push({
         game_id: g.game_id,
@@ -389,12 +401,20 @@ export class ExplorerService implements ExplorerAPI {
       const stats: ParseStats = { skipped: 0 };
       let games: Game[];
       try {
+        const text = req.text ?? (req.file ? await req.file.text() : "");
         games =
           req.kind === "pgn"
-            ? parsePgnText(req.text, username, stats).map((g) => ({ ...g, source, playerId: labelId }))
-            : parseStoreJson(req.text, { source, playerId: labelId }, stats);
+            ? parsePgnText(text, username, stats).map((g) => ({ ...g, source, playerId: labelId }))
+            : parseStoreJson(text, { source, playerId: labelId }, stats);
       } catch (e) {
         throw new Error(`Could not read file: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      // Games without a result yet (`*`) never appear in the explorer, so they are not stored.
+      const finished = games.filter((g) => classifyResult(g.result ?? "*") !== null);
+      const unfinished = games.length - finished.length;
+      games = finished;
+      if (games.length === 0 && unfinished > 0) {
+        throw new Error(`No finished games found in the file (${unfinished.toLocaleString()} without a result skipped)`);
       }
       if (games.length === 0) {
         throw new Error(
@@ -421,7 +441,7 @@ export class ExplorerService implements ExplorerAPI {
           targets.push({ base: { id, source: src, username: user, displayName: cur?.displayName || user }, games: list });
         }
       }
-      return this.saveAll(targets, onProgress, signal, stats.skipped);
+      return this.saveAll(targets, onProgress, signal, stats.skipped, unfinished);
     });
   }
 
@@ -448,33 +468,78 @@ export class ExplorerService implements ExplorerAPI {
     const prog = (p: Partial<ImportProgress> & Pick<ImportProgress, "phase">) =>
       onProgress({ done: 0, total: null, added: 0, duplicates: 0, ...p });
     try {
-      if (kind === "chess.com") {
-        const r = await fetchChessComGames(username, {
-          sinceMonth: existing?.lastSyncedMonth ?? null,
-          signal,
-          fetchImpl: this.fetchImpl,
-          onProgress: (p) => prog({ phase: "fetching", done: p.done, total: p.total }),
-        });
-        if (signal.aborted) throw abortError();
-        prog({ phase: "parsing", total: r.games.length });
-        const games: Game[] = [];
-        let skipped = 0;
-        for (const raw of r.games) {
-          const g = parseChessComGame(raw, username);
-          if (g) games.push({ ...g, playerId, source: "chess.com" });
-          else skipped++;
-        }
-        return await this.saveAll(
-          [{ base, games, extra: { lastSyncedMonth: r.lastMonth ?? existing?.lastSyncedMonth }, existing }],
-          onProgress,
-          signal,
-          skipped,
-        );
-      }
+      if (kind === "chess.com") return await this.runChessCom(base, existing, prog, signal);
       return await this.runLichess(base, existing, prog, signal);
     } catch (e) {
       throw friendly(e, kind);
     }
+  }
+
+  /**
+   * Chess.com: fetch the monthly archives oldest first and save each month as it arrives.
+   * `lastSyncedMonth` only ever covers the contiguous run of saved months, so after a
+   * cancel or a failed month the games already downloaded are kept and the next Sync
+   * resumes from the failed month. A failure after some games were saved is reported as a
+   * partial outcome (`partial`), a cancel throws an AbortError after the watermark is stored.
+   */
+  private async runChessCom(
+    base: dbm.PlayerBase,
+    existing: Player | null,
+    prog: (p: Partial<ImportProgress> & Pick<ImportProgress, "phase">) => void,
+    signal: AbortSignal,
+  ): Promise<ImportOutcome> {
+    const username = base.displayName;
+    let added = 0;
+    let duplicates = 0;
+    let skipped = 0;
+    let months = 0;
+    let savedAny = false;
+    let committed = existing?.lastSyncedMonth;
+    let progressMonths = { done: 0, total: 0 };
+    try {
+      await fetchChessComGames(username, {
+        sinceMonth: existing?.lastSyncedMonth ?? null,
+        signal,
+        fetchImpl: this.fetchImpl,
+        onProgress: (p) => {
+          progressMonths = { done: p.done, total: p.total };
+          prog({ phase: "fetching", done: p.done, total: p.total, added, duplicates });
+        },
+        onMonth: async (month, raws) => {
+          const games: Game[] = [];
+          for (const raw of raws) {
+            const g = parseChessComGame(raw, username);
+            if (g) games.push({ ...g, playerId: base.id, source: "chess.com" });
+            else skipped++;
+          }
+          if (games.length) {
+            const r = await dbm.saveGames(base, games);
+            added += r.added;
+            duplicates += r.duplicates;
+            savedAny = true;
+          }
+          committed = month;
+          months++;
+          prog({ phase: "fetching", done: progressMonths.done, total: progressMonths.total, added, duplicates });
+        },
+      });
+    } catch (e) {
+      const aborted = isAbort(e) || signal.aborted;
+      if (savedAny || existing) {
+        await this.finishPlayer(base, existing, committed ? { lastSyncedMonth: committed } : {}).catch(() => null);
+      }
+      if (aborted) throw abortError();
+      if (!savedAny) throw e;
+      const reason = friendly(e, "chess.com").message;
+      const out = await dbm.countGames(base.id);
+      const message = `Imported ${added.toLocaleString()} new games; the rest failed (${reason}). Run Sync to retry.`;
+      prog({ phase: "done", done: months, total: progressMonths.total, added, duplicates, skipped, message });
+      return { added, total: out, playerId: base.id, playerIds: [base.id], skipped, partial: message };
+    }
+    prog({ phase: "saving", done: months, total: months, added, duplicates });
+    const out = await this.finishPlayer(base, existing, committed ? { lastSyncedMonth: committed } : {});
+    prog({ phase: "done", done: months, total: months, added, duplicates, skipped, message: skippedMessage(skipped) });
+    return { added, total: out.gameCount, playerId: base.id, playerIds: [base.id], skipped };
   }
 
   /**
@@ -576,7 +641,7 @@ export class ExplorerService implements ExplorerAPI {
       lastSyncedAt: Date.now(),
     };
     await dbm.updatePlayer(base.id, p);
-    this.invalidate();
+    this.invalidateCaches();
     return p;
   }
 
@@ -586,6 +651,7 @@ export class ExplorerService implements ExplorerAPI {
     onProgress: (p: ImportProgress) => void,
     signal: AbortSignal,
     skipped: number,
+    unfinished = 0,
   ): Promise<ImportOutcome> {
     const total = targets.reduce((n, t) => n + t.games.length, 0);
     let added = 0;
@@ -613,7 +679,7 @@ export class ExplorerService implements ExplorerAPI {
       const p = await this.finishPlayer(t.base, t.existing ?? null, t.extra ?? {});
       totals.push({ id: t.base.id, count: p.gameCount, games: t.games.length });
     }
-    onProgress({ phase: "done", done: total, total, added, duplicates, skipped, message: skippedMessage(skipped) });
+    onProgress({ phase: "done", done: total, total, added, duplicates, skipped, unfinished, message: skippedMessage(skipped, unfinished) });
     const main = totals.reduce((a, b) => (b.games > a.games ? b : a), totals[0]);
     return {
       added,
@@ -621,13 +687,16 @@ export class ExplorerService implements ExplorerAPI {
       playerId: main.id,
       playerIds: totals.map((t) => t.id),
       skipped,
+      ...(unfinished ? { unfinished } : {}),
     };
   }
 }
 
-function skippedMessage(skipped: number): string | undefined {
-  if (!skipped) return undefined;
-  return `Skipped ${skipped.toLocaleString()} non-standard game${skipped === 1 ? "" : "s"} (variants or custom start positions)`;
+function skippedMessage(skipped: number, unfinished = 0): string | undefined {
+  const parts: string[] = [];
+  if (skipped) parts.push(`${skipped.toLocaleString()} non-standard game${skipped === 1 ? "" : "s"} (variants or custom start positions)`);
+  if (unfinished) parts.push(`${unfinished.toLocaleString()} game${unfinished === 1 ? "" : "s"} without a result`);
+  return parts.length ? `Skipped ${parts.join(" and ")}` : undefined;
 }
 
 function isAbort(e: unknown): boolean {

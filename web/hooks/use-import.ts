@@ -13,7 +13,17 @@ export function useImport() {
   const cancelled = useRef(false);
 
   const finish = useCallback(async (outcome: ImportOutcome) => {
-    await refreshPlayers();
+    // The import itself succeeded; a failing refresh must not be reported as a failed import.
+    let refreshed = true;
+    try {
+      await refreshPlayers();
+    } catch {
+      refreshed = false;
+    }
+    if (!refreshed) {
+      toast.warning("Import finished, but the player list could not be refreshed. Reload the page to see it.");
+      return;
+    }
     const st = useExplorerStore.getState();
     // Make sure the freshly imported player(s) are part of the selection.
     const eff = effectiveSelection(st.selected, st.players);
@@ -26,9 +36,14 @@ export function useImport() {
       st.setSelected(eff);
     }
     // players changed, so useExplorerSync re-applies the selection and re-queries.
-    const skipped = outcome.skipped
-      ? ` · skipped ${outcome.skipped.toLocaleString()} non-standard game${outcome.skipped === 1 ? "" : "s"}`
-      : "";
+    const skippedParts: string[] = [];
+    if (outcome.skipped) skippedParts.push(`${outcome.skipped.toLocaleString()} non-standard game${outcome.skipped === 1 ? "" : "s"}`);
+    if (outcome.unfinished) skippedParts.push(`${outcome.unfinished.toLocaleString()} without a result`);
+    const skipped = skippedParts.length ? ` · skipped ${skippedParts.join(", ")}` : "";
+    if (outcome.partial) {
+      toast.warning(outcome.partial);
+      return;
+    }
     toast.success(
       outcome.added > 0
         ? `Imported ${outcome.added.toLocaleString()} new games (${outcome.total.toLocaleString()} total)${skipped}`

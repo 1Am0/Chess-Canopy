@@ -108,11 +108,14 @@ export interface NextMove {
 }
 
 export interface QueryResult {
+  /** Debug label: the selection key ("all" or the sorted player ids). The UI does not use it. */
   player: string;
-  /** Color whose trie was used (may be auto-picked) */
+  /** Color whose trie was used (may be auto-picked); absent when the selection has no games */
   color?: Color;
+  /** Number of games in the selection after filters */
   games: number;
   path: string[];
+  /** FEN after `path` (the start position when `path` is empty or not playable) */
   fen: string;
   stats: Stats;
   /** Sorted by total desc, then move */
@@ -142,13 +145,19 @@ export interface ImportProgress {
   duplicates: number;
   /** Games dropped as not standard chess (variants, custom start positions, illegal moves). */
   skipped?: number;
+  /** Games dropped because they have no result yet. */
+  unfinished?: number;
   message?: string;
 }
 
 export type ImportRequest =
   | { kind: "chess.com" | "lichess"; username: string }
-  | { kind: "pgn"; username: string; text: string }
-  | { kind: "json"; username: string; source?: Source; text: string };
+  /**
+   * Provide `text`, or a `file`/Blob that the worker reads itself (a Blob is a cheap clone,
+   * so a huge PGN is never read or copied on the main thread).
+   */
+  | { kind: "pgn"; username: string; text?: string; file?: Blob }
+  | { kind: "json"; username: string; source?: Source; text?: string; file?: Blob };
 
 export interface Opening {
   eco: string;
@@ -170,6 +179,13 @@ export interface ImportOutcome {
   playerIds?: string[];
   /** Games dropped as not standard chess. */
   skipped?: number;
+  /** Games dropped because they have no result yet (`*`). */
+  unfinished?: number;
+  /**
+   * Set when the import stopped early (e.g. one chess.com month kept failing) after saving
+   * part of the games. Holds a user-readable summary; the saved games are kept and Sync resumes.
+   */
+  partial?: string;
 }
 
 /** Worker contract (exposed via Comlink). All calls async. */
@@ -180,7 +196,10 @@ export interface ExplorerAPI {
   exportPlayer(id: string): Promise<string>;
   setSelection(playerIds: string[] | "all", filters: Filters): Promise<SelectionSummary>;
   query(path: string[]): Promise<QueryResult>;
-  gamesAt(path: string[], limit: number): Promise<GameSummary[]>;
+  /** Games that reached `path`, newest first: `limit` of them starting at `offset` (default 0). */
+  gamesAt(path: string[], limit: number, offset?: number): Promise<GameSummary[]>;
+  /** Drop cached games and trees (another tab changed the data). Call setSelection afterwards. */
+  invalidate?(): Promise<void>;
   opponents(): Promise<string[]>;
   importGames(req: ImportRequest, onProgress: (p: ImportProgress) => void): Promise<ImportOutcome>;
   syncPlayer(id: string, onProgress: (p: ImportProgress) => void): Promise<ImportOutcome>;

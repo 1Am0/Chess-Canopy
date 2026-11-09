@@ -44,6 +44,14 @@ export interface FetchChessComOptions {
   concurrency?: number;
   maxTries?: number;
   baseDelayMs?: number;
+  /**
+   * Incremental mode: months are fetched oldest first and handed to `onMonth` strictly in
+   * that order (awaited, one at a time), so the caller can save each month as it arrives and
+   * keep a watermark over the contiguous run of saved months. When set, the result's `games`
+   * is empty (the games were delivered). If a month fails or the crawl is cancelled, every
+   * earlier month has been delivered before the error is thrown.
+   */
+  onMonth?: (month: string, games: ChessComRawGame[]) => void | Promise<void>;
 }
 
 export interface ChessComFetchResult {
@@ -136,14 +144,35 @@ export async function fetchChessComGames(username: string, opts: FetchChessComOp
     let archives = idx.archives ?? [];
     const monthOf = (u: string) => u.split("/").slice(-2).join("/");
     if (opts.sinceMonth) archives = archives.filter((u) => monthOf(u) >= opts.sinceMonth!);
-    const ordered = [...archives].reverse(); // newest first
+    const incremental = !!opts.onMonth;
+    const ordered = incremental ? [...archives] : [...archives].reverse(); // oldest first when saving as we go, else newest first
     const total = ordered.length;
-    const results: ChessComRawGame[][] = new Array(total);
+    const results: Array<ChessComRawGame[] | undefined> = new Array(total);
     let next = 0;
     let done = 0;
     let gameCount = 0;
     const workers = Math.max(1, Math.min(opts.concurrency ?? 2, total));
     let failure: unknown = null;
+
+    // Delivers completed months in order, one at a time (a second caller returns at once
+    // and the running pump picks its month up).
+    let deliverAt = 0;
+    let pumping = false;
+    const pump = async () => {
+      if (!opts.onMonth || pumping) return;
+      pumping = true;
+      try {
+        while (deliverAt < total && results[deliverAt] !== undefined) {
+          const i = deliverAt;
+          const games = results[i]!;
+          await opts.onMonth(monthOf(ordered[i]), games);
+          results[i] = undefined;
+          deliverAt++;
+        }
+      } finally {
+        pumping = false;
+      }
+    };
 
     const run = async () => {
       while (next < total && !failure) {
@@ -156,6 +185,7 @@ export async function fetchChessComGames(username: string, opts: FetchChessComOp
           done++;
           gameCount += games.length;
           opts.onProgress?.({ done, total, games: gameCount, month: monthOf(ordered[i]) });
+          await pump();
         } catch (e) {
           if (!failure) failure = e;
           crawl.abort();
@@ -164,9 +194,12 @@ export async function fetchChessComGames(username: string, opts: FetchChessComOp
       }
     };
     await Promise.allSettled(Array.from({ length: workers }, run));
+    // Months that finished before the failure and are next in line still get delivered.
+    if (incremental) await pump().catch((e) => (failure ??= e));
     if (opts.signal?.aborted) throw abortError();
     if (failure) throw failure;
-    return { games: results.flat(), lastMonth: total ? monthOf(ordered[0]) : null };
+    const newest = total ? monthOf(ordered[incremental ? total - 1 : 0]) : null;
+    return { games: incremental ? [] : (results as ChessComRawGame[][]).flat(), lastMonth: newest };
   } finally {
     opts.signal?.removeEventListener("abort", onOuterAbort);
   }
