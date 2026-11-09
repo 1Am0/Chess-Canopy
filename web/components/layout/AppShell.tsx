@@ -20,17 +20,17 @@ import { TooltipProvider } from "@/components/ui/tooltip";
  *   desktop: min( clamp(22rem, ~57% of the content width, 52rem),
  *                 viewport height - header (3.5rem) - chrome (8.5rem: strips + toolbar + padding) )
  * The content width is min(100vw, 1600px) minus the page padding (2rem) and the
- * board column's own side chrome (3rem: result bar + gaps).
+ * workspace gap (1rem).
  */
 const BOARD_COLUMN =
-  "[--board-size:calc(100vw-1.5rem-20px)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-3rem),52rem),calc(100dvh-12rem))]";
+  "[--board-size:calc(100vw-1.5rem)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-1rem),52rem),calc(100dvh-12rem))]";
 
 /** Placeholder with the same slots as the explorer, so the first paint doesn't jump. */
 function LoadingShell() {
   return (
     <div className={`mx-auto grid w-full max-w-[1600px] grid-cols-1 lg:grid-cols-[auto_minmax(0,1fr)] ${BOARD_COLUMN}`} aria-busy="true">
       <div className="px-3 pt-3 pb-2 sm:px-4 lg:pr-4 lg:pb-3">
-        <div className="flex flex-col gap-1.5 pl-5" style={{ width: "calc(var(--board-size) + 20px)", maxWidth: "100%" }}>
+        <div className="flex flex-col gap-1.5" style={{ width: "var(--board-size)", maxWidth: "100%" }}>
           <Skeleton className="h-7 w-40" />
           <Skeleton className="aspect-square w-full" />
           <Skeleton className="h-7 w-40" />

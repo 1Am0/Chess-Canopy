@@ -24,7 +24,6 @@ function targets(page: Page): Record<string, Locator> {
   const table = page.getByRole("group", { name: /^Candidate moves/ });
   return {
     board: page.getByLabel("Chess board"),
-    resultBar: page.getByTestId("result-bar"),
     stripTop: page.getByTestId("strip-top"),
     stripBottom: page.getByTestId("strip-bottom"),
     toolbar: page.getByRole("toolbar", { name: "Board controls" }),
@@ -93,7 +92,7 @@ for (const vp of [
 
       const base = await snapshot(page);
       // Sanity: the elements we guard really exist on desktop.
-      for (const k of ["board", "resultBar", "stripTop", "stripBottom", "toolbar", "sideSwitch", "openingHeader", "filterRow", "linePanel", "summary", "tabBar", "tableScroller", "tableHeader"]) {
+      for (const k of ["board", "stripTop", "stripBottom", "toolbar", "sideSwitch", "openingHeader", "filterRow", "linePanel", "summary", "tabBar", "tableScroller", "tableHeader"]) {
         expect(base[k], `baseline ${k} missing`).not.toBeNull();
       }
       const check = async (label: string, keys?: string[]) => {

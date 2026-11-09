@@ -87,9 +87,8 @@
 
   /*
    * Result bars use the chess convention (White wins | Draws | Black wins), never the
-   * player's win/loss colors. --bar-*: explorer table + summary bars. --eval-*: the
-   * eval-style bar beside the board. The thin border keeps the white segment readable
-   * on light surfaces.
+   * player's win/loss colors, in the explorer table and summary bars. The thin border
+   * keeps the white segment readable on light surfaces.
    */
   --bar-white: #ffffff;
   --bar-draw: #a0a0a0;
@@ -100,10 +99,6 @@
   --bar-black-fg: #fff;
   --bar-gloss-white: inset 0 -5px 7px rgb(0 0 0 / 0.1);
   --bar-gloss: inset 0 5px 7px rgb(255 255 255 / 0.2);
-  --eval-white: #ffffff;
-  --eval-draw: #9a9a9a;
-  --eval-black: #403d39;
-  --eval-border: rgb(0 0 0 / 0.2);
 
   /* Board (default theme = "green", mirrors BOARD_THEMES.green) */
   --board-light: #ecefd6;
@@ -166,10 +161,6 @@
   --bar-border: rgb(255 255 255 / 0.12);
   --bar-gloss-white: inset 0 -5px 7px rgb(0 0 0 / 0.25);
   --bar-gloss: inset 0 5px 7px rgb(255 255 255 / 0.1);
-  --eval-white: #d9d9d9;
-  --eval-draw: #6b6b6b;
-  --eval-black: #2b2a28;
-  --eval-border: rgb(255 255 255 / 0.1);
 
   /* Board colors are theme-independent constants; arrows stay legible on all themes. */
 }
@@ -223,10 +214,6 @@
   --color-bar-white-fg: var(--bar-white-fg);
   --color-bar-draw-fg: var(--bar-draw-fg);
   --color-bar-black-fg: var(--bar-black-fg);
-  --color-eval-white: var(--eval-white);
-  --color-eval-draw: var(--eval-draw);
-  --color-eval-black: var(--eval-black);
-  --color-eval-border: var(--eval-border);
   --color-arrow-candidate: var(--arrow-candidate);
   --color-arrow-preview: var(--arrow-preview);
   --color-highlight-last: var(--highlight-last);
