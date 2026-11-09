@@ -3,6 +3,7 @@
 import { useExplorerStore } from "@/lib/store";
 import { ExplorerBoard } from "@/components/board/ExplorerBoard";
 import { BoardControls } from "@/components/board/BoardControls";
+import { EvalBar } from "@/components/board/EvalBar";
 import { PlayerStrip } from "@/components/board/PlayerStrip";
 import type { Color } from "@/lib/engine/types";
 
@@ -23,14 +24,21 @@ export function BoardColumn() {
 
   return (
     <div className="mx-auto flex flex-col gap-1.5 lg:mx-0" style={{ width: BOARD_COLUMN_WIDTH, maxWidth: "100%" }}>
-      <div data-testid="strip-top">
+      <div data-testid="strip-top" className="pl-7">
         <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} />
       </div>
-      <ExplorerBoard />
-      <div data-testid="strip-bottom">
+      <div className="flex gap-1">
+        <EvalBar />
+        <div className="min-w-0 flex-1">
+          <ExplorerBoard />
+        </div>
+      </div>
+      <div data-testid="strip-bottom" className="pl-7">
         <PlayerStrip you={bottomIsYou} color={bottomIsYou ? side : opp} />
       </div>
-      <BoardControls />
+      <div className="pl-7">
+        <BoardControls />
+      </div>
     </div>
   );
 }
