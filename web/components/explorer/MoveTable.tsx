@@ -86,7 +86,7 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
         type="button"
         onClick={() => toggle(k)}
         className={cn(
-          "inline-flex items-center gap-0.5 rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
+          "inline-flex items-center gap-0.5 whitespace-nowrap rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
           sort.key === k && "text-foreground",
         )}
       >
@@ -121,9 +121,9 @@ export function MoveTable({ next, total }: { next: NextMove[]; total: number }) 
         <thead className="text-xs text-muted-foreground">
           <tr className="bg-muted/50">
             <Th k="move" label="Move" className="pl-3" />
-            <Th k="games" label="Games" className="w-12 text-right sm:w-auto" />
+            <Th k="games" label="Games" className="w-16 pr-3 text-right sm:w-auto sm:pr-2" />
             <th scope="col" className="hidden px-2 py-1.5 text-right font-medium sm:table-cell">Share</th>
-            <th scope="col" className="w-[8.5rem] px-2 py-1.5 font-medium sm:w-[34%]">W / D / L</th>
+            <th scope="col" className="w-[7.5rem] pr-2 pl-3 py-1.5 font-medium sm:w-[34%] sm:px-2">W / D / L</th>
             <Th k="score" label="Score" className="w-12 pr-3 text-right sm:w-auto" />
           </tr>
         </thead>

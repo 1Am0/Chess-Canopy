@@ -46,11 +46,11 @@ export function MoveRow({
           </div>
         )}
       </td>
-      <td className={cn("px-2 text-right text-sm tabular-nums", dim && "opacity-60")}>{compact(item.stats.total)}</td>
+      <td className={cn("pr-3 pl-2 text-right text-sm tabular-nums sm:pr-2", dim && "opacity-60")}>{compact(item.stats.total)}</td>
       <td className={cn("hidden px-2 text-right text-sm tabular-nums text-muted-foreground sm:table-cell", dim && "opacity-60")}>
         {shareLabel(item.stats.total, positionTotal)}
       </td>
-      <td className={cn("px-2", dim && "opacity-60")}>
+      <td className={cn("pr-2 pl-3 sm:px-2", dim && "opacity-60")}>
         <WdlBar stats={item.stats} />
       </td>
       <td className={cn("py-1.5 pr-3 pl-1 text-right text-sm font-medium tabular-nums", scoreClass(sc), dim && "opacity-70")}>

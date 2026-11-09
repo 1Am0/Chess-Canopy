@@ -38,8 +38,8 @@ export function LinePanel({ className }: { className?: string }) {
         onClick={() => goTo(i + 1)}
         aria-current={current ? "step" : undefined}
         className={cn(
-          "truncate rounded px-2 py-1 text-left font-mono text-sm font-medium outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60",
-          current && "bg-accent font-bold text-foreground ring-1 ring-primary/50 hover:bg-accent",
+          "truncate rounded-full px-2.5 py-0.5 text-left font-mono text-sm font-medium outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60",
+          current && "bg-foreground font-bold text-background hover:bg-foreground",
           i >= cursor && "text-muted-foreground/70 italic",
         )}
       >
@@ -49,7 +49,7 @@ export function LinePanel({ className }: { className?: string }) {
   };
 
   return (
-    <section aria-label="Line" className={cn("rounded-lg border bg-card", className)}>
+    <section aria-label="Line" className={cn("@container rounded-lg border bg-card", className)}>
       <div className="flex items-center justify-between border-b px-3 py-1">
         <h2 className="text-sm font-medium">
           Line <span className="ml-1 text-xs font-normal text-muted-foreground tabular-nums">{path.length} ply</span>
@@ -73,10 +73,10 @@ export function LinePanel({ className }: { className?: string }) {
         {path.length === 0 ? (
           <p className="px-2 py-3 text-sm text-muted-foreground">Play a move on the board or pick one below</p>
         ) : (
-          <ol className="grid grid-cols-[2rem_1fr_1fr] items-center gap-y-px">
+          <ol className={cn(rowCount > 5 && "@lg:columns-2 @lg:gap-x-4")}>
             {Array.from({ length: rowCount }).map((_, r) => (
-              <li key={r} className="col-span-3 grid grid-cols-subgrid items-center">
-                <span className="pl-1 text-right font-mono text-xs text-muted-foreground tabular-nums">{r + 1}</span>
+              <li key={r} className="grid grid-cols-[2.25rem_minmax(0,6.5rem)_minmax(0,6.5rem)] items-center break-inside-avoid py-px">
+                <span className="pr-1.5 text-right font-mono text-xs text-muted-foreground tabular-nums">{r + 1}</span>
                 {cell(r * 2)}
                 {cell(r * 2 + 1)}
               </li>

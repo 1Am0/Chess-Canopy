@@ -68,18 +68,37 @@ export function ExplorerBoard() {
     const total = result.next.reduce((n, m) => n + m.stats.total, 0) || 1;
     const max = result.next[0]?.stats.total || 1;
     const picked = result.next.filter((n, i) => i === 0 || n.stats.total / total >= MIN_ARROW_SHARE).slice(0, MAX_ARROWS);
-    const starts = new Set<string>();
-    const out: { startSquare: string; endSquare: string; color: string }[] = [];
-    for (const n of picked) {
+    type A = { startSquare: string; endSquare: string; color: string; idx: number };
+    const vec = (a: { startSquare: string; endSquare: string }) => [
+      a.endSquare.charCodeAt(0) - a.startSquare.charCodeAt(0),
+      a.endSquare.charCodeAt(1) - a.startSquare.charCodeAt(1),
+    ];
+    const collinear = (a: A, b: A) => {
+      if (a.startSquare !== b.startSquare) return false;
+      const [ax, ay] = vec(a);
+      const [bx, by] = vec(b);
+      return ax * by - ay * bx === 0 && ax * bx + ay * by > 0;
+    };
+    const len = (a: A) => Math.max(...vec(a).map(Math.abs));
+    let out: A[] = [];
+    picked.forEach((n, idx) => {
       const a = toArrow(n.move);
-      if (!a) continue;
+      if (!a) return;
       let alpha = 0.4 + 0.5 * (n.stats.total / max);
-      // Shared start square: fade the less frequent one so both stay readable.
-      if (starts.has(a.startSquare)) alpha *= 0.6;
-      starts.add(a.startSquare);
-      out.push({ ...a, color: `rgba(${CANDIDATE_RGB},${alpha.toFixed(2)})` });
-    }
-    return out;
+      // Shared start square (non-collinear): fade the less frequent one so both stay readable.
+      if (out.some((o) => o.startSquare === a.startSquare)) alpha *= 0.6;
+      const cur: A = { ...a, color: `rgba(${CANDIDATE_RGB},${alpha.toFixed(2)})`, idx };
+      // Collinear arrows from one square overlap into a single long line: keep only the nearer,
+      // unless the farther one is the top move.
+      const clash = out.find((o) => collinear(o, cur));
+      if (clash) {
+        if (len(cur) < len(clash) && clash.idx !== 0) out = out.filter((o) => o !== clash);
+        else if (len(cur) < len(clash) || cur.idx !== 0) return;
+        else out = out.filter((o) => o !== clash);
+      }
+      out.push(cur);
+    });
+    return out.map(({ startSquare, endSquare, color }) => ({ startSquare, endSquare, color }));
   }, [result, key, fen, hoverMove]);
 
   const squareStyles = useMemo(() => {
@@ -96,8 +115,11 @@ export function ExplorerBoard() {
     }
     if (selected) add(selected, overlay("rgba(59,130,246,0.5)"));
     if (lastMove) {
-      add(lastMove.from, overlay("rgba(255,214,10,0.42)"));
-      add(lastMove.to, overlay("rgba(255,214,10,0.42)"));
+      for (const sq of [lastMove.from, lastMove.to]) {
+        // a1 is dark: file+rank parity even => dark square.
+        const dark = (sq.charCodeAt(0) - 97 + Number(sq[1]) - 1) % 2 === 0;
+        add(sq, overlay(dark ? "rgba(255,224,0,0.68)" : "rgba(255,235,59,0.45)"));
+      }
     }
     const s: Record<string, React.CSSProperties> = {};
     for (const [sq, imgs] of Object.entries(layers)) s[sq] = { backgroundImage: imgs.join(", ") };
