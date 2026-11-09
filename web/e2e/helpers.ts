@@ -32,14 +32,21 @@ export async function mockApis(ctx: BrowserContext, delayMs = 0) {
   });
 }
 
-export async function importSampleJson(page: Page, username = "tester") {
+/** Larger synthetic fixture: 40 White games, with 3 rare first-level moves (c4, Nf3, b3). */
+export const MANY_GAMES_JSON = path.join(root, "e2e/fixtures/many_games.json");
+
+export async function importJsonFile(page: Page, file: string, username = "tester") {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
   await page.getByRole("tab", { name: "JSON" }).click();
-  await page.getByLabel("Drop a JSON file exported by the Python CLI").setInputFiles(SAMPLE_JSON);
+  await page.getByLabel("Drop a JSON file exported by the Python CLI").setInputFiles(file);
   await page.getByLabel(/Player label/).fill(username);
   await page.getByRole("button", { name: "Import games" }).click();
   await expect(page.getByRole("table")).toBeVisible();
+}
+
+export async function importSampleJson(page: Page, username = "tester") {
+  await importJsonFile(page, SAMPLE_JSON, username);
 }
 
 export const moveRow = (page: Page, san: string) => page.getByRole("row").filter({ has: page.getByText(san, { exact: true }) });
