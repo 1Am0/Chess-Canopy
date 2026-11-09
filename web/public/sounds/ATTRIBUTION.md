@@ -14,7 +14,7 @@ The move sounds in this folder are recorded sounds from **Lichess**, copied unmo
 
 Per Lila's [COPYING.md](https://github.com/lichess-org/lila/blob/master/COPYING.md) these four sets
 are listed as free exceptions under the AGPL-3.0-or-later. Only five files of each AGPL set are used
-(`Move`, `Capture`, `Check`). Lichess's game-over, victory and notification sounds are deliberately not included.
+(`Move`, `Capture`). Lichess's game-over, victory and notification sounds are deliberately not included.
 
 ## The Standard set
 

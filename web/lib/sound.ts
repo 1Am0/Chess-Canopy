@@ -1,7 +1,7 @@
 /**
  * Sound feedback using recorded chess sounds from Lichess (lichess-org/lila, public/sound).
  * The mp3 files are fetched lazily on the first user gesture and played through the Web
- * Audio API for low latency. Only the three *piece* sounds (Move, Capture, Check) are used.
+ * Audio API for low latency. Only the two *piece* sounds (Move, Capture) are used.
  * Lichess's game-over / victory / notification sounds are deliberately NOT bundled, so
  * nothing here can be mistaken for a Lichess game ending.
  *
@@ -9,7 +9,6 @@
  *
  *   move      the recorded move sound
  *   capture   the recorded capture sound
- *   check     the recorded check sound (Standard has none: a quick rising double tap)
  *   castle    the move sound twice, evenly spaced (king, then rook)
  *   promote   three rising taps
  *   mate      a heavy double thud: the capture sound, then a lower one
@@ -19,7 +18,7 @@
  * nes and futuristic. Everything is a no-op without Web Audio (SSR, old browsers, tests).
  */
 
-export type SoundKind = "move" | "capture" | "castle" | "check" | "promote" | "mate" | "reset";
+export type SoundKind = "move" | "capture" | "castle" | "promote" | "mate" | "reset";
 
 export const SOUND_THEMES = [
   { id: "standard", label: "Lichess (default)" },
@@ -31,21 +30,10 @@ export const SOUND_THEMES = [
 export type SoundTheme = (typeof SOUND_THEMES)[number]["id"];
 export const DEFAULT_SOUND_THEME: SoundTheme = "standard";
 
-/**
- * Lichess's Standard set has recordings for move and capture only (Lichess itself plays
- * the move sound for check). For this theme the check sample is the move sound, and a
- * check is played as a quick, rising double tap so it still differs from a plain move.
- */
-const SAMPLE_FILE: Partial<Record<SoundTheme, Partial<Record<string, string>>>> = {
-  standard: { Check: "Move" },
-};
-const NO_CHECK_RECORDING: Partial<Record<SoundTheme, boolean>> = { standard: true };
-
-/** What kind of sound a SAN move makes. Mate beats check, check beats castling, then promotion, then capture. */
+/** What kind of sound a SAN move makes. Checks sound like the underlying move. Mate beats castling, then promotion, then capture. */
 export function classifyMove(san: string | undefined): SoundKind {
   if (!san) return "move";
   if (san.includes("#")) return "mate";
-  if (san.includes("+")) return "check";
   if (san.startsWith("O-O") || san.startsWith("0-0")) return "castle";
   if (san.includes("=")) return "promote";
   if (san.includes("x")) return "capture";
@@ -110,18 +98,17 @@ function audioContext(): AudioContext | null {
   }
 }
 
-const SAMPLES = ["Move", "Capture", "Check"] as const;
+const SAMPLES = ["Move", "Capture"] as const;
 type Sample = (typeof SAMPLES)[number];
 
 /** Fetch + decode one sample of the current theme (cached; null if it cannot be loaded). */
 function sample(name: Sample): Promise<AudioBuffer | null> {
   const c = audioContext();
   if (!c) return Promise.resolve(null);
-  const file = SAMPLE_FILE[theme]?.[name] ?? name;
-  const key = `${theme}/${file}`;
+  const key = `${theme}/${name}`;
   let p = buffers.get(key);
   if (!p) {
-    p = fetch(`/sounds/${theme}/${file}.mp3`)
+    p = fetch(`/sounds/${theme}/${name}.mp3`)
       .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
       .then((data) => c.decodeAudioData(data))
       .catch(() => {
@@ -179,12 +166,6 @@ export function playSound(kind: SoundKind, opts: { soft?: boolean } = {}): void 
       break;
     case "capture":
       hit("Capture", { gain: v });
-      break;
-    case "check":
-      if (NO_CHECK_RECORDING[theme]) {
-        hit("Move", { gain: v });
-        hit("Move", { at: 0.08, gain: 0.75 * v, rate: 1.5 });
-      } else hit("Check", { gain: v });
       break;
     case "castle":
       hit("Move", { gain: v });

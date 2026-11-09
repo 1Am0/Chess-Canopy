@@ -7,15 +7,15 @@ describe("classifyMove", () => {
     ["Nf3", "move"],
     ["exd5", "capture"],
     ["Bxf7", "capture"],
-    ["Qh5+", "check"],
-    ["Bxf7+", "check"],
+    ["Qh5+", "move"],
+    ["Bxf7+", "capture"],
     ["Qxf7#", "mate"],
     ["Qh5#", "mate"],
     ["O-O", "castle"],
     ["O-O-O", "castle"],
     ["e8=Q", "promote"],
     ["exd8=N", "promote"],
-    ["a1=Q+", "check"],
+    ["a1=Q+", "promote"],
     ["b8=Q#", "mate"],
   ] as const)("%s → %s", (san, kind) => expect(classifyMove(san)).toBe(kind));
 
@@ -127,9 +127,6 @@ describe("playSound (recorded Lichess samples)", () => {
     };
     expect(await play("move")).toHaveLength(1);
     expect(await play("capture")).toHaveLength(1);
-    const check = await play("check"); // Standard has no check recording: a quick rising double tap
-    expect(check).toHaveLength(2);
-    expect(check[1].rate).toBeGreaterThan(1);
     const castle = await play("castle");
     expect(castle).toHaveLength(2); // king, then rook
     expect(castle[1].at).toBeGreaterThan(castle[0].at);
@@ -145,25 +142,14 @@ describe("playSound (recorded Lichess samples)", () => {
     expect(reset[0].gain).toBeLessThan(0.6); // and quieter
   });
 
-  it("defaults to Lichess's Standard theme, which only has move and capture recordings", async () => {
+  it("defaults to Lichess's Standard theme, which has move and capture recordings", async () => {
     const { fetched } = installFakeAudio();
     const { preloadSounds, DEFAULT_SOUND_THEME } = await import("@/lib/sound");
     expect(DEFAULT_SOUND_THEME).toBe("standard");
     await preloadSounds();
-    // Check is mapped onto the move recording, so only two files are fetched.
     expect(fetched.sort()).toEqual(["Capture", "Move"].map((n) => `/sounds/standard/${n}.mp3`));
     // Never any game-over / victory / notification sample.
     expect(fetched.some((u) => /Victory|Defeat|Draw|GenericNotify/.test(u))).toBe(false);
-  });
-
-  it("themes with a real check recording play it alone", async () => {
-    const { started } = installFakeAudio();
-    const { playSound, preloadSounds, setSoundTheme } = await import("@/lib/sound");
-    setSoundTheme("sfx");
-    await preloadSounds();
-    playSound("check");
-    await flush();
-    expect(started).toHaveLength(1);
   });
 
   it("loads the samples of the selected theme from /sounds/<theme>/ and switches themes", async () => {
@@ -174,7 +160,7 @@ describe("playSound (recorded Lichess samples)", () => {
     setSoundTheme("piano");
     await flush();
     expect(fetched.every((u) => u.startsWith("/sounds/piano/"))).toBe(true);
-    expect(fetched.sort()).toEqual(["Capture", "Check", "Move"].map((n) => `/sounds/piano/${n}.mp3`));
+    expect(fetched.sort()).toEqual(["Capture", "Move"].map((n) => `/sounds/piano/${n}.mp3`));
   });
 
   it("soft sounds are quieter", async () => {
