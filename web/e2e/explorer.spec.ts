@@ -15,7 +15,7 @@ test("onboarding -> JSON import shows move table and game count", async ({ page 
   await expect(page.getByRole("region", { name: "Position summary" })).toContainText("2");
   await expect(moveRow(page, "e4")).toBeVisible();
   await expect(moveRow(page, "d4")).toBeVisible();
-  await expect(page.getByRole("complementary", { name: "Explorer" }).getByText("Starting position")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Explorer" }).getByText("Starting position", { exact: true })).toBeVisible();
   expect(csp.violations).toEqual([]);
 });
 
@@ -26,11 +26,11 @@ test("PGN import (username Hero) shows move rows in the explorer", async ({ page
   await page.getByLabel("Drop a .pgn file here").setInputFiles(PGN_SAMPLE);
   await page.getByLabel("Your username in these games").fill("Hero");
   await page.getByRole("button", { name: "Import games" }).click();
-  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("grid")).toBeVisible();
   // Explorer trees are per color: at the start (White to move) only Hero's White game counts.
   await expect(moveRow(page, "e4")).toBeVisible();
   await expect(page.getByRole("region", { name: "Position summary" })).toContainText(/\b1\s*game\b/);
-  await expect(page.getByRole("complementary", { name: "Explorer" }).getByText("Starting position")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Explorer" }).getByText("Starting position", { exact: true })).toBeVisible();
 });
 
 test("move click updates line, line panel, opening; keyboard nav; reload persists", async ({ page }) => {
@@ -57,7 +57,7 @@ test("move click updates line, line panel, opening; keyboard nav; reload persist
   await expect(page).toHaveURL(/line=e4,e5$/);
   await expect(page.getByRole("region", { name: "Line" })).toContainText("e5");
   await expect(page.getByRole("button", { name: /Players:/ })).toBeVisible();
-  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("grid")).toBeVisible();
 });
 
 test("result filter adds chip, changes counts, removable", async ({ page }) => {
@@ -85,7 +85,7 @@ test("chess.com import (mocked) shows progress and adds a player", async ({ page
   await page.getByLabel("Username").fill("Hero");
   await page.getByRole("button", { name: "Import games" }).click();
   await expect(page.getByRole("status")).toBeVisible();
-  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("grid")).toBeVisible();
   await expect(page.getByText(/Imported 1 new games/)).toBeVisible();
   await page.getByRole("button", { name: /Players:/ }).click();
   await expect(page.getByRole("checkbox", { name: "Hero" })).toBeVisible();
@@ -135,9 +135,9 @@ test("mobile viewport: no horizontal scroll, board visible, tabs switch", async 
   await expect(page.getByLabel("Chess board")).toBeVisible();
   await page.getByRole("tab", { name: "Games" }).click();
   await expect(page.getByText("Recent games here")).toBeVisible();
-  await expect(page.getByRole("table")).toBeHidden();
+  await expect(page.getByRole("grid")).toBeHidden();
   await page.getByRole("tab", { name: "Moves" }).click();
-  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("grid")).toBeVisible();
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
@@ -261,13 +261,13 @@ test("mobile: the line strip stays visible and the Moves / Games tabs switch con
   await moveRow(page, "e4").click();
   await expect(line).toBeVisible();
   await expect(line.getByRole("button", { name: "e4", exact: true })).toBeVisible();
-  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("grid")).toBeVisible();
   await expect(page.getByRole("tab", { name: "Line" })).toHaveCount(0);
   expect(await noHScroll()).toBe(true);
 
   await page.getByRole("tab", { name: "Games" }).click();
   await expect(page.getByText("Recent games here")).toBeVisible();
-  await expect(page.getByRole("table")).toBeHidden();
+  await expect(page.getByRole("grid")).toBeHidden();
   await expect(line).toBeVisible();
   expect(await noHScroll()).toBe(true);
 });
@@ -281,7 +281,7 @@ test("clicking a game in the Games tab loads it into the line; → steps through
   await expect(page).toHaveURL(/line=e4$/);
 
   await page.getByRole("tab", { name: "Games" }).click();
-  const first = page.getByRole("list", { name: "Recent games" }).getByRole("button", { name: /^Load game vs/ }).first();
+  const first = page.getByRole("list", { name: "Recent games" }).getByRole("button", { name: /^Load game:/ }).first();
   await expect(first).toBeVisible();
   await first.click();
   await expect(first).toHaveAttribute("aria-pressed", "true");
@@ -324,7 +324,7 @@ test("moves make sounds, the mute button silences them, and loading a ?line= URL
   const audio = await countAudio(page);
   await importSampleJson(page);
   await page.goto("/?line=e4,e5");
-  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("grid")).toBeVisible();
   await page.waitForTimeout(1000);
   expect(await audio()).toEqual({ osc: 0, noise: 0 }); // restoring a line never plays
 
@@ -334,16 +334,18 @@ test("moves make sounds, the mute button silences them, and loading a ?line= URL
   await expect.poll(async () => (await audio()).noise).toBe(2); // stepping back: a soft tap
 
   // Mute: no more sound.
-  const mute = page.getByRole("button", { name: "Mute sounds" });
+  const mute = page.getByRole("button", { name: "Move sounds" });
+  await expect(mute).toHaveAttribute("aria-pressed", "true");
   await mute.click();
-  await expect(page.getByRole("button", { name: "Unmute sounds" })).toHaveAttribute("aria-pressed", "true");
+  await expect(mute).toHaveAttribute("aria-pressed", "false");
   const muted = await audio();
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(300);
   expect(await audio()).toEqual(muted);
 
   // Unmute (plays a confirmation tap), pick a theme, and both choices survive a reload.
-  await page.getByRole("button", { name: "Unmute sounds" }).click();
+  await mute.click();
+  await expect(mute).toHaveAttribute("aria-pressed", "true");
 
   // Sound themes load their own recordings.
   const requested: string[] = [];
@@ -351,11 +353,11 @@ test("moves make sounds, the mute button silences them, and loading a ?line= URL
     if (r.url().includes("/sounds/")) requested.push(new URL(r.url()).pathname);
   });
   await page.getByRole("button", { name: "Appearance" }).click();
-  await page.getByRole("menuitem", { name: "Piano" }).click();
+  await page.getByRole("menuitemradio", { name: "Piano" }).click();
   await expect.poll(() => requested.filter((u) => u.startsWith("/sounds/piano/")).length).toBeGreaterThanOrEqual(2);
   await page.keyboard.press("Escape");
   await page.reload();
-  await expect(page.getByRole("button", { name: "Mute sounds" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Move sounds" })).toHaveAttribute("aria-pressed", "true");
 });
 
 test("line strip is a single scrolling row: long lines scroll sideways, never wrap or grow", async ({ page }) => {
@@ -411,7 +413,7 @@ test("clicking the already-active White side before the first summary is not ove
   const white = page.getByLabel("View games as White");
   await white.waitFor({ state: "visible" });
   await white.click(); // White is the default: clicking it must still count as an explicit choice
-  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("grid")).toBeVisible();
   await page.waitForTimeout(1000);
   await expect(white).toHaveAttribute("aria-checked", "true");
   await expect(page.getByLabel("View games as Black")).toHaveAttribute("aria-checked", "false");

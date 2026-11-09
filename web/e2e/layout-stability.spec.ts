@@ -21,14 +21,14 @@ async function rectOf(loc: Locator): Promise<Rect | null> {
 
 function targets(page: Page): Record<string, Locator> {
   const aside = page.getByRole("complementary", { name: "Explorer" });
-  const table = page.getByRole("group", { name: /^Candidate moves/ });
+  const table = page.getByTestId("move-table-scroller");
   return {
-    board: page.getByLabel("Chess board"),
+    board: page.getByTestId("board"),
     stripTop: page.getByTestId("strip-top"),
     stripBottom: page.getByTestId("strip-bottom"),
-    toolbar: page.getByRole("toolbar", { name: "Board controls" }),
+    toolbar: page.getByRole("group", { name: "Board controls" }),
     sideSwitch: page.getByLabel("Side to view"),
-    openingHeader: aside.locator("[aria-live=polite]"),
+    openingHeader: aside.locator("[data-slot=opening-header]"),
     filterRow: page.locator("[data-slot=filter-row]"),
     linePanel: page.getByRole("region", { name: "Line" }),
     summary: page.getByRole("region", { name: "Position summary" }),
@@ -63,7 +63,7 @@ const lineLength = (page: Page) => new URL(page.url()).searchParams.get("line")?
 async function settle(page: Page) {
   const t = targets(page);
   await expect(t.summary).toHaveAttribute("aria-busy", "false");
-  if (await t.tableScroller.isVisible()) await expect(t.tableScroller).toHaveAttribute("aria-busy", "false");
+  if (await t.tableScroller.isVisible()) await expect(t.tableScroller.getByRole("grid")).toHaveAttribute("aria-busy", "false");
   await page.waitForTimeout(250);
 }
 

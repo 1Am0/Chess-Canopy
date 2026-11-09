@@ -1,0 +1,184 @@
+import { expect, test, type Page } from "@playwright/test";
+import { importSampleJson, mockApis, moveRow } from "./helpers";
+
+test.beforeEach(async ({ context }) => {
+  await mockApis(context);
+});
+
+const lineParam = (page: Page) => new URL(page.url()).searchParams.get("line");
+
+test("arrow keys on the tabs and the side switch move focus, not the line (H1)", async ({ page }) => {
+  await importSampleJson(page);
+  await moveRow(page, "e4").click();
+  await expect(page).toHaveURL(/line=e4$/);
+
+  const games = page.getByRole("tab", { name: "Games" });
+  const moves = page.getByRole("tab", { name: "Moves" });
+  await games.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(moves).toBeFocused();
+  expect(lineParam(page)).toBe("e4");
+  await page.keyboard.press("ArrowRight");
+  await expect(games).toBeFocused();
+  expect(lineParam(page)).toBe("e4");
+  await moves.click();
+
+  const white = page.getByRole("radio", { name: "View games as White" });
+  await white.focus();
+  await page.keyboard.press("ArrowRight");
+  expect(lineParam(page)).toBe("e4");
+  await page.keyboard.press("ArrowLeft");
+  expect(lineParam(page)).toBe("e4");
+
+  // Outside of those widgets the arrow still steps through the line.
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press("ArrowLeft");
+  await expect.poll(() => lineParam(page)).toBeNull();
+});
+
+test("the board is one labelled image and its pieces are not tab stops (H2, L1)", async ({ page }) => {
+  await importSampleJson(page);
+  const board = page.getByTestId("board");
+  await expect(board).toHaveAttribute("role", "img");
+  await expect(board).toHaveAttribute("aria-label", /^Chess board\. Starting position, White to move$/);
+  await moveRow(page, "e4").click();
+  await expect(board).toHaveAttribute("aria-label", /Position after 1\.e4, Black to move/);
+  await expect.poll(() => board.locator('[aria-roledescription="draggable"]').count()).toBeGreaterThan(0);
+  await expect.poll(() => board.locator('[aria-roledescription="draggable"]:not([tabindex="-1"])').count()).toBe(0);
+  await expect.poll(() => board.locator('[tabindex="0"]').count()).toBe(0);
+  // One "Board" landmark only.
+  await expect(page.getByRole("region", { name: "Board" })).toHaveCount(1);
+});
+
+test("the move table is a grid whose active row is only announced while it has focus (M8)", async ({ page }) => {
+  await importSampleJson(page);
+  const grid = page.getByRole("grid", { name: /^Candidate moves/ });
+  await expect(grid).not.toHaveAttribute("aria-activedescendant", /.+/);
+  await grid.focus();
+  await expect(grid).toHaveAttribute("aria-activedescendant", "move-row-0");
+  await page.keyboard.press("ArrowDown");
+  await expect(grid).toHaveAttribute("aria-activedescendant", "move-row-1");
+  await expect(page.locator("#move-row-1")).toHaveAttribute("aria-selected", "true");
+});
+
+test("appearance menu items are radios with a checked state (M8)", async ({ page }) => {
+  await importSampleJson(page);
+  await page.getByRole("button", { name: "Appearance" }).click();
+  await expect(page.getByRole("menuitemradio", { name: "Green" })).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByRole("menuitemradio", { name: "Brown" })).toHaveAttribute("aria-checked", "false");
+  await page.getByRole("menuitemradio", { name: "Dark" }).click();
+  await page.getByRole("button", { name: "Appearance" }).click();
+  await expect(page.getByRole("menuitemradio", { name: "Dark" })).toHaveAttribute("aria-checked", "true");
+  // Arrow keys inside the menu must not step through the line.
+  expect(lineParam(page)).toBeNull();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Escape");
+});
+
+test("popovers and the opponent picker have names (L2, M8)", async ({ page }) => {
+  await importSampleJson(page);
+  await page.getByRole("button", { name: /^Players:/ }).click();
+  await expect(page.getByRole("dialog", { name: "Choose players" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Filters/ }).click();
+  await page.getByRole("combobox", { name: "Opponent" }).click();
+  await expect(page.getByRole("dialog", { name: "Opponents" })).toBeVisible();
+});
+
+test("320px: header controls do not overlap and the summary is not clipped (H3)", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await importSampleJson(page);
+  const boxes = await page.evaluate(() =>
+    [...document.querySelectorAll("header button")]
+      .map((b) => {
+        const r = b.getBoundingClientRect();
+        return { name: b.getAttribute("aria-label") ?? b.textContent ?? "", l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width };
+      })
+      .filter((x) => x.w > 0),
+  );
+  expect(boxes.length).toBeGreaterThanOrEqual(4);
+  for (let i = 0; i < boxes.length; i++) {
+    expect(boxes[i].l, `${boxes[i].name} starts off-screen`).toBeGreaterThanOrEqual(0);
+    expect(boxes[i].r, `${boxes[i].name} ends off-screen`).toBeLessThanOrEqual(320.5);
+    for (let j = i + 1; j < boxes.length; j++) {
+      const overlap = Math.min(boxes[i].r, boxes[j].r) - Math.max(boxes[i].l, boxes[j].l);
+      expect(overlap, `${boxes[i].name} overlaps ${boxes[j].name}`).toBeLessThanOrEqual(0.5);
+    }
+  }
+  // Summary: the text line and the legend sit side by side without covering each other.
+  const summary = page.getByRole("region", { name: "Position summary" });
+  await expect(summary).toHaveAttribute("aria-busy", "false");
+  const rects = await summary.locator("p").evaluateAll((ps) =>
+    ps.map((p) => {
+      const r = p.getBoundingClientRect();
+      return { l: r.left, r: r.right, scrollW: p.scrollWidth, clientW: p.clientWidth };
+    }),
+  );
+  expect(rects).toHaveLength(2);
+  expect(rects[0].r).toBeLessThanOrEqual(rects[1].l + 0.5);
+  expect(rects[0].scrollW).toBeLessThanOrEqual(rects[0].clientW + 1);
+  expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("rating ranges are applied on blur and an inverted range is swapped (M5)", async ({ page }) => {
+  await importSampleJson(page);
+  await page.getByRole("button", { name: /^Filters/ }).click();
+  const min = page.getByLabel("My rating minimum");
+  const max = page.getByLabel("My rating maximum");
+  await min.fill("2500");
+  await max.fill("1000");
+  await expect(min).toHaveAttribute("aria-invalid", "true");
+  await expect(page.getByText("Min is above max")).toBeVisible();
+  await max.blur();
+  await expect(min).toHaveValue("1000");
+  await expect(max).toHaveValue("2500");
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByLabel("Active filters").getByText("My rating 1000–2500")).toBeVisible();
+});
+
+test("the viewed side is written to the address bar after a click (L15)", async ({ page }) => {
+  await importSampleJson(page);
+  await page.getByRole("radio", { name: "View games as Black" }).click();
+  await expect(page).toHaveURL(/side=black/);
+  await page.getByRole("radio", { name: "View games as White" }).click();
+  await expect(page).toHaveURL(/side=white/);
+});
+
+test("closing the import dialog keeps progress and Cancel in the header (M1)", async ({ page, context }) => {
+  await context.unrouteAll();
+  await mockApis(context, 2500);
+  await importSampleJson(page);
+  await page.getByRole("button", { name: "Import games" }).click();
+  const dlg = page.getByRole("dialog");
+  await dlg.getByRole("tab", { name: "Chess.com" }).click();
+  await dlg.getByLabel("Username").fill("Hero");
+  await dlg.getByRole("button", { name: "Import games" }).click();
+  await expect(dlg.getByRole("progressbar")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dlg).toBeHidden();
+  const chip = page.getByTestId("import-indicator");
+  await expect(chip).toBeVisible();
+  // Sync / Delete are unavailable while importing.
+  await page.getByRole("button", { name: /^Players:/ }).click();
+  await page.getByRole("button", { name: /Manage players/ }).click();
+  await expect(page.getByRole("button", { name: "Delete tester" })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(chip).toBeVisible();
+  await chip.getByRole("button", { name: "Cancel import" }).click();
+  await expect(page.getByText("Import cancelled")).toBeVisible();
+  await expect(chip).toBeHidden();
+});
+
+test("the last selected player can't be unchecked (L14)", async ({ page }) => {
+  await importSampleJson(page);
+  await page.getByRole("button", { name: "Import games" }).click();
+  const dlg = page.getByRole("dialog");
+  await dlg.getByRole("tab", { name: "Lichess" }).click();
+  await dlg.getByLabel("Username").fill("Hero");
+  await dlg.getByRole("button", { name: "Import games" }).click();
+  await expect(page.getByText(/Imported 1 new games/)).toBeVisible();
+  await page.getByRole("button", { name: /^Players:/ }).click();
+  await page.getByRole("checkbox", { name: "Hero" }).click(); // all -> only tester
+  await expect(page.getByRole("checkbox", { name: "tester" })).toBeDisabled();
+  await expect(page.getByRole("checkbox", { name: "tester" })).toBeChecked();
+});

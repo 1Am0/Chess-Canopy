@@ -42,7 +42,7 @@ export async function importJsonFile(page: Page, file: string, username = "teste
   await page.getByLabel("Drop a JSON file exported by the Python CLI").setInputFiles(file);
   await page.getByLabel(/Player label/).fill(username);
   await page.getByRole("button", { name: "Import games" }).click();
-  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("grid")).toBeVisible();
 }
 
 export async function importSampleJson(page: Page, username = "tester") {
