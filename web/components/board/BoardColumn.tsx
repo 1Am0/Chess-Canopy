@@ -17,21 +17,20 @@ export const BOARD_COLUMN_WIDTH = "var(--board-size)";
 export function BoardColumn() {
   const orientation = useExplorerStore((s) => s.orientation);
   const filterColor = useExplorerStore((s) => s.filters.color);
-  const games = useExplorerStore((s) => s.result?.stats.total ?? 0);
   const side: Color = filterColor ?? orientation;
   const opp: Color = side === "white" ? "black" : "white";
   const bottomIsYou = orientation === side;
 
   return (
-    <section aria-label="Board" className="flex flex-col gap-1.5" style={{ width: BOARD_COLUMN_WIDTH, maxWidth: "100%" }}>
+    <div className="mx-auto flex flex-col gap-1.5 lg:mx-0" style={{ width: BOARD_COLUMN_WIDTH, maxWidth: "100%" }}>
       <div data-testid="strip-top">
-        <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} games={games} />
+        <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} />
       </div>
       <ExplorerBoard />
       <div data-testid="strip-bottom">
-        <PlayerStrip you={bottomIsYou} color={bottomIsYou ? side : opp} games={games} />
+        <PlayerStrip you={bottomIsYou} color={bottomIsYou ? side : opp} />
       </div>
       <BoardControls />
-    </section>
+    </div>
   );
 }

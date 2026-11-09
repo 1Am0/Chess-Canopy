@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { splitRare } from "@/components/explorer/rare";
+import { describePosition } from "@/components/board/describe-position";
 import { BOARD_THEMES } from "@/lib/board-themes";
 import { BoardOverlay, type OverlayArrow } from "@/components/board/BoardOverlay";
 
@@ -17,13 +20,33 @@ const HOVER_WIDTH = 20;
 const overlay = (rgba: string) => `linear-gradient(${rgba}, ${rgba})`;
 
 export function ExplorerBoard() {
-  const { fen, visible, lastMove, key } = usePosition();
+  const { fen, visible, lastMove, key, turn } = usePosition();
   const orientation = useExplorerStore((s) => s.orientation);
   const result = useExplorerStore((s) => s.result);
   const hoverMove = useExplorerStore((s) => s.hoverMove);
   const boardTheme = useExplorerStore((s) => s.boardTheme);
   const playMove = useExplorerStore((s) => s.playMove);
   const [selected, setSelected] = useState<string | null>(null);
+  const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const box = useRef<HTMLDivElement>(null);
+
+  // react-chessboard (dnd-kit) renders every piece as an unnamed, focusable "draggable"
+  // button. Moves are played from the table, so keep the 32 pieces out of the Tab order
+  // and the accessibility tree (the board itself is exposed as one labelled image).
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const fix = () => {
+      el.querySelectorAll<HTMLElement>('[aria-roledescription="draggable"], [role="button"][tabindex]').forEach((n) => {
+        if (n.getAttribute("tabindex") !== "-1") n.setAttribute("tabindex", "-1");
+        if (n.getAttribute("aria-hidden") !== "true") n.setAttribute("aria-hidden", "true");
+      });
+    };
+    fix();
+    const mo = new MutationObserver(fix);
+    mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ["tabindex", "aria-hidden"] });
+    return () => mo.disconnect();
+  }, []);
 
   // Clear click-selection whenever the position changes.
   useEffect(() => setSelected(null), [key]);
@@ -31,7 +54,15 @@ export function ExplorerBoard() {
   const tryMove = (from: string, to: string): boolean => {
     try {
       const chess = new Chess(fen);
-      const m = chess.move({ from, to, promotion: "q" });
+      const options = chess.moves({ verbose: true }).filter((o) => o.from === from && o.to === to);
+      // A promotion: use the piece your games actually promoted to here, else a queen.
+      let promotion = "q";
+      if (options.length > 1 && result) {
+        const played = result.next.find((n) => options.some((o) => o.san === n.move));
+        const hit = played && options.find((o) => o.san === played.move);
+        if (hit?.promotion) promotion = hit.promotion;
+      }
+      const m = chess.move({ from, to, promotion });
       playMove(m.san);
       setSelected(null);
       return true;
@@ -70,7 +101,9 @@ export function ExplorerBoard() {
       return [{ ...sq, kind: "hover", width: HOVER_WIDTH, opacity: 1 }];
     }
     const max = result.next[0]?.stats.total || 1;
-    const picked = result.next.filter((n, i) => i === 0 || n.stats.total / total >= MIN_ARROW_SHARE).slice(0, MAX_ARROWS);
+    // Only moves the table lists as common get an arrow (same rule as the "rare" fold).
+    const common = splitRare(result.next, result.stats.total).common;
+    const picked = common.filter((n, i) => i === 0 || n.stats.total / total >= MIN_ARROW_SHARE).slice(0, MAX_ARROWS);
     type A = OverlayArrow & { idx: number };
     const vec = (a: { from: string; to: string }) => [a.to.charCodeAt(0) - a.from.charCodeAt(0), a.to.charCodeAt(1) - a.from.charCodeAt(1)];
     const collinear = (a: A, b: A) => {
@@ -137,9 +170,12 @@ export function ExplorerBoard() {
 
   return (
     <div
+      ref={box}
+      data-testid="board"
       className="@container relative aspect-square w-full overflow-hidden rounded-md shadow-md ring-1 ring-black/15"
       style={{ "--board-light": theme.light, "--board-dark": theme.dark } as React.CSSProperties}
-      aria-label="Chess board"
+      role="img"
+      aria-label={`Chess board. ${describePosition(visible, turn)}`}
     >
       <Chessboard
         options={{
@@ -149,7 +185,7 @@ export function ExplorerBoard() {
           showNotation: false,
           allowDrawingArrows: true,
           clearArrowsOnPositionChange: true,
-          animationDurationInMs: 150,
+          animationDurationInMs: reduceMotion ? 0 : 150,
           arrowOptions: {
             colors: {
               default: "rgba(22,163,74,0.85)",
@@ -188,9 +224,6 @@ export function ExplorerBoard() {
         }}
       />
       <BoardOverlay orientation={orientation} arrows={arrows} />
-      <span className="sr-only" aria-live="polite">
-        {visible.length ? `Position after ${visible[visible.length - 1]}` : "Starting position"}
-      </span>
     </div>
   );
 }

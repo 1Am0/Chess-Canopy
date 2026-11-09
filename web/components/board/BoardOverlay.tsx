@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export type OverlayArrowKind = "candidate" | "hover";
 
@@ -95,7 +95,26 @@ function build(pts: Pt[], tip: Pt, dir: Pt, headLen: number, headHalf: number): 
   return { d, head };
 }
 
+const COORD_MIN_PX = 11; // smallest rendered size of the rank / file labels
+
 export function BoardOverlay({ orientation, arrows }: Props) {
+  const svg = useRef<SVGSVGElement>(null);
+  // Coordinates are drawn in board units (800 = the board width), so on a small board the
+  // font is scaled up to stay readable.
+  const [fontSize, setFontSize] = useState(19);
+  useEffect(() => {
+    const el = svg.current;
+    if (!el) return;
+    const update = () => {
+      const w = el.getBoundingClientRect().width;
+      if (w > 0) setFontSize(Math.max(19, Math.round((COORD_MIN_PX * 800) / w)));
+    };
+    update();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const slots = useMemo(() => {
     const cands = arrows.filter((a) => a.kind === "candidate").slice(0, CANDIDATE_SLOTS);
     const hover = arrows.find((a) => a.kind === "hover");
@@ -109,7 +128,7 @@ export function BoardOverlay({ orientation, arrows }: Props) {
   }, [arrows, orientation]);
 
   const coords = useMemo(() => {
-    const out: { key: string; x: number; y: number; text: string; fill: string; anchor: "start" | "end" }[] = [];
+    const out: { key: string; x: number; y: number; text: string; fill: string; stroke: string; anchor: "start" | "end" }[] = [];
     for (let i = 0; i < 8; i++) {
       // Files along the bottom row (row 7), ranks down the left column (col 0).
       const file = orientation === "white" ? i : 7 - i;
@@ -121,6 +140,7 @@ export function BoardOverlay({ orientation, arrows }: Props) {
         y: 788,
         text: FILES[file],
         fill: darkFile ? BOARD_LIGHT : BOARD_DARK,
+        stroke: darkFile ? BOARD_DARK : BOARD_LIGHT,
         anchor: "end",
       });
       const darkRank = (rank + (orientation === "white" ? 0 : 7)) % 2 === 0;
@@ -130,6 +150,7 @@ export function BoardOverlay({ orientation, arrows }: Props) {
         y: i * 100 + 22,
         text: String(rank + 1),
         fill: darkRank ? BOARD_LIGHT : BOARD_DARK,
+        stroke: darkRank ? BOARD_DARK : BOARD_LIGHT,
         anchor: "start",
       });
     }
@@ -138,6 +159,7 @@ export function BoardOverlay({ orientation, arrows }: Props) {
 
   return (
     <svg
+      ref={svg}
       viewBox="0 0 800 800"
       aria-hidden="true"
       className="board-overlay pointer-events-none absolute inset-0 z-20 size-full select-none"
@@ -150,7 +172,7 @@ export function BoardOverlay({ orientation, arrows }: Props) {
         }
       `}</style>
 
-      <g fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="19" fontWeight="600">
+      <g fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize={fontSize} fontWeight="700">
         {coords.map((c) => (
           <text
             key={c.key}
@@ -158,7 +180,7 @@ export function BoardOverlay({ orientation, arrows }: Props) {
             y={c.y}
             textAnchor={c.anchor}
             dominantBaseline={c.key.startsWith("r") ? "hanging" : "auto"}
-            style={{ fill: c.fill }}
+            style={{ fill: c.fill, stroke: c.stroke, strokeWidth: fontSize * 0.18, paintOrder: "stroke", strokeLinejoin: "round" }}
           >
             {c.text}
           </text>

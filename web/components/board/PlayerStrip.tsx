@@ -2,7 +2,7 @@ import type { Color } from "@/lib/engine/types";
 import { cn } from "@/lib/utils";
 
 /** Fixed-height, single-line strip: nothing here may change the layout when the text changes. */
-export function PlayerStrip({ you, color, games }: { you: boolean; color: Color; games: number }) {
+export function PlayerStrip({ you, color }: { you: boolean; color: Color }) {
   return (
     <div className="flex h-7 min-h-7 min-w-0 items-center gap-2 overflow-hidden whitespace-nowrap text-sm">
       <span
@@ -14,7 +14,7 @@ export function PlayerStrip({ you, color, games }: { you: boolean; color: Color;
       />
       <span className="truncate font-semibold">{you ? "You" : "Opponents"}</span>
       <span className="min-w-[7ch] truncate text-xs tabular-nums text-muted-foreground">
-        {you ? `· ${color === "white" ? "White" : "Black"}` : `· ${games.toLocaleString()} ${games === 1 ? "game" : "games"}`}
+        · {color === "white" ? "White" : "Black"}
       </span>
     </div>
   );
