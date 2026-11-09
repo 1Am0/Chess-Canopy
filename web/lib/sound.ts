@@ -13,20 +13,33 @@
  *   reset     a slower, quieter move sound (jumping back to the start)
  *   done      the notification chime (an import finished)
  *
- * Four themes are bundled: sfx (default), piano, nes and futuristic. Everything is a
+ * Five themes are bundled: standard (the Lichess default, used by default), sfx, piano,
+ * nes and futuristic. Everything is a
  * no-op without Web Audio (SSR, old browsers, tests).
  */
 
 export type SoundKind = "move" | "capture" | "castle" | "check" | "promote" | "mate" | "reset" | "done";
 
 export const SOUND_THEMES = [
+  { id: "standard", label: "Lichess (default)" },
   { id: "sfx", label: "Classic" },
   { id: "piano", label: "Piano" },
   { id: "nes", label: "8-bit" },
   { id: "futuristic", label: "Futuristic" },
 ] as const;
 export type SoundTheme = (typeof SOUND_THEMES)[number]["id"];
-export const DEFAULT_SOUND_THEME: SoundTheme = "sfx";
+export const DEFAULT_SOUND_THEME: SoundTheme = "standard";
+
+/**
+ * Lichess's Standard set only has real recordings for move, capture and a notification
+ * chime (Lichess itself plays the move sound for check). So for this theme the check and
+ * victory samples are mapped onto those, and a check gets a soft chime on top so it still
+ * sounds different from a plain move.
+ */
+const SAMPLE_FILE: Partial<Record<SoundTheme, Partial<Record<string, string>>>> = {
+  standard: { Check: "Move", Victory: "GenericNotify" },
+};
+const CHECK_CHIME: Partial<Record<SoundTheme, boolean>> = { standard: true };
 
 /** What kind of sound a SAN move makes. Mate beats check, check beats castling, then promotion, then capture. */
 export function classifyMove(san: string | undefined): SoundKind {
@@ -104,10 +117,11 @@ type Sample = (typeof SAMPLES)[number];
 function sample(name: Sample): Promise<AudioBuffer | null> {
   const c = audioContext();
   if (!c) return Promise.resolve(null);
-  const key = `${theme}/${name}`;
+  const file = SAMPLE_FILE[theme]?.[name] ?? name;
+  const key = `${theme}/${file}`;
   let p = buffers.get(key);
   if (!p) {
-    p = fetch(`/sounds/${theme}/${name}.mp3`)
+    p = fetch(`/sounds/${theme}/${file}.mp3`)
       .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
       .then((data) => c.decodeAudioData(data))
       .catch(() => {
@@ -168,6 +182,7 @@ export function playSound(kind: SoundKind, opts: { soft?: boolean } = {}): void 
       break;
     case "check":
       hit("Check", { gain: v });
+      if (CHECK_CHIME[theme]) hit("GenericNotify", { at: 0.07, gain: 0.4 * v });
       break;
     case "castle":
       hit("Move", { gain: v });
@@ -179,7 +194,8 @@ export function playSound(kind: SoundKind, opts: { soft?: boolean } = {}): void 
       break;
     case "mate":
       hit("Check", { gain: v });
-      hit("Victory", { at: 0.15, gain: 0.7 * v });
+      if (CHECK_CHIME[theme]) hit("GenericNotify", { at: 0.07, gain: 0.4 * v });
+      hit("Victory", { at: 0.22, gain: 0.7 * v });
       break;
     case "reset":
       hit("Move", { gain: 0.45 * v, rate: 0.75 });

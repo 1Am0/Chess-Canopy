@@ -76,6 +76,17 @@ describe("loadGame", () => {
   });
 });
 
+describe("persist migration v4 (default sound theme)", () => {
+  it("moves the old default sfx (and a missing theme) to the Lichess standard theme", () => {
+    expect(migratePersisted({ soundTheme: "sfx" }, 3).soundTheme).toBe("standard");
+    expect(migratePersisted({}, 3).soundTheme).toBe("standard");
+  });
+  it("keeps a deliberate choice", () => {
+    expect(migratePersisted({ soundTheme: "piano" }, 3).soundTheme).toBe("piano");
+    expect(migratePersisted({ soundTheme: "sfx" }, 4).soundTheme).toBe("sfx");
+  });
+});
+
 describe("setLine", () => {
   it("keeps the legal prefix as chess.js SAN", () => {
     st().setLine(["e4", "e5", "Qh5", "Nc6", "Bc4", "Nf6", "Qxf7", "Ke7"]);

@@ -209,7 +209,7 @@ export const useExplorerStore = create<ExplorerState>()(
     {
       name: "chess-canopy:v1",
       storage: safeStorage,
-      version: 3,
+      version: 4,
       migrate: migratePersisted,
       skipHydration: true,
       partialize: (s) => ({
@@ -286,5 +286,7 @@ export function migratePersisted(persisted: unknown, version: number): ExplorerS
     p = { ...p, filters };
   }
   if (version < 3 && p.sideExplicit === undefined) p = { ...p, sideExplicit: false };
+  // v4: the default sound theme became "standard" (Lichess default); nobody picked "sfx" on purpose yet.
+  if (version < 4 && (p.soundTheme === undefined || p.soundTheme === "sfx")) p = { ...p, soundTheme: "standard" };
   return p as ExplorerState;
 }

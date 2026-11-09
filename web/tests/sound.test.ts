@@ -127,24 +127,42 @@ describe("playSound (recorded Lichess samples)", () => {
     };
     expect(await play("move")).toHaveLength(1);
     expect(await play("capture")).toHaveLength(1);
-    expect(await play("check")).toHaveLength(1);
+    expect(await play("check")).toHaveLength(2); // Standard has no check recording: move + a soft chime
     expect(await play("done")).toHaveLength(1);
     const castle = await play("castle");
     expect(castle).toHaveLength(2); // king, then rook
     expect(castle[1].at).toBeGreaterThan(castle[0].at);
     expect(await play("promote")).toHaveLength(2); // move + chime
-    expect(await play("mate")).toHaveLength(2); // check + victory jingle
+    expect(await play("mate")).toHaveLength(3); // check (+ chime) + victory jingle
     const reset = await play("reset");
     expect(reset).toHaveLength(1);
     expect(reset[0].rate).toBeLessThan(1); // slower
     expect(reset[0].gain).toBeLessThan(0.6); // and quieter
   });
 
+  it("defaults to Lichess's Standard theme, which only has move, capture and a chime", async () => {
+    const { fetched } = installFakeAudio();
+    const { preloadSounds, DEFAULT_SOUND_THEME } = await import("@/lib/sound");
+    expect(DEFAULT_SOUND_THEME).toBe("standard");
+    await preloadSounds();
+    // Check and Victory are mapped onto those files, so only three are fetched.
+    expect(fetched.sort()).toEqual(["Capture", "GenericNotify", "Move"].map((n) => `/sounds/standard/${n}.mp3`));
+  });
+
+  it("themes with a real check recording play it alone", async () => {
+    const { started } = installFakeAudio();
+    const { playSound, preloadSounds, setSoundTheme } = await import("@/lib/sound");
+    setSoundTheme("sfx");
+    await preloadSounds();
+    playSound("check");
+    await flush();
+    expect(started).toHaveLength(1);
+  });
+
   it("loads the samples of the selected theme from /sounds/<theme>/ and switches themes", async () => {
     const { fetched } = installFakeAudio();
     const { preloadSounds, setSoundTheme } = await import("@/lib/sound");
     await preloadSounds();
-    expect(fetched.sort()).toEqual(["Capture", "Check", "GenericNotify", "Move", "Victory"].map((n) => `/sounds/sfx/${n}.mp3`).sort());
     fetched.length = 0;
     setSoundTheme("piano");
     await flush();
