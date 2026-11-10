@@ -1,4 +1,7 @@
-/** One horizontal row per ply, on a blended log/power scale (early moves get room, the late game packs). */
+/**
+ * One horizontal row per ply. Early plies (where the decisions are) get most of the height on an
+ * offset log scale; a small power term makes the rows spread out again toward the crown.
+ */
 
 export interface RowScale {
   depthCap: number;
@@ -7,24 +10,28 @@ export interface RowScale {
   y(d: number): number;
 }
 
-/** y(d) = bottom - (bottom-top) * (a*log2(1+d)/log2(1+D) + (1-a)*(d/D)^p), a=0.45, p=1.8. */
+/**
+ * y(d) = bottom - (bottom-top) * (a*ln(1+d/c)/ln(1+D/c) + (1-a)*(d/D)^p), a=0.82, c=1.5, p=2.2.
+ * With D = 120: ply 1 sits ~9% up, ply 6 ~30%, ply 20 ~50%, and the last 100 plies share the crown.
+ */
 export function makeRowScale(
   depthCap: number,
   top: number,
   bottom: number,
-  o: { a?: number; p?: number } = {},
+  o: { a?: number; c?: number; p?: number } = {},
 ): RowScale {
-  const a = o.a ?? 0.45;
-  const p = o.p ?? 1.8;
+  const a = o.a ?? 0.82;
+  const c = o.c ?? 1.5;
+  const p = o.p ?? 2.2;
   const D = Math.max(1, depthCap);
-  const logD = Math.log2(1 + D);
+  const logD = Math.log1p(D / c);
   return {
     depthCap: D,
     top,
     bottom,
     y(d: number) {
-      const c = Math.max(0, d);
-      return bottom - (bottom - top) * ((a * Math.log2(1 + c)) / logD + (1 - a) * Math.pow(c / D, p));
+      const x = Math.max(0, d);
+      return bottom - (bottom - top) * ((a * Math.log1p(x / c)) / logD + (1 - a) * Math.pow(x / D, p));
     },
   };
 }

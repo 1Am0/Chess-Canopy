@@ -39,7 +39,9 @@ describe("renderStatic", () => {
     expect(count("stroke")).toBeLessThanOrEqual(f.tree.n + 100);
     expect(count("fill")).toBeLessThanOrEqual(f.tree.n + 100);
     expect(count("fillText")).toBeGreaterThanOrEqual(f.labels.length);
-    expect(count("strokeText")).toBe(f.labels.length);
+    // Node labels plus the haloed gutter ticks.
+    expect(count("strokeText")).toBeGreaterThanOrEqual(f.labels.length);
+    expect(count("strokeText")).toBe(count("fillText"));
   });
   it("draws labels after a screen-space reset (crisp text)", () => {
     const { ctx, calls } = fakeContext();

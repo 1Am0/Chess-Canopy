@@ -1,5 +1,5 @@
 import { BUNDLE, FRONTIER, LEAF, NODE, type CanopyTree } from "./types";
-import type { CanopyLayout } from "./layout";
+import { discVisible, type CanopyLayout } from "./layout";
 import type { CanopyTheme } from "./theme";
 import { displayScore, rampIndex } from "./color";
 import { moveTicks } from "./rows";
@@ -32,16 +32,19 @@ export const CANOPY_STYLE = {
   rootRingAlpha: 0.85,
   branchWidthMin: 0.9,
   branchWidthSpan: 1.6,
-  branchAlphaMin: 0.5,
-  branchAlphaSpan: 0.4,
-  stemWidth: 0.75,
+  branchAlphaMin: 0.3,
+  branchAlphaSpan: 0.6,
+  stemWidth: 0.6,
   provisionalFactor: 0.7,
   discRadiusMin: 2.25,
-  discRadiusSpan: 3.25,
+  discRadiusSpan: 3.5,
   discStrokeWidth: 1,
-  leafRadius: 2,
+  leafRadius: 1.75,
   hollowRingWidth: 1,
-  hazeRadius: 5,
+  hollowAlpha: 0.55,
+  hollowScale: 0.85,
+  hazeRadius: 4.5,
+  tailFadeBase: 0.35,
   labelFontPx: 11,
   labelFontWeight: 500,
   labelHaloWidth: 3,
@@ -60,6 +63,18 @@ export const CANOPY_STYLE = {
 
 const S = CANOPY_STYLE;
 
+/** `rgb(r, g, b)` with alpha `a`; any other CSS color is returned unchanged. */
+export function withAlpha(css: string, a: number): string {
+  const m = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/.exec(css.trim());
+  return m ? `rgba(${m[1]}, ${m[2]}, ${m[3]}, ${+a.toFixed(3)})` : css;
+}
+
+/** Branch alpha on a log scale of games: 2 games ~0.36, the whole selection ~0.9. */
+export function branchAlpha(games: number, logRoot: number): number {
+  const u = Math.min(1, Math.log(Math.max(1, games)) / logRoot);
+  return S.branchAlphaMin + S.branchAlphaSpan * u;
+}
+
 const tipHollow = (t: CanopyTree, i: number): boolean =>
   t.kind[i] === LEAF && t.leafLen[i] - t.rootPly > t.depthCap;
 
@@ -75,6 +90,18 @@ function worldTransform(ctx: CanvasRenderingContext2D, f: Frame): void {
 }
 function screenTransform(ctx: CanvasRenderingContext2D, dpr: number): void {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+/**
+ * Single-game tail: from the parent to the knee (vertical tangents), then along the slot's flare
+ * line to the tip, so tails fan out without crossing.
+ */
+function tail(ctx: CanvasRenderingContext2D, l: CanopyLayout, i: number): void {
+  edge(ctx, l.bx[i], l.by[i], l.kx[i], l.ky[i]);
+  const dy = l.y[i] - l.ky[i];
+  if (dy > -0.01) return;
+  const h = dy / 3;
+  ctx.bezierCurveTo(l.kx[i] + l.tk[i] * h, l.ky[i] + h, l.x[i] - l.tt[i] * h, l.y[i] - h, l.x[i], l.y[i]);
 }
 
 /** Bézier with vertical tangents from (px,py) to (cx,cy). */
@@ -111,21 +138,6 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
     visibleTicks.push({ y: sy, label: tick.label, root: tick.depth === 0 });
   }
   ctx.stroke();
-  ctx.textAlign = "right";
-  ctx.textBaseline = "middle";
-  ctx.font = `${S.gutterFontWeight} ${S.gutterFontPx}px ${th.mono}`;
-  visibleTicks.forEach((tk, idx) => {
-    ctx.fillStyle = tk.root ? th.fg : th.muted;
-    ctx.fillText(tk.label, S.gutterLabelX, tk.y);
-    // The topmost visible numbered tick also carries the "move" caption above it.
-    if (idx === visibleTicks.length - 1 && !tk.root) {
-      ctx.font = `400 ${S.gutterFontPx}px ${th.sans}`;
-      ctx.fillStyle = th.muted;
-      ctx.fillText("move", S.gutterLabelX, tk.y - 12);
-      ctx.font = `${S.gutterFontWeight} ${S.gutterFontPx}px ${th.mono}`;
-    }
-  });
-  ctx.textAlign = "left";
 
   // 2. Ground line.
   const gy = l.groundY * k + v.ty;
@@ -162,7 +174,8 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
   ctx.lineTo(l.x[0], l.y[0]);
   ctx.stroke();
 
-  // Stems (single games): thin, one batched path per alpha.
+  // Tails (single games): one faint batched path each for real and provisional tails. A path is
+  // stroked as a union, so the dense middle stays a light veil instead of stacking into a block.
   const batchStems = (provisional: boolean): void => {
     ctx.beginPath();
     let any = false;
@@ -171,32 +184,47 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
       if (kind !== LEAF && kind !== BUNDLE) continue;
       if ((kind === LEAF && t.san[i] === "") !== provisional) continue;
       if (!inView(l.bx[i], l.by[i], l.x[i], l.y[i])) continue;
-      edge(ctx, l.bx[i], l.by[i], l.x[i], l.y[i]);
+      tail(ctx, l, i);
       any = true;
     }
     if (any) ctx.stroke();
   };
   ctx.lineWidth = S.stemWidth / k;
+  // Every tail passes through the lower crown, so its union is densest there: fade the tails in
+  // from the first rows to the crown so the base reads as a light veil and the tips stay legible.
+  const g0 = l.rows.y(1);
+  const g1 = l.rows.y(l.rows.depthCap);
+  const grad = ctx.createLinearGradient(0, g0, 0, g1);
+  grad.addColorStop(0, withAlpha(th.branch, S.tailFadeBase));
+  grad.addColorStop(0.45, withAlpha(th.branch, 0.7));
+  grad.addColorStop(1, withAlpha(th.branch, 1));
+  ctx.strokeStyle = grad;
   ctx.globalAlpha = th.tailAlpha;
   batchStems(false);
   ctx.globalAlpha = th.tailAlpha * S.provisionalFactor;
   batchStems(true);
 
-  // Multi-game branches, games ascending so the thick ones sit on top.
+  // Multi-game branches, games ascending so the thick ones sit on top. Width and alpha depend only
+  // on the game count, so every run of equal counts is one batched path.
   const inner: number[] = [];
   for (let i = 1; i < n; i++) if (t.kind[i] === NODE || t.kind[i] === FRONTIER) inner.push(i);
   inner.sort((a, b) => t.games[a] - t.games[b] || a - b);
   const rootGames = Math.max(1, t.games[0]);
-  for (const i of inner) {
-    if (!inView(l.bx[i], l.by[i], l.x[i], l.y[i])) continue;
-    const s = Math.min(1, t.games[i] / rootGames);
-    ctx.globalAlpha = S.branchAlphaMin + S.branchAlphaSpan * Math.sqrt(s);
-    ctx.lineWidth = l.w[i] / k;
+  const logRoot = Math.log(Math.max(3, rootGames));
+  for (let j = 0; j < inner.length; ) {
+    const g = t.games[inner[j]];
+    ctx.globalAlpha = branchAlpha(g, logRoot);
+    ctx.lineWidth = l.w[inner[j]] / k;
     ctx.beginPath();
-    edge(ctx, l.bx[i], l.by[i], l.x[i], l.y[i]);
-    ctx.stroke();
+    let any = false;
+    for (; j < inner.length && t.games[inner[j]] === g; j++) {
+      const i = inner[j];
+      if (!inView(l.bx[i], l.by[i], l.x[i], l.y[i])) continue;
+      edge(ctx, l.bx[i], l.by[i], l.x[i], l.y[i]);
+      any = true;
+    }
+    if (any) ctx.stroke();
   }
-
   // Leaf colour buckets (ramp index -> node ids).
   const ramp = th.ramp;
   const leafBuckets = new Map<number, number[]>();
@@ -223,12 +251,13 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
   };
   const isProv = (i: number): boolean => t.kind[i] === LEAF && t.san[i] === "";
 
-  // Foliage haze.
+  // Foliage haze: soft colour at overview scale, fading out as the zoom resolves single leaves.
+  const hazeA = th.hazeAlpha / Math.max(1, k * 0.8);
   for (const [c, ids] of leafBuckets) {
     ctx.fillStyle = ramp[c];
     for (const prov of [false, true]) {
-      ctx.globalAlpha = th.hazeAlpha * (prov ? S.provisionalFactor : 1);
-      if (arcs(ids, S.hazeRadius * rk, (i) => isProv(i) === prov)) ctx.fill();
+      ctx.globalAlpha = hazeA * (prov ? S.provisionalFactor : 1);
+      if (arcs(ids, S.hazeRadius * l.leafScale * rk, (i) => isProv(i) === prov && !tipHollow(t, i))) ctx.fill();
     }
   }
   // Leaves: solid tips, then hollow rings for tips clamped by the depth cap.
@@ -237,12 +266,13 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
     ctx.strokeStyle = ramp[c];
     for (const prov of [false, true]) {
       ctx.globalAlpha = th.leafAlpha * (prov ? S.provisionalFactor : 1);
-      if (arcs(ids, S.leafRadius * rk, (i) => isProv(i) === prov && !tipHollow(t, i))) ctx.fill();
+      if (arcs(ids, S.leafRadius * l.leafScale * rk, (i) => isProv(i) === prov && !tipHollow(t, i))) ctx.fill();
     }
+    // Tips clamped at the top row: quiet rings (the game goes on), so the ceiling is no hard band.
     ctx.lineWidth = S.hollowRingWidth / k;
     for (const prov of [false, true]) {
-      ctx.globalAlpha = th.leafAlpha * (prov ? S.provisionalFactor : 1);
-      if (arcs(ids, S.leafRadius * rk, (i) => isProv(i) === prov && tipHollow(t, i))) ctx.stroke();
+      ctx.globalAlpha = th.leafAlpha * S.hollowAlpha * (prov ? S.provisionalFactor : 1);
+      if (arcs(ids, S.leafRadius * S.hollowScale * l.leafScale * rk, (i) => isProv(i) === prov && tipHollow(t, i))) ctx.stroke();
     }
   }
 
@@ -251,7 +281,7 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
   ctx.strokeStyle = th.surface;
   ctx.lineWidth = S.discStrokeWidth / k;
   for (const i of inner) {
-    if (!l.drawn[i] || !pointIn(l.x[i], l.y[i])) continue;
+    if (!discVisible(t, l, i, k) || !pointIn(l.x[i], l.y[i])) continue;
     ctx.fillStyle = ramp[rampIndex(ramp, displayScore(t, i))];
     ctx.beginPath();
     ctx.arc(l.x[i], l.y[i], l.r[i] * rk, 0, Math.PI * 2);
@@ -273,8 +303,30 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
     ctx.globalAlpha = 1;
   }
 
-  // 4. Labels, crisp in screen space.
+  // 4. Gutter and node labels, crisp in screen space, haloed so content panned under them stays
+  // legible.
   screenTransform(ctx, dpr);
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = th.surface;
+  ctx.lineWidth = S.labelHaloWidth;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  ctx.font = `${S.gutterFontWeight} ${S.gutterFontPx}px ${th.mono}`;
+  visibleTicks.forEach((tk, idx) => {
+    ctx.fillStyle = tk.root ? th.fg : th.muted;
+    ctx.strokeText(tk.label, S.gutterLabelX, tk.y);
+    ctx.fillText(tk.label, S.gutterLabelX, tk.y);
+    // The topmost visible numbered tick also carries the "move" caption above it.
+    if (idx === visibleTicks.length - 1 && !tk.root) {
+      ctx.font = `400 ${S.gutterFontPx}px ${th.sans}`;
+      ctx.fillStyle = th.muted;
+      ctx.strokeText("move", S.gutterLabelX, tk.y - 12);
+      ctx.fillText("move", S.gutterLabelX, tk.y - 12);
+      ctx.font = `${S.gutterFontWeight} ${S.gutterFontPx}px ${th.mono}`;
+    }
+  });
+  ctx.textAlign = "left";
+
   ctx.font = `${S.labelFontWeight} ${S.labelFontPx}px ${th.mono}`;
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
@@ -309,9 +361,7 @@ export interface Overlay {
 function pathStroke(ctx: CanvasRenderingContext2D, l: CanopyLayout, ids: readonly number[]): void {
   ctx.beginPath();
   for (let j = 1; j < ids.length; j++) {
-    const p = ids[j - 1];
-    const c = ids[j];
-    edge(ctx, l.x[p], l.y[p], l.x[c], l.y[c]);
+    tail(ctx, l, ids[j]);
   }
   ctx.stroke();
 }

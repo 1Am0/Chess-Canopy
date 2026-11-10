@@ -1,4 +1,4 @@
-import { BUNDLE, LEAF, type CanopyTree } from "./types";
+import { BUNDLE, FRONTIER, LEAF, NODE, type CanopyTree } from "./types";
 import { makeRowScale, type RowScale } from "./rows";
 
 export interface LayoutBox {
@@ -23,6 +23,17 @@ export interface CanopyLayout {
   /** Stroke width of the edge into the node, in screen CSS px. */
   w: Float32Array;
   drawn: Uint8Array;
+  /**
+   * LEAF/BUNDLE tails follow their slot's flare line, so tails never cross in the crown. The tail
+   * leaves its parent and joins the line at the knee (kx, ky: one row above the parent); from there
+   * a cubic runs to the tip with slopes dx/dy `tk` at the knee and `tt` at the tip.
+   */
+  kx: Float32Array;
+  ky: Float32Array;
+  tk: Float32Array;
+  tt: Float32Array;
+  /** Leaf and haze radius factor (0.65..1): leaves shrink when the crown is crowded. */
+  leafScale: number;
   rootX: number;
   groundY: number;
   rows: RowScale;
@@ -90,6 +101,18 @@ export function slotX(t: CanopyTree): Float64Array {
   return xs;
 }
 
+/** Flare (share of the full width) at height fraction f (0 = first row base, 1 = top row). */
+export const FLARE = { base: 0.22, exp: 0.6 } as const;
+export function flareAt(f: number): number {
+  const c = Math.min(1, Math.max(0, f));
+  return FLARE.base + (1 - FLARE.base) * Math.pow(c, FLARE.exp);
+}
+/** d flare / d f (finite at f = 0 by flooring f). */
+function flareSlope(f: number): number {
+  const c = Math.min(1, Math.max(1e-3, f));
+  return (1 - FLARE.base) * FLARE.exp * Math.pow(c, FLARE.exp - 1);
+}
+
 export function layoutCanopy(t: CanopyTree, box: LayoutBox): CanopyLayout {
   const n = t.n;
   const groundY = box.height - box.ground;
@@ -110,21 +133,29 @@ export function layoutCanopy(t: CanopyTree, box: LayoutBox): CanopyLayout {
   const r = new Float32Array(n);
   const w = new Float32Array(n);
   const drawn = new Uint8Array(n);
+  const kx = new Float32Array(n);
+  const ky = new Float32Array(n);
+  const tk = new Float32Array(n);
+  const tt = new Float32Array(n);
 
   const span = bottom - top || 1;
+  const fOf = (yy: number) => (bottom - yy) / span;
+  // x on the flare line of slot position s (0..1) at height yy, and its slope dx/dy.
+  const lineX = (s: number, yy: number) => cx + (x0 + (x1 - x0) * s - cx) * flareAt(fOf(yy));
+  const lineSlope = (s: number, yy: number) => -((x0 + (x1 - x0) * s - cx) * flareSlope(fOf(yy))) / span;
   for (let i = 0; i < n; i++) {
-    const d = t.depth[i];
-    const yy = rows.y(d);
-    const f = Math.min(1, Math.max(0, (bottom - yy) / span));
-    const flare = 0.18 + 0.82 * Math.pow(f, 0.65);
-    const xx = i === 0 ? cx : cx + (x0 + (x1 - x0) * xs[i] - cx) * flare;
+    const yy = rows.y(t.depth[i]);
+    const xx = i === 0 ? cx : lineX(xs[i], yy);
     x[i] = xx;
     y[i] = yy;
     bx[i] = xx;
     by[i] = yy;
+    kx[i] = xx;
+    ky[i] = yy;
   }
 
-  const minDisc = Math.max(3, rootGames * 0.002);
+  // Flat branches: only mildly thicker for popular moves. Every inner node gets a disc radius; the
+  // renderer decides from the zoom which ones are big enough to show (see discVisible).
   w[0] = 2.5;
   for (let i = 1; i < n; i++) {
     const p = t.parent[i];
@@ -132,25 +163,53 @@ export function layoutCanopy(t: CanopyTree, box: LayoutBox): CanopyLayout {
     by[i] = y[p];
     const kind = t.kind[i];
     const s = Math.min(1, t.games[i] / rootGames);
-    if (kind === LEAF) {
-      w[i] = 0.75;
-      r[i] = 2;
+    if (kind === LEAF || kind === BUNDLE) {
+      const kd = Math.min(t.depth[i], t.depth[p] + 1);
+      const yk = rows.y(kd);
+      kx[i] = lineX(xs[i], yk);
+      ky[i] = yk;
+      tk[i] = lineSlope(xs[i], yk);
+      tt[i] = lineSlope(xs[i], y[i]);
       drawn[i] = 1;
-    } else if (kind === BUNDLE) {
-      w[i] = Math.min(1.6, 0.75 + 0.2 * Math.sqrt(t.games[i]));
-      r[i] = 2 + 1.5 * Math.sqrt(s);
-      drawn[i] = 1;
-    } else {
-      w[i] = 0.9 + 1.6 * Math.sqrt(s);
-      if (t.games[i] >= minDisc || t.depth[i] <= 2) {
-        r[i] = 2.25 + 3.25 * Math.sqrt(s);
-        drawn[i] = 1;
+      if (kind === LEAF) {
+        w[i] = 0.6;
+        r[i] = 1.75;
+      } else {
+        w[i] = Math.min(1.3, 0.6 + 0.15 * Math.sqrt(t.games[i]));
+        r[i] = 1.75 + 1.25 * Math.sqrt(s);
       }
+    } else {
+      w[i] = 0.85 + 1.65 * Math.sqrt(s);
+      r[i] = 2.25 + 3.5 * Math.sqrt(s);
+      drawn[i] = 1;
     }
   }
   // Root marker.
   r[0] = 5;
   drawn[0] = 1;
 
-  return { n, x, y, bx, by, r, w, drawn, rootX: cx, groundY, rows };
+  let tips = 0;
+  for (let i = 1; i < n; i++) if (t.kind[i] === LEAF || t.kind[i] === BUNDLE) tips++;
+  const perTip = ((x1 - x0) * span * 0.6) / Math.max(1, tips);
+  const leafScale = Math.min(1, Math.max(0.65, Math.sqrt(perTip) / 11));
+
+  return { n, x, y, bx, by, r, w, drawn, kx, ky, tk, tt, leafScale, rootX: cx, groundY, rows };
+}
+
+/** Share of the root's games a node needs at k = 1 for its disc to be drawn (falls with k^2). */
+export const DISC_SHARE = 0.006;
+
+/**
+ * Whether the disc of inner node `i` is drawn at zoom `k`: first moves always; others need a share
+ * of the games that falls with k^2, and small nodes only show where the line actually branches
+ * (a run of moves the same games all played reads as one plain branch, not a string of beads).
+ */
+export function discVisible(t: CanopyTree, l: CanopyLayout, i: number, k: number): boolean {
+  if (!l.drawn[i] || l.r[i] <= 0) return false;
+  const kind = t.kind[i];
+  if (kind !== NODE && kind !== FRONTIER) return i === 0;
+  if (t.depth[i] <= 1) return true;
+  const min = Math.max(2, (DISC_SHARE * t.games[0]) / (k * k));
+  if (t.games[i] < min) return false;
+  return t.childCount[i] >= 2 || t.games[i] >= 4 * min;
 }

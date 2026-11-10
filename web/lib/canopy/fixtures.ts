@@ -232,6 +232,9 @@ export function fakeContext(): { ctx: CanvasRenderingContext2D; calls: RecordedC
         if (key in props) return props[key];
         return (...args: unknown[]) => {
           calls.push({ op: key, args, alpha: props.globalAlpha as number });
+          if (key === "createLinearGradient") {
+            return { addColorStop: (...a: unknown[]) => calls.push({ op: "addColorStop", args: a, alpha: 1 }) };
+          }
         };
       },
       set(_t, key: string, value) {

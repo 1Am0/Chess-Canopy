@@ -82,7 +82,7 @@ export function readCanopyTheme(
     ramp: makeRamp(parse(get("--canopy-low")), parse(get("--canopy-mid")), parse(get("--canopy-high"))),
     hazeAlpha: dark ? 0.14 : 0.1,
     leafAlpha: 0.9,
-    tailAlpha: dark ? 0.34 : 0.28,
+    tailAlpha: dark ? 0.12 : 0.1,
     mono: fonts.mono,
     sans: fonts.sans,
     dark,

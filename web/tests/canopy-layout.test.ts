@@ -77,11 +77,33 @@ describe("layoutCanopy", () => {
     expect(l.w[1]).toBeGreaterThan(l.w[3]);
     expect(l.w[1]).toBeLessThanOrEqual(2.5);
     const leaf = t.kind.findIndex((k, i) => i > 0 && k === 3);
-    expect(l.w[leaf]).toBe(0.75);
-    expect(l.r[leaf]).toBe(2);
+    expect(l.w[leaf]).toBeCloseTo(0.6, 6);
+    expect(l.r[leaf]).toBe(1.75);
     expect(l.r[1]).toBeGreaterThan(2.25);
     expect(l.r[1]).toBeLessThanOrEqual(5.5);
     expect(l.bx[leaf]).toBe(l.x[t.parent[leaf]]);
+  });
+  it("runs single-game tails along their flare line from a knee one row above the parent", () => {
+    const big = treeFromSpec(syntheticSpec(800, 4));
+    const l = layoutCanopy(big, box);
+    for (let i = 1; i < big.n; i++) {
+      for (const v of [l.kx[i], l.ky[i], l.tk[i], l.tt[i]]) expect(Number.isFinite(v)).toBe(true);
+      if (big.kind[i] === 3) {
+        const p = big.parent[i];
+        expect(l.ky[i]).toBeCloseTo(l.rows.y(Math.min(big.depth[i], big.depth[p] + 1)), 3);
+        expect(l.ky[i]).toBeGreaterThanOrEqual(l.y[i] - 1e-3);
+      } else {
+        expect(l.kx[i]).toBe(l.x[i]);
+        expect(l.ky[i]).toBe(l.y[i]);
+      }
+    }
+    // Tails reaching the same knee row keep their slot order at the knee and at the tip.
+    const tails = Array.from({ length: big.n }, (_, i) => i).filter((i) => big.kind[i] === 3);
+    const sorted = [...tails].sort((a, b) => l.kx[a] - l.kx[b]);
+    const xs = slotX(big);
+    for (let j = 1; j < sorted.length; j++) expect(xs[sorted[j]]).toBeGreaterThanOrEqual(xs[sorted[j - 1]] - 0.2);
+    expect(l.leafScale).toBeGreaterThanOrEqual(0.65);
+    expect(l.leafScale).toBeLessThanOrEqual(1);
   });
   it("handles a single-node tree", () => {
     const one = layoutCanopy(treeFromSpec({}), box);
