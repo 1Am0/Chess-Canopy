@@ -32,7 +32,7 @@ export interface CanopyLayout {
   ky: Float32Array;
   tk: Float32Array;
   tt: Float32Array;
-  /** Leaf and haze radius factor (0.65..1): leaves shrink when the crown is crowded. */
+  /** Leaf and haze radius factor (0.55..1): leaves shrink when the crown is crowded. */
   leafScale: number;
   rootX: number;
   groundY: number;
@@ -191,7 +191,7 @@ export function layoutCanopy(t: CanopyTree, box: LayoutBox): CanopyLayout {
   let tips = 0;
   for (let i = 1; i < n; i++) if (t.kind[i] === LEAF || t.kind[i] === BUNDLE) tips++;
   const perTip = ((x1 - x0) * span * 0.6) / Math.max(1, tips);
-  const leafScale = Math.min(1, Math.max(0.65, Math.sqrt(perTip) / 11));
+  const leafScale = Math.min(1, Math.max(0.55, Math.sqrt(perTip) / 11));
 
   return { n, x, y, bx, by, r, w, drawn, kx, ky, tk, tt, leafScale, rootX: cx, groundY, rows };
 }

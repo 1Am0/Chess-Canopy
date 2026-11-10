@@ -306,6 +306,18 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
   // 4. Gutter and node labels, crisp in screen space, haloed so content panned under them stays
   // legible.
   screenTransform(ctx, dpr);
+  if (k > 1) {
+    // Zoomed: content pans under the gutter, so veil it with the card colour behind the ticks.
+    const gw = S.gutterLabelX + 4;
+    const veil = ctx.createLinearGradient(gw, 0, gw + 14, 0);
+    veil.addColorStop(0, withAlpha(th.surface, 0.9));
+    veil.addColorStop(1, withAlpha(th.surface, 0));
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = withAlpha(th.surface, 0.9);
+    ctx.fillRect(0, 0, gw, box.height);
+    ctx.fillStyle = veil;
+    ctx.fillRect(gw, 0, 14, box.height);
+  }
   ctx.lineJoin = "round";
   ctx.strokeStyle = th.surface;
   ctx.lineWidth = S.labelHaloWidth;

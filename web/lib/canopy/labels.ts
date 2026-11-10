@@ -130,7 +130,7 @@ export function placeLabels(
     if (!b) grid.set(key, (b = []));
     b.push(i);
   }
-  const coversDisc = (rc: Rect, self: number): boolean => {
+  const coversDisc = (rc: Rect, self: number, strict: boolean): boolean => {
     const c0 = Math.floor(Math.max(0, rc.x - 8) / CELL);
     const c1 = Math.floor((rc.x + rc.w + 8) / CELL);
     const r0 = Math.floor((rc.y - 8) / CELL);
@@ -138,8 +138,9 @@ export function placeLabels(
     for (let r = r0; r <= r1; r++) {
       for (let c = c0; c <= Math.min(c1, cols - 1); c++) {
         for (const i of grid.get(r * cols + c) ?? []) {
-          // Halos keep a label legible over a minor dot; it may not hide a comparable node.
-          if (i === self || t.games[i] * 3 < t.games[self]) continue;
+          // Above a node, halos keep a label legible over a minor dot but it may not hide a
+          // comparable node; beside it (on the row, where the dots are) it must clear every dot.
+          if (i === self || (!strict && t.games[i] * 3 < t.games[self])) continue;
           const [sx, sy] = toScreen(v, l.x[i], l.y[i]);
           const rr = screenRadius(l.r[i], v.k) + 1;
           const nx = Math.max(rc.x, Math.min(sx, rc.x + rc.w));
@@ -171,11 +172,12 @@ export function placeLabels(
       { x: sx + rs + 4, y: sy - LABEL_H / 2, w, h: LABEL_H },
       { x: sx - rs - 4 - w, y: sy - LABEL_H / 2, w, h: LABEL_H },
     ];
-    for (const rc of tries) {
+    for (let ti = 0; ti < tries.length; ti++) {
+      const rc = tries[ti];
       if (rc.x < gutterX + 1 || rc.x + rc.w > box.width - 2 || rc.y < 2 || rc.y + rc.h > box.height - 2) continue;
       if (reserved.some((q) => (q as PlacedLabel).i !== id && hit(rc, q))) continue;
       if (placed.some((q) => hit(rc, q))) continue;
-      if (!hotOnly && coversDisc(rc, id)) continue;
+      if (!hotOnly && coversDisc(rc, id, ti > 0)) continue;
       placed.push({ i: id, text, ...rc });
       break;
     }

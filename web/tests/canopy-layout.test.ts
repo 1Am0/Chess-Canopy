@@ -102,7 +102,7 @@ describe("layoutCanopy", () => {
     const sorted = [...tails].sort((a, b) => l.kx[a] - l.kx[b]);
     const xs = slotX(big);
     for (let j = 1; j < sorted.length; j++) expect(xs[sorted[j]]).toBeGreaterThanOrEqual(xs[sorted[j - 1]] - 0.2);
-    expect(l.leafScale).toBeGreaterThanOrEqual(0.65);
+    expect(l.leafScale).toBeGreaterThanOrEqual(0.55);
     expect(l.leafScale).toBeLessThanOrEqual(1);
   });
   it("handles a single-node tree", () => {
