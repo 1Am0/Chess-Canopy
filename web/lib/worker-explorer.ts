@@ -87,6 +87,8 @@ export function createWorkerExplorer(opts: WorkerExplorerOptions = {}): Explorer
     query: (p) => call(() => remote.query(p)),
     gamesAt: (p, l, o) => call(() => remote.gamesAt(p, l, o)),
     invalidate: () => call(() => (remote as unknown as { invalidate(): Promise<void> }).invalidate()),
+    canopy: (req) => call(() => (remote as unknown as Required<Pick<ExplorerAPI, "canopy">>).canopy(req)),
+    canopyGame: (key, ref) => call(() => (remote as unknown as Required<Pick<ExplorerAPI, "canopyGame">>).canopyGame(key, ref)),
     opponents: () => call(() => remote.opponents()),
     importGames: (req: ImportRequest, cb: (p: ImportProgress) => void) => call(() => remote.importGames(req, Comlink.proxy(cb))),
     syncPlayer: (id: string, cb: (p: ImportProgress) => void) => call(() => remote.syncPlayer(id, Comlink.proxy(cb))),

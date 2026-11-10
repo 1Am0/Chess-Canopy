@@ -2,6 +2,8 @@ import { Chess } from "chess.js";
 import { filterGames } from "./engine/filter";
 import { GameIndex, sanKey, type IndexNode } from "./engine/position-index";
 import { classifyResult, emptyStats } from "./engine/trie";
+import { emptyCanopy, growCanopy, snapshotCanopy } from "./engine/canopy-tree";
+import type { CanopyRequest, CanopyTree } from "./canopy/types";
 import type {
   Color,
   ExplorerAPI,
@@ -144,6 +146,10 @@ export class ExplorerService implements ExplorerAPI {
   private gen = 0;
   private sel: Selection | null = null;
   private board = new PathBoard();
+  /** The canopy's own board: growth yields to the event loop, so it must not share the PathBoard. */
+  private canopyBoard = new Chess();
+  private canopyToken = 0;
+  private lastCanopy: { key: string; index: GameIndex } | null = null;
   private aborts = new Set<AbortController>();
   private maintenance: Promise<unknown> | null = null;
 
@@ -336,23 +342,45 @@ export class ExplorerService implements ExplorerAPI {
     const out: GameSummary[] = [];
     const from = Math.max(0, Math.floor(offset) || 0);
     const n = Math.min(from + Math.max(0, Math.floor(limit) || 0), node.idx.length);
-    for (let k = from; k < n; k++) {
-      const g = index.games[node.idx[k]];
-      out.push({
-        game_id: g.game_id,
-        date: g.date,
-        opponent: g.opponent,
-        my_rating: g.my_rating,
-        opponent_rating: g.opponent_rating,
-        result: g.result,
-        color: g.color,
-        url: g.url,
-        source: g.source,
-        time_control: g.time_control,
-        moves: g.moves,
-      });
-    }
+    for (let k = from; k < n; k++) out.push(summarize(index.games[node.idx[k]]));
     return out;
+  }
+
+  /**
+   * The tree of continuations below `req.path`, grown best-first for `req.budgetMs` of worker
+   * time (default 120). Call again to refine while `complete` is false; expanded nodes are
+   * cached in the shared GameIndex. A newer call makes an older one stop at its next yield.
+   */
+  async canopy(req: CanopyRequest): Promise<CanopyTree> {
+    const { c } = await this.current();
+    const sel = this.sel!;
+    const path = req.path;
+    const color = this.chooseColor(c);
+    const key = `${sel.key}|${color}|${path.join(" ")}`;
+    const base = { key, path, color, selectionGames: c.filtered.length };
+    if (c.filtered.length === 0) {
+      this.board.seek(path, path.length); // still rejects an unplayable line, like query()
+      return emptyCanopy(base);
+    }
+    const { index, node } = this.locate(c, color, path);
+    const rootFen = this.board.seek(path, path.length).fen();
+    if (!node) return emptyCanopy(base);
+    const token = ++this.canopyToken;
+    this.lastCanopy = { key, index };
+    await growCanopy(index, node, rootFen, path.length, this.canopyBoard, {
+      budgetMs: req.budgetMs ?? 120,
+      maxExpandDepth: Math.max(160, req.maxDepth ?? 0),
+      shouldStop: () => this.canopyToken !== token,
+    });
+    return snapshotCanopy(index, node, path.length, { ...base, maxDepth: req.maxDepth });
+  }
+
+  /** The game behind a canopy leaf, or null when `key` is not the latest canopy (stale). */
+  async canopyGame(key: string, leafRef: number): Promise<GameSummary | null> {
+    const last = this.lastCanopy;
+    if (!last || last.key !== key) return null;
+    const g = last.index.games[leafRef];
+    return g ? summarize(g) : null;
   }
 
   async opponents(): Promise<string[]> {
@@ -690,6 +718,22 @@ export class ExplorerService implements ExplorerAPI {
       ...(unfinished ? { unfinished } : {}),
     };
   }
+}
+
+function summarize(g: Game): GameSummary {
+  return {
+    game_id: g.game_id,
+    date: g.date,
+    opponent: g.opponent,
+    my_rating: g.my_rating,
+    opponent_rating: g.opponent_rating,
+    result: g.result,
+    color: g.color,
+    url: g.url,
+    source: g.source,
+    time_control: g.time_control,
+    moves: g.moves,
+  };
 }
 
 function skippedMessage(skipped: number, unfinished = 0): string | undefined {

@@ -2,6 +2,7 @@
  * Shared contracts for Chess Canopy. Mirrors the Python package
  * (chess_explorer/import_games.py parse_game, storage.py schema v1).
  */
+import type { CanopyRequest, CanopyTree } from "../canopy/types";
 
 export type Source = "chess.com" | "lichess" | "pgn" | "json";
 
@@ -200,6 +201,10 @@ export interface ExplorerAPI {
   gamesAt(path: string[], limit: number, offset?: number): Promise<GameSummary[]>;
   /** Drop cached games and trees (another tab changed the data). Call setSelection afterwards. */
   invalidate?(): Promise<void>;
+  /** Opening tree below `req.path` for the Canopy view (budgeted; ask again while !complete). */
+  canopy?(req: CanopyRequest): Promise<CanopyTree>;
+  /** The game behind a canopy leaf; null when `key` is stale. */
+  canopyGame?(key: string, leafRef: number): Promise<GameSummary | null>;
   opponents(): Promise<string[]>;
   importGames(req: ImportRequest, onProgress: (p: ImportProgress) => void): Promise<ImportOutcome>;
   syncPlayer(id: string, onProgress: (p: ImportProgress) => void): Promise<ImportOutcome>;

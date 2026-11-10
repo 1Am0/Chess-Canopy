@@ -1,5 +1,6 @@
 import * as Comlink from "comlink";
 import type { ExplorerAPI, ImportOutcome, ImportProgress } from "../lib/engine/types";
+import { canopyBuffers } from "../lib/engine/canopy-tree";
 import { ExplorerService } from "../lib/explorer-service";
 
 const svc = new ExplorerService();
@@ -40,6 +41,11 @@ const api: ExplorerAPI = {
   query: (p) => svc.query(p),
   gamesAt: (p, l, o) => svc.gamesAt(p, l, o),
   invalidate: () => svc.invalidate(),
+  canopy: async (req) => {
+    const t = await svc.canopy(req);
+    return Comlink.transfer(t, canopyBuffers(t));
+  },
+  canopyGame: (key, ref) => svc.canopyGame(key, ref),
   opponents: () => svc.opponents(),
   importGames: (req, cb) => withProgress(cb, (p) => svc.importGames(req, p)),
   syncPlayer: (id, cb) => withProgress(cb, (p) => svc.syncPlayer(id, p)),
