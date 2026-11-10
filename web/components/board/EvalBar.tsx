@@ -6,7 +6,7 @@ import { usePosition } from "@/hooks/use-position";
 import { useExplorerStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-/** Evaluation bar beside the board, from Lichess's cloud Stockfish cache. White sits at White's end of the board. */
+/** Evaluation bar beside the board, from Lichess's cloud Stockfish cache, or a Stockfish running in the browser when the cache has nothing. White sits at White's end of the board. */
 export function EvalBar() {
   const { fen } = usePosition();
   const orientation = useExplorerStore((s) => s.orientation);
@@ -17,7 +17,7 @@ export function EvalBar() {
   const text = ok ? formatEval(ok) : "";
   const whiteWinning = ok ? share >= 50 : true;
   const label = ok
-    ? `Stockfish evaluation ${text} (depth ${ok.depth}, Lichess cloud)`
+    ? `Stockfish evaluation ${text} (depth ${ok.depth}, ${ok.source === "local" ? "computed in your browser" : "Lichess cloud"})`
     : res === "loading"
       ? "Loading evaluation"
       : res.status === "none"

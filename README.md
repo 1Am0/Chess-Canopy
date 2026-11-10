@@ -160,4 +160,4 @@ CI (`.github/workflows/ci.yml`) runs three jobs. The `web` job runs lint, typech
 
 ## License
 
-See [LICENSE](LICENSE).
+See [LICENSE](LICENSE). The project is MIT, with one exception beyond the sound files: `web/public/stockfish/` holds an unmodified build of Stockfish 19 (lite, single-threaded WebAssembly, from [stockfish.js](https://github.com/nmrugg/stockfish.js)), which is GPL-3.0; its license text and source links are in that folder. The evaluation bar loads it only when Lichess's cloud cache has no evaluation for the position.

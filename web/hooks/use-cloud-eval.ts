@@ -2,15 +2,30 @@
 
 import { useEffect, useState } from "react";
 import { fetchCloudEval, type EvalResult } from "@/lib/cloud-eval";
+import { evalLocal } from "@/lib/local-eval";
 
-/** Evaluation of `fen` from Lichess's cloud cache, debounced so holding an arrow key doesn't spam it. */
+/**
+ * Evaluation of `fen`: Lichess's cloud cache first, and when it has nothing (or is unreachable) a local
+ * Stockfish search that reports deeper scores as it goes. Debounced so holding an arrow key doesn't spam either.
+ */
 export function useCloudEval(fen: string): EvalResult | "loading" {
   const [state, setState] = useState<{ fen: string; res: EvalResult } | null>(null);
   useEffect(() => {
     const ctl = new AbortController();
+    const show = (res: EvalResult) => {
+      if (!ctl.signal.aborted) setState({ fen, res });
+    };
     const t = setTimeout(() => {
-      void fetchCloudEval(fen, ctl.signal).then((res) => {
-        if (!ctl.signal.aborted) setState({ fen, res });
+      void fetchCloudEval(fen, ctl.signal).then(async (res) => {
+        if (ctl.signal.aborted) return;
+        if (res.status === "ok") return show(res);
+        // Keep the previous evaluation on screen until the local engine has a first score.
+        const local = await evalLocal(fen, {
+          signal: ctl.signal,
+          onProgress: (e) => show({ status: "ok", eval: { ...e, source: "local" } }),
+        });
+        if (ctl.signal.aborted) return;
+        show(local ? { status: "ok", eval: { ...local, source: "local" } } : res);
       });
     }, 250);
     return () => {
@@ -18,6 +33,6 @@ export function useCloudEval(fen: string): EvalResult | "loading" {
       ctl.abort();
     };
   }, [fen]);
-  // Keep showing the previous evaluation (dimmed) until the new one arrives, so the bar doesn't flicker.
+  // Keep showing the previous evaluation until the new one arrives, so the bar doesn't flicker.
   return state ? state.res : "loading";
 }

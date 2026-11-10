@@ -6,6 +6,8 @@ export interface CloudEval {
   /** moves to mate, positive = White mates (null when not a mate score) */
   mate: number | null;
   depth: number;
+  /** Where the number came from; absent means the Lichess cloud cache. */
+  source?: "local";
 }
 
 export type EvalResult = { status: "ok"; eval: CloudEval } | { status: "none" } | { status: "error" };
