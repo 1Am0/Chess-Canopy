@@ -77,6 +77,11 @@ Tailwind utilities exist for every token (`bg-primary`, `text-win-text`, `bg-bra
 | `--arrow-preview` | `oklch(0.72 0.17 65)` | `#eb8a00` | Hover/preview arrows |
 | `--highlight-last` | `oklch(0.9 0.17 100)` | `#f9e03f` | Last-move square highlight (apply with alpha) |
 | `--highlight-selected` | `oklch(0.62 0.19 255)` | `#1d84f5` | Selected square highlight (apply with alpha) |
+| `--canopy-branch` | `oklch(0.55 0.015 105)` | n/a | Canopy branches and trunk (= paper-500) |
+| `--canopy-low` | `oklch(0.51 0.17 28)` | n/a | Canopy score 30% and below |
+| `--canopy-mid` | `oklch(0.62 0.03 85)` | n/a | Canopy score 50% (quiet warm gray) |
+| `--canopy-high` | `oklch(0.44 0.12 150)` | n/a | Canopy score 70% and above |
+| `--canopy-guide` | `color-mix(in oklab, var(--border) 70%, transparent)` | n/a | Canopy row guides |
 
 ## Dark mode (`.dark`)
 
@@ -131,6 +136,11 @@ The brand and paper scales are mode-independent (see light table). Overrides and
 | `--arrow-preview` | `oklch(0.72 0.17 65)` | `#eb8a00` | Hover/preview arrows |
 | `--highlight-last` | `oklch(0.9 0.17 100)` | `#f9e03f` | Last-move square highlight (apply with alpha) |
 | `--highlight-selected` | `oklch(0.62 0.19 255)` | `#1d84f5` | Selected square highlight (apply with alpha) |
+| `--canopy-branch` | `oklch(0.71 0.014 95)` | n/a | Canopy branches and trunk (= paper-400) |
+| `--canopy-low` | `oklch(0.70 0.15 27)` | n/a | Canopy score 30% and below |
+| `--canopy-mid` | `oklch(0.60 0.02 120)` | n/a | Canopy score 50% (quiet warm gray) |
+| `--canopy-high` | `oklch(0.74 0.15 150)` | n/a | Canopy score 70% and above |
+| `--canopy-guide` | `color-mix(in oklab, var(--border) 70%, transparent)` | n/a | Canopy row guides |
 
 Board tokens (`--board-*`, `--arrow-*`, `--highlight-*`) are mode-independent; the board does not change with the app theme.
 
@@ -224,6 +234,19 @@ Known failures: `text-win` / `text-loss` (the raw fill color used as text) on th
 | slate | dark #667690 | 1.76 | 1.79 | 3.46 |
 
 Arrows sit on mid-tone squares so a hard 3:1 is not achievable against every dark square for any single hue; the deep candidate blue maximizes separation from all four themes (and is distinct in hue from every square color). Draw overlays with partial opacity plus a white or dark outline where legibility matters.
+
+### Canopy tokens vs. `--card` (contrast ratio)
+
+| Mode | token | background | ratio | min | result |
+|---|---|---|---|---|---|
+| light | canopy-low | card | 3.04 | 3 | PASS |
+| light | canopy-high | card | 3.02 | 3 | PASS |
+| light | canopy-mid | card | 1.81 | 1.8 | PASS (intentionally quiet) |
+| dark | canopy-low | card | 3.50 | 3 | PASS |
+| dark | canopy-high | card | 4.10 | 3 | PASS |
+| dark | canopy-mid | card | 3.20 | 1.8 | PASS |
+
+The light-mode low/mid/high values are slightly darker than the first plan (0.56/0.74/0.55) because those missed the 3:1 / 1.8:1 floors. Hex columns are omitted for these tokens.
 
 ## Usage guidance
 

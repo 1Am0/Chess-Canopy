@@ -107,6 +107,13 @@
   --arrow-preview: oklch(0.72 0.17 65);
   --highlight-last: oklch(0.9 0.17 100);
   --highlight-selected: oklch(0.62 0.19 255);
+
+  /* Canopy view (opening tree). Branches are quiet bark gray; colour lives on nodes and leaves. */
+  --canopy-branch: oklch(0.55 0.015 105);
+  --canopy-low: oklch(0.51 0.17 28);
+  --canopy-mid: oklch(0.62 0.03 85);
+  --canopy-high: oklch(0.44 0.12 150);
+  --canopy-guide: color-mix(in oklab, var(--border) 70%, transparent);
 }
 
 .dark {
@@ -162,6 +169,12 @@
   --bar-border: rgb(255 255 255 / 0.12);
   --bar-gloss-white: inset 0 -5px 7px rgb(0 0 0 / 0.25);
   --bar-gloss: inset 0 5px 7px rgb(255 255 255 / 0.1);
+
+  --canopy-branch: oklch(0.71 0.014 95);
+  --canopy-low: oklch(0.70 0.15 27);
+  --canopy-mid: oklch(0.60 0.02 120);
+  --canopy-high: oklch(0.74 0.15 150);
+  --canopy-guide: color-mix(in oklab, var(--border) 70%, transparent);
 
   /* Board colors are theme-independent constants; arrows stay legible on all themes. */
 }
@@ -267,4 +280,17 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+}
+
+/* Canopy view: the indeterminate hairline while the tree refines (static under reduced motion). */
+@keyframes canopy-refine {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+.canopy-refine {
+  animation: canopy-refine 1.4s ease-in-out infinite;
 }
