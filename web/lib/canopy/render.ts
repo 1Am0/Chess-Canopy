@@ -253,11 +253,13 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
 
   // Foliage haze: soft colour at overview scale, fading out as the zoom resolves single leaves.
   const hazeA = th.hazeAlpha / Math.max(1, k * 0.8);
+  // Crowded crowns shrink their leaves; zooming in thins the crowd, so they grow back.
+  const ls = Math.min(1, l.leafScale * Math.sqrt(k));
   for (const [c, ids] of leafBuckets) {
     ctx.fillStyle = ramp[c];
     for (const prov of [false, true]) {
       ctx.globalAlpha = hazeA * (prov ? S.provisionalFactor : 1);
-      if (arcs(ids, S.hazeRadius * l.leafScale * rk, (i) => isProv(i) === prov && !tipHollow(t, i))) ctx.fill();
+      if (arcs(ids, S.hazeRadius * ls * rk, (i) => isProv(i) === prov && !tipHollow(t, i))) ctx.fill();
     }
   }
   // Leaves: solid tips, then hollow rings for tips clamped by the depth cap.
@@ -266,13 +268,13 @@ export function renderStatic(ctx: CanvasRenderingContext2D, f: Frame): void {
     ctx.strokeStyle = ramp[c];
     for (const prov of [false, true]) {
       ctx.globalAlpha = th.leafAlpha * (prov ? S.provisionalFactor : 1);
-      if (arcs(ids, S.leafRadius * l.leafScale * rk, (i) => isProv(i) === prov && !tipHollow(t, i))) ctx.fill();
+      if (arcs(ids, S.leafRadius * ls * rk, (i) => isProv(i) === prov && !tipHollow(t, i))) ctx.fill();
     }
     // Tips clamped at the top row: quiet rings (the game goes on), so the ceiling is no hard band.
     ctx.lineWidth = S.hollowRingWidth / k;
     for (const prov of [false, true]) {
       ctx.globalAlpha = th.leafAlpha * S.hollowAlpha * (prov ? S.provisionalFactor : 1);
-      if (arcs(ids, S.leafRadius * S.hollowScale * l.leafScale * rk, (i) => isProv(i) === prov && tipHollow(t, i))) ctx.stroke();
+      if (arcs(ids, S.leafRadius * S.hollowScale * ls * rk, (i) => isProv(i) === prov && tipHollow(t, i))) ctx.stroke();
     }
   }
 

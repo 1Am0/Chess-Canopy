@@ -248,6 +248,8 @@ Arrows sit on mid-tone squares so a hard 3:1 is not achievable against every dar
 
 The light-mode low/mid/high values are slightly darker than the first plan (0.56/0.74/0.55) because those missed the 3:1 / 1.8:1 floors. Hex columns are omitted for these tokens.
 
+How the canvas applies them (`lib/canopy/theme.ts`, `lib/canopy/render.ts`): leaves and node discs use the score ramp at 0.9 alpha (discs fully opaque), so the ratios above hold within a few hundredths; the soft halo behind each leaf is the same colour at 0.10 (light) / 0.14 (dark) and fades out as the view zooms in. Single-game tails are `--canopy-branch` at 0.09 (light) / 0.10 (dark), further faded toward the first rows where they overlap most, so they read as a veil rather than as lines. Tips cut off by the depth cap are rings at about half that strength.
+
 ## Usage guidance
 
 - Use semantic tokens in components (`bg-card`, `text-muted-foreground`, `border-border`), not scale steps. Scales are for one-off brand surfaces (logo tile, hero accents).
