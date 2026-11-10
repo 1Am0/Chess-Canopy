@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import type { Color } from "@/lib/engine/types";
 import type { CanopyTree } from "@/lib/canopy/types";
 import { lineText } from "@/lib/canopy/labels";
-import { compact, formatDate, pct, resultLabel } from "@/lib/format";
+import { formatDate, pct, resultLabel } from "@/lib/format";
 import { useLeafGame } from "@/hooks/use-canopy-game";
 import { nodeInfo } from "@/components/canopy/info";
 import { WdbBar } from "@/components/explorer/WdbBar";
@@ -63,7 +63,7 @@ export function CanopySelectionCard({
       ) : (
         <>
           <p className="text-xs tabular-nums">
-            <span className="font-semibold">{compact(n.games)}</span> <span className="text-muted-foreground">games · {pct(n.share)} of parent ·</span>{" "}
+            <span className="font-semibold">{n.games.toLocaleString()}</span> <span className="text-muted-foreground">games · {pct(n.share)} of parent ·</span>{" "}
             <span className={cn("font-semibold", scoreTextClass(n.score, n.games))}>{pct(n.score)}</span> <span className="text-muted-foreground">score</span>
           </p>
           <WdbBar stats={stats} side={side} labels={false} className="h-1.5" />

@@ -90,7 +90,9 @@ export function CanopyTreeNav({
   }
 
   const items = useMemo(() => visibleItems(tree, expanded, layout?.x ?? null), [tree, expanded, layout]);
-  const cur = items.find((it) => it.key === focusKey) ?? items[0] ?? null;
+  // Until the user moves, the most popular first move (the tree is stored games-descending).
+  const top = kids(tree, 0)[0];
+  const cur = items.find((it) => it.key === focusKey) ?? items.find((it) => it.id === top) ?? items[0] ?? null;
 
   const focus = (it: Item | undefined | null) => {
     if (!it) return;

@@ -69,6 +69,7 @@ function CanopyBody({
   const fine = !useMediaQuery("(pointer: coarse)");
   const sheet = variant === "sheet";
   const stageRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<CanopyCanvasHandle>(null);
   const summaryId = useId();
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -204,10 +205,18 @@ function CanopyBody({
     return () => clearTimeout(t);
   }, [focusId, tree, size, reduced]);
 
-  // Expanded: put keyboard focus on the tree, so arrows keep working after the mode switch.
+  // Expanded: the button that opened it is gone, so put keyboard focus on the tree (or, until
+  // the tree is there, on the section) and keep Esc and the arrows working after the switch.
+  const focusedTree = useRef(false);
+  const hasTree = !!tree;
   useEffect(() => {
-    if (variant === "expanded") stageRef.current?.querySelector<HTMLElement>('[role="tree"]')?.focus({ preventScroll: true });
-  }, [variant]);
+    if (variant !== "expanded" || focusedTree.current) return;
+    const el = stageRef.current?.querySelector<HTMLElement>('[role="tree"]');
+    if (el) {
+      el.focus({ preventScroll: true });
+      focusedTree.current = true;
+    } else sectionRef.current?.focus({ preventScroll: true });
+  }, [variant, hasTree]);
 
   const collapse = () => setCanopyExpanded(false);
   const onEscape = () => {
@@ -231,6 +240,8 @@ function CanopyBody({
 
   return (
     <section
+      ref={sectionRef}
+      tabIndex={-1}
       aria-label="Canopy"
       aria-busy={loading}
       aria-describedby={summaryId}
@@ -242,7 +253,7 @@ function CanopyBody({
           collapse();
         }
       }}
-      className="relative flex h-full min-h-0 flex-col bg-card text-foreground"
+      className="relative flex h-full min-h-0 flex-col bg-card text-foreground outline-none"
     >
       {variant !== "compact" && <CanopyHeader variant={variant} onClose={sheet ? onClose : collapse} />}
 
