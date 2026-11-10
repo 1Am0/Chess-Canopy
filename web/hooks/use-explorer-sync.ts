@@ -119,6 +119,7 @@ export function useExplorerSync() {
         if (line.length) useExplorerStore.getState().setLine(line);
         const side = params.get("side");
         if (side === "white" || side === "black") useExplorerStore.getState().setSide(side, false);
+        if (params.get("view") === "canopy") useExplorerStore.getState().setExplorerView("canopy");
       } catch {
         /* ignore */
       }

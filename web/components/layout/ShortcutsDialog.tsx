@@ -12,6 +12,10 @@ const SHORTCUTS: [string, string][] = [
   ["Esc", "Clear move preview"],
   ["?", "Show this help"],
   ["Tab to move table, then ↑ ↓ / Enter", "Select and play a candidate move"],
+  ["Canopy tab: ↑ ↓ → ←", "Walk the tree: siblings, deeper, back"],
+  ["Canopy tab: Enter", "Play the line, or load the game"],
+  ["Canopy tab: + − 0", "Zoom in, zoom out, fit"],
+  ["Canopy expanded: Esc", "Back to the compact view"],
 ];
 
 export function ShortcutsDialog() {

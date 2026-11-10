@@ -37,4 +37,32 @@ describe("global keyboard shortcuts", () => {
     });
     expect(useExplorerStore.getState().cursor).toBe(1);
   });
+
+  it("does not undo or redo when the canopy tree handled the arrow (inside data-local-keys)", () => {
+    const el = document.createElement("div");
+    root = createRoot(el);
+    act(() => root!.render(createElement(Probe)));
+    useExplorerStore.setState({ path: ["e4", "e5", "Nf3"], cursor: 2 });
+    const section = document.createElement("section");
+    section.setAttribute("data-local-keys", "");
+    const tree = document.createElement("ul");
+    tree.setAttribute("role", "tree");
+    tree.tabIndex = 0;
+    section.appendChild(tree);
+    document.body.appendChild(section);
+    // The tree consumes the key (preventDefault), so the global handler leaves the board alone.
+    tree.addEventListener("keydown", (e) => e.preventDefault());
+    act(() => {
+      tree.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", cancelable: true, bubbles: true }));
+      tree.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", cancelable: true, bubbles: true }));
+    });
+    expect(useExplorerStore.getState().cursor).toBe(2);
+    // ArrowUp / ArrowDown never jump to the start or end from inside a local-keys region.
+    const up = new KeyboardEvent("keydown", { key: "ArrowUp", cancelable: true, bubbles: true });
+    act(() => {
+      tree.dispatchEvent(up);
+    });
+    expect(useExplorerStore.getState().cursor).toBe(2);
+    section.remove();
+  });
 });

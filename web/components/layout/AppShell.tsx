@@ -5,6 +5,7 @@ import { useMoveSounds } from "@/hooks/use-move-sounds";
 import { useExplorerStore } from "@/lib/store";
 import { Header } from "@/components/layout/Header";
 import { UrlSideSync } from "@/components/layout/UrlSideSync";
+import { UrlViewSync } from "@/components/layout/UrlViewSync";
 import { ShortcutsDialog } from "@/components/layout/ShortcutsDialog";
 import { BoardColumn } from "@/components/board/BoardColumn";
 import { ExplorerPanel } from "@/components/explorer/ExplorerPanel";
@@ -64,6 +65,7 @@ export function AppShell() {
       <ImportProvider>
       <div className={`flex min-h-dvh flex-col ${explorer ? "lg:h-dvh lg:overflow-hidden" : ""}`}>
         <UrlSideSync />
+        <UrlViewSync />
         <Header showTools={explorer} />
         {!ready && <LoadingShell />}
         {ready && !hasPlayers && <Welcome />}

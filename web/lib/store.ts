@@ -5,8 +5,10 @@ import { persist, type PersistStorage, type StorageValue } from "zustand/middlew
 import type { Color, Filters, Player, QueryResult, SelectionSummary } from "@/lib/engine/types";
 import { DEFAULT_SOUND_THEME, setSoundTheme, setSoundsEnabled, type SoundTheme } from "@/lib/sound";
 import { canonicalLine, legalSan, linePositions } from "@/lib/position-cache";
+import { Chess } from "chess.js";
 
 export type BoardTheme = "green" | "brown" | "blue" | "slate";
+export type ExplorerView = "moves" | "games" | "canopy";
 
 function readLocal(key: string): string | null {
   try {
@@ -77,9 +79,15 @@ export interface ExplorerState {
   sideChosen: boolean;
   /** true once the user explicitly chose a side (setSide); auto-pick never overrides it */
   sideExplicit: boolean;
+  /** The Canopy view fills the explorer column (desktop). A preference, not part of the URL. */
+  canopyExpanded: boolean;
+  setCanopyExpanded: (on: boolean) => void;
 
   // session
   ready: boolean;
+  /** Active explorer tab (URL: ?view=canopy). */
+  explorerView: ExplorerView;
+  setExplorerView: (v: ExplorerView) => void;
   players: Player[];
   path: string[];
   /** index of the next move to play in `path` (redo cursor) */
@@ -117,11 +125,17 @@ export interface ExplorerState {
   /** Replace the line with the legal prefix of `moves` (chess.js SAN). */
   setLine: (moves: string[]) => void;
   /**
-   * Load a whole game into the line while keeping the current position: the line becomes
-   * the game's (legal) moves and the cursor stays at the visible depth, so → steps through
-   * the rest of the game. `key` identifies the game for the Games tab highlight.
+   * Play `rel` (chess.js SAN, relative to the position at the cursor). When the redo branch
+   * already continues with `rel` only the cursor moves (the rest of the branch is kept);
+   * otherwise the line is replaced from the cursor on. Only the legal prefix is played.
    */
-  loadGame: (moves: string[], key: string) => void;
+  playLine: (rel: string[]) => void;
+  /**
+   * Load a whole game into the line: the line becomes the game's (legal) moves and the cursor
+   * stays at the visible depth (or goes to `cursorAt`, clamped), so → steps through the rest
+   * of the game. `key` identifies the game for the Games tab highlight.
+   */
+  loadGame: (moves: string[], key: string, cursorAt?: number) => void;
   /** Games tab: key + resulting line of the game loaded last (not persisted). */
   loadedGame: { key: string; line: string } | null;
   flip: () => void;
@@ -153,7 +167,12 @@ export const useExplorerStore = create<ExplorerState>()(
       },
       orientation: "white",
 
+      canopyExpanded: false,
+      setCanopyExpanded: (canopyExpanded) => set({ canopyExpanded }),
+
       ready: false,
+      explorerView: "moves",
+      setExplorerView: (explorerView) => set({ explorerView }),
       players: [],
       path: [],
       cursor: 0,
@@ -216,11 +235,32 @@ export const useExplorerStore = create<ExplorerState>()(
       toEnd: () => set((s) => ({ cursor: s.path.length, hoverMove: null })),
       goTo: (cursor) => set((s) => ({ cursor: Math.max(0, Math.min(cursor, s.path.length)), hoverMove: null })),
       loadedGame: null,
-      loadGame: (moves, key) => {
+      loadGame: (moves, key, cursorAt) => {
         const s = get();
         const path = canonicalLine(moves);
-        set({ path, cursor: Math.min(s.cursor, path.length), hoverMove: null, loadedGame: { key, line: path.join(" ") } });
+        const at = cursorAt === undefined ? s.cursor : Math.max(0, cursorAt);
+        set({ path, cursor: Math.min(at, path.length), hoverMove: null, loadedGame: { key, line: path.join(" ") } });
       },
+      playLine: (rel) =>
+        set((s) => {
+          const lp = linePositions(s.path);
+          const at = Math.min(s.cursor, lp.sans.length);
+          const chess = new Chess(lp.fens[at]);
+          const line: string[] = [];
+          for (const san of rel) {
+            try {
+              line.push(chess.move(san).san);
+            } catch {
+              break;
+            }
+          }
+          if (!line.length) return s;
+          let m = 0;
+          while (m < line.length && s.path[at + m] === line[m]) m++;
+          if (m === line.length) return { cursor: at + m, hoverMove: null };
+          const path = s.path.slice(0, at).concat(line);
+          return { path, cursor: path.length, hoverMove: null };
+        }),
       setLine: (moves) => {
         const path = canonicalLine(moves);
         set({ path, cursor: path.length, hoverMove: null });
@@ -261,6 +301,7 @@ export const useExplorerStore = create<ExplorerState>()(
         orientation: s.orientation,
         sideChosen: s.sideChosen,
         sideExplicit: s.sideExplicit,
+        canopyExpanded: s.canopyExpanded,
       }),
     },
   ),
