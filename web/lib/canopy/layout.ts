@@ -102,7 +102,7 @@ export function slotX(t: CanopyTree): Float64Array {
 }
 
 /** Flare (share of the full width) at height fraction f (0 = first row base, 1 = top row). */
-export const FLARE = { base: 0.22, exp: 0.6 } as const;
+export const FLARE = { base: 0.3, exp: 0.55 } as const;
 export function flareAt(f: number): number {
   const c = Math.min(1, Math.max(0, f));
   return FLARE.base + (1 - FLARE.base) * Math.pow(c, FLARE.exp);

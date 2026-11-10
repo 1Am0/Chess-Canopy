@@ -11,8 +11,9 @@ export interface RowScale {
 }
 
 /**
- * y(d) = bottom - (bottom-top) * (a*ln(1+d/c)/ln(1+D/c) + (1-a)*(d/D)^p), a=0.82, c=1.5, p=2.2.
- * With D = 120: ply 1 sits ~9% up, ply 6 ~30%, ply 20 ~50%, and the last 100 plies share the crown.
+ * y(d) = bottom - (bottom-top) * (a*ln(1+d/c)/ln(1+D/c) + (1-a)*(d/D)^p), a=0.84, c=1.2, p=3.
+ * With D = 120: ply 1 sits ~11% up, ply 6 ~33%, ply 20 ~52%; past the middle the cubic term takes
+ * over, so the row gaps, after shrinking through the middlegame, widen again toward the crown.
  */
 export function makeRowScale(
   depthCap: number,
@@ -20,9 +21,9 @@ export function makeRowScale(
   bottom: number,
   o: { a?: number; c?: number; p?: number } = {},
 ): RowScale {
-  const a = o.a ?? 0.82;
-  const c = o.c ?? 1.5;
-  const p = o.p ?? 2.2;
+  const a = o.a ?? 0.84;
+  const c = o.c ?? 1.2;
+  const p = o.p ?? 3;
   const D = Math.max(1, depthCap);
   const logD = Math.log1p(D / c);
   return {
