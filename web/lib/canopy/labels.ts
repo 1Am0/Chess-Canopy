@@ -1,5 +1,5 @@
 import { BUNDLE, FRONTIER, LEAF, NODE, type CanopyTree } from "./types";
-import type { CanopyLayout } from "./layout";
+import { discVisible, type CanopyLayout } from "./layout";
 import { toScreen, type View } from "./viewport";
 
 /** `absPly` is the 0-based ply of the move: 0 "e4" -> "1.e4", 1 "c5" -> "1…c5". */
@@ -117,6 +117,40 @@ export function placeLabels(
     candidates.push(...first, ...rest);
   }
 
+  // Visible discs (screen space) in a coarse grid: a label never covers a comparable node's disc.
+  const CELL = 32;
+  const cols = Math.max(1, Math.ceil(box.width / CELL));
+  const grid = new Map<number, number[]>();
+  for (let i = 1; i < t.n; i++) {
+    if (hotOnly || !discVisible(t, l, i, v.k)) continue;
+    const [sx, sy] = toScreen(v, l.x[i], l.y[i]);
+    if (sx < -8 || sy < -8 || sx > box.width + 8 || sy > box.height + 8) continue;
+    const key = Math.floor(sy / CELL) * cols + Math.floor(Math.max(0, sx) / CELL);
+    let b = grid.get(key);
+    if (!b) grid.set(key, (b = []));
+    b.push(i);
+  }
+  const coversDisc = (rc: Rect, self: number): boolean => {
+    const c0 = Math.floor(Math.max(0, rc.x - 8) / CELL);
+    const c1 = Math.floor((rc.x + rc.w + 8) / CELL);
+    const r0 = Math.floor((rc.y - 8) / CELL);
+    const r1 = Math.floor((rc.y + rc.h + 8) / CELL);
+    for (let r = r0; r <= r1; r++) {
+      for (let c = c0; c <= Math.min(c1, cols - 1); c++) {
+        for (const i of grid.get(r * cols + c) ?? []) {
+          // Halos keep a label legible over a minor dot; it may not hide a comparable node.
+          if (i === self || t.games[i] * 3 < t.games[self]) continue;
+          const [sx, sy] = toScreen(v, l.x[i], l.y[i]);
+          const rr = screenRadius(l.r[i], v.k) + 1;
+          const nx = Math.max(rc.x, Math.min(sx, rc.x + rc.w));
+          const ny = Math.max(rc.y, Math.min(sy, rc.y + rc.h));
+          if ((nx - sx) ** 2 + (ny - sy) ** 2 < rr * rr) return true;
+        }
+      }
+    }
+    return false;
+  };
+
   const placed: PlacedLabel[] = [];
   const statics = o.reserved ?? [];
   for (const id of candidates) {
@@ -135,11 +169,13 @@ export function placeLabels(
     const tries: Rect[] = [
       { x: sx - w / 2, y: sy - rs - 6 - 10, w, h: LABEL_H },
       { x: sx + rs + 4, y: sy - LABEL_H / 2, w, h: LABEL_H },
+      { x: sx - rs - 4 - w, y: sy - LABEL_H / 2, w, h: LABEL_H },
     ];
     for (const rc of tries) {
       if (rc.x < gutterX + 1 || rc.x + rc.w > box.width - 2 || rc.y < 2 || rc.y + rc.h > box.height - 2) continue;
       if (reserved.some((q) => (q as PlacedLabel).i !== id && hit(rc, q))) continue;
       if (placed.some((q) => hit(rc, q))) continue;
+      if (!hotOnly && coversDisc(rc, id)) continue;
       placed.push({ i: id, text, ...rc });
       break;
     }
