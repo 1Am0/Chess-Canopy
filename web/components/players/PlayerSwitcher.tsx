@@ -33,7 +33,7 @@ export function PlayerSwitcher() {
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="chit"
           className="relative w-full min-w-0 max-w-[11rem] justify-between gap-1.5 px-2.5 max-sm:h-9 sm:max-w-xs sm:gap-2 sm:px-4 lg:justify-center lg:px-0 lg:rail-open:justify-between lg:rail-open:px-3"
           aria-label={`Players: ${label}, ${total.toLocaleString()} games`}
         >
@@ -43,7 +43,7 @@ export function PlayerSwitcher() {
           <span className="min-w-[2ch] text-right text-xs text-muted-foreground tabular-nums min-[380px]:hidden sm:inline sm:min-w-[5ch] lg:hidden lg:rail-open:inline">{total.toLocaleString()}</span>
           <ChevronsUpDown className="size-3.5 text-muted-foreground lg:hidden lg:rail-open:block" />
           {/* the label's folded corner: a dog-ear with a darker underside and a soft shadow */}
-          <span aria-hidden className="paper-deco pointer-events-none absolute -top-px -right-px size-3.5">
+          <span aria-hidden className="paper-deco pointer-events-none absolute lg:hidden -top-px -right-px size-3.5">
             <span className="absolute inset-0 bg-[var(--strip)] [clip-path:polygon(0_0,100%_0,100%_100%)]" style={{ backgroundImage: "var(--sheet-tile)" }} />
             <span className="absolute inset-0 [clip-path:polygon(0_0,100%_100%,0_100%)] [background:linear-gradient(135deg,var(--sheet-under),var(--sheet-flat))] drop-shadow-[-1px_1px_1px_var(--btn-drop)]" />
           </span>
