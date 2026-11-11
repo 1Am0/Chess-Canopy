@@ -145,6 +145,16 @@ export function EvalBar() {
       ) : (
         <PencilHatch gap={4} opacity={0.5} seed="eval-none" className={cn(res === "loading" && "motion-safe:animate-pulse")} />
       )}
+      {/* search depth, written in the empty margin under the bar (the bottom player strip is indented past it); it counts up while the browser engine keeps searching */}
+      {ok && ok.depth > 0 && (
+        <span
+          aria-hidden
+          data-testid="eval-depth"
+          className="pointer-events-none absolute top-[calc(100%+5px)] left-1/2 -translate-x-1/2 font-mono text-[10px] leading-none font-medium tracking-tight text-pencil tabular-nums whitespace-nowrap"
+        >
+          d{ok.depth}
+        </span>
+      )}
     </div>
   );
 }
