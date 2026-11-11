@@ -832,3 +832,11 @@ Contrast passed everywhere; no page-level horizontal scroll.
 - **I4:** eval tag is 11px mono (was 8-9px); bar slot widened 28 -> 32px (tag fits it exactly), board column indent `pl-8` -> `pl-10`, bar/board gap 4 -> 8px.
 - **Spacing:** mat gap 6 -> 8px, toolbar gaps 8px; mobile mat padding stays 8px all round (lg 10px, so `--board-size` geometry unchanged).
 - Screenshots: `scratchpad/shots/bc-v2-{320,390,1440}.png`.
+
+### R6 MB (mobile header and global) - status
+
+- **M1:** below `sm` the header shows logo, player switcher, Filters, Import (all h-9 = 36px, 8px gaps) and a new `components/layout/MoreMenu.tsx` ("More options" paper DropdownMenu with a `menuitemcheckbox` "Mute move sounds" showing its state, and "Keyboard shortcuts"). `sm+` is unchanged (SoundToggle and help button are `max-sm:hidden`, so e2e at desktop widths still use the original buttons). Player switcher: below 380px shows icon + game count (full name stays in the aria-label); name shows from 380px. Import chip is h-9 on phones.
+- **M4:** `ui/sonner.tsx`: `duration` 4000ms; top-centre under the header on phones (offset 64), bottom-right on desktop, top-right while the filters/import/manager sheet is open.
+- **W4:** default `Button` disabled state is solid muted green at full opacity (no opacity-50), legible cream text.
+- Screenshots: `scratchpad/shots/mb2-{m390,m320}-{header,menu,toast}.png`, `mb2-d1440-header.png`.
+- Checks: build, typecheck, lint, vitest clean; e2e 33/34, the 320px header test failed once in the full run (concurrent rebuilds by other agents) and passed on rerun.
