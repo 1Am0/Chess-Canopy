@@ -21,15 +21,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
  * --board-size is the width (and height) of the board itself:
  *   mobile : the viewport minus a 12px gutter on each side, at most 62% of the viewport height
  *            (so a tablet in portrait still shows the move table without scrolling far)
- *   desktop: min( clamp(22rem, ~57% of the content width, 52rem),
+ *   desktop: min( clamp(22rem, ~57% of the content width, 56rem),
  *                 viewport height - header (3.5rem) - chrome (8.5rem: strips + toolbar + padding) )
  * The content width is min(100vw, 1600px) minus the page padding (2rem) and the
  * workspace gap (1rem).
  * Round 3: the board sits on a mat (12px) under the torn header edge (24px top padding), so the
- * chrome is 14.25rem (header 3.5rem + padding 2.25rem + mat 1.5rem + strips/toolbar/gaps 6.9rem).
+ * chrome is 11.625rem, sized so the board sheet ends level with the explorer sheet.
  */
 const BOARD_COLUMN =
-  "[--board-size:min(calc(100vw-1.5rem),62dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-1rem),52rem),calc(100dvh-13.5rem))]";
+  "[--board-size:min(calc(100vw-1.5rem),62dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-1rem),56rem),calc(100dvh-11.625rem))]";
 
 /**
  * Placeholder with the same slots as the explorer, so the first paint doesn't jump: the desk, a mat for the board
