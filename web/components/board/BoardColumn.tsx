@@ -25,17 +25,17 @@ export function BoardColumn() {
 
   return (
     // The print on its mat: a cream mount (10px of paper around everything, 8px on phones) taped to the desk
-    // with two strips, over a second mount peeking out. The wrapper is as wide as the board column plus the mat's
+    // with two strips (desktop only: on phones the mat sits right under the header, so it keeps just the photo corners), over a second mount peeking out. The wrapper is as wide as the board column plus the mat's
     // padding, so the board keeps the size the layout asks for.
     <div className="relative isolate z-10 mx-auto w-[var(--board-size)] max-w-full lg:mx-0 lg:w-[calc(var(--board-size)+1.25rem)]">
     <UnderSheet seed={5} dx={5} dy={6} rotate={0.7} />
-    <PaperSheet className="flex flex-col gap-1.5 p-2 lg:p-2.5" data-testid="board-mat">
-      <Tape variant="sage" angle={-3} seed="mat-l" className="-top-1.5 left-5" />
-      <Tape variant="sage" angle={3} seed="mat-r" className="-top-1.5 right-5" />
-      <div data-testid="strip-top" className="pl-8">
+    <PaperSheet className="flex flex-col gap-2 p-2 lg:p-2.5" data-testid="board-mat">
+      <Tape variant="sage" angle={-3} seed="mat-l" className="hidden lg:block -top-1.5 left-5" />
+      <Tape variant="sage" angle={3} seed="mat-r" className="hidden lg:block -top-1.5 right-5" />
+      <div data-testid="strip-top" className="pl-10">
         <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} />
       </div>
-      <div className="flex gap-1">
+      <div className="flex gap-2">
         <EvalBar />
         {/* the print, held by four photo corners */}
         <div className="relative min-w-0 flex-1 shadow-print">
@@ -43,11 +43,11 @@ export function BoardColumn() {
           <PhotoCorners />
         </div>
       </div>
-      <div data-testid="strip-bottom" className="pl-8">
+      <div data-testid="strip-bottom" className="pl-10">
         <PlayerStrip you={bottomIsYou} color={bottomIsYou ? side : opp} />
       </div>
       {/* indented to the board's edge, except on the narrowest phones where the two card strips need the full width to stay on one row */}
-      <div className="pl-0 min-[360px]:pl-8">
+      <div className="pl-0 min-[360px]:pl-10">
         <BoardControls />
       </div>
     </PaperSheet>

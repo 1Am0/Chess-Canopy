@@ -81,7 +81,7 @@ export function WdbBar({
             )}
             style={{ width: `${pc}%`, clipPath: cuts[i] }}
           >
-            {named ? namedLabel(s.label, pc) : labels ? segmentLabel(pc) : null}
+            {named ? namedLabel(s.label, pc) : labels ? (pc < 17 ? null : segmentLabel(pc)) : null}
           </span>
         );
       })}

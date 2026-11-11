@@ -824,3 +824,11 @@ Contrast passed everywhere; no page-level horizontal scroll.
   - Straight arrows for knights in all drafts; start 0.20 S out from origin, tip 0.20 S short of target (+0.06 S per other arrow converging on the same square). Paper halo kept (stroke or fill per draft), no transitions added.
   - Finding: candidates are hidden while a table row is hovered, on purpose (`show: !!a && !hover` in `BoardOverlay`), so only the preview shows. Kept for the drafts.
   - Screenshots: `scratchpad/shots/arrdraft-<a|b|c|d>-<start|hover|knight|user|mobile|mobile-knight>.png`, sheet `arrdraft-compare.png`.
+
+## Status log (round 6, BC board column)
+
+- **M2:** mat tape is `hidden lg:block` (mobile keeps photo corners only), so nothing pokes into the header.
+- **M3:** toolbar buttons no longer use `-ml-px`; only the first of a group has a left border, so neighbours share one divider and hit boxes do not overlap (measured 0px overlap at 320/390/1440; 32px mobile / 36px sm+; one row at 320).
+- **I4:** eval tag is 11px mono (was 8-9px); bar slot widened 28 -> 32px (tag fits it exactly), board column indent `pl-8` -> `pl-10`, bar/board gap 4 -> 8px.
+- **Spacing:** mat gap 6 -> 8px, toolbar gaps 8px; mobile mat padding stays 8px all round (lg 10px, so `--board-size` geometry unchanged).
+- Screenshots: `scratchpad/shots/bc-v2-{320,390,1440}.png`.

@@ -52,11 +52,11 @@ function Tip({ label, keys, children }: { label: string; keys?: string; children
 }
 
 // Below sm (640px) buttons are 32px so both strips fit on one row in the 276px-wide toolbar of a 320px viewport
-// (4 x 32 minus shared borders, twice, plus a gap). From sm up they are 36px. Each strip is a run of card buttons
-// butted together like a ticket of cards: they share a border, and the hovered / focused one lifts above its neighbours.
+// (4 x 32, twice, plus gaps). From sm up they are 36px. Each strip is a run of card buttons butted together like a
+// ticket of cards: only the first has a left border, so neighbours share one divider and their hit boxes never overlap.
 const btn =
-  "relative size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9 rounded-none first:rounded-l-[2px] last:rounded-r-[2px] -ml-px first:ml-0 hover:z-10 focus-visible:z-10";
-const btnAfterGap = "ml-1.5 sm:ml-2 rounded-l-[2px]";
+  "relative size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9 rounded-none border-l-0 first:rounded-l-[2px] first:border-l last:rounded-r-[2px] hover:z-10 focus-visible:z-10";
+const btnAfterGap = "ml-2 rounded-l-[2px] border-l";
 const group = "flex items-center";
 
 export function BoardControls() {
@@ -97,7 +97,7 @@ export function BoardControls() {
   };
 
   return (
-    <div role="group" aria-label="Board controls" className="flex flex-wrap items-center justify-between gap-x-1 gap-y-1">
+    <div role="group" aria-label="Board controls" className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
       <div className={group}>
         <Tip label="Start" keys="↑">
           <Button variant="outline" size="icon" className={btn} onClick={toStart} disabled={atStart} aria-label="Go to start (↑)">
@@ -126,7 +126,7 @@ export function BoardControls() {
             <FlipVertical2 />
           </Button>
         </Tip>
-                <Tip label="Copy FEN">
+        <Tip label="Copy FEN">
           <Button variant="outline" size="icon" className={cn(btn, btnAfterGap)} onClick={copyFen} aria-label="Copy FEN">
             <Copy />
           </Button>

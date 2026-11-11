@@ -97,7 +97,7 @@ export function EvalBar() {
       aria-label={label}
       title={label}
       data-testid="eval-bar"
-      className="relative w-7 shrink-0 self-stretch rounded-[1px] border border-[var(--bar-border)] bg-[var(--bar-white)] bg-[image:var(--sheet-tile)] shadow-[0.5px_1px_1.5px_var(--btn-drop)]"
+      className="relative w-8 shrink-0 self-stretch rounded-[1px] border border-[var(--bar-border)] bg-[var(--bar-white)] bg-[image:var(--sheet-tile)] shadow-[0.5px_1px_1.5px_var(--btn-drop)]"
     >
       {/* the ruler's own cream ticks (over the white share) */}
       <Ticks whiteAtBottom={whiteAtBottom} color="color-mix(in oklab, var(--bar-black) 70%, transparent)" />
@@ -132,8 +132,7 @@ export function EvalBar() {
             <span
               data-tone="manila"
               className={cn(
-                "paper-label -mt-px block rounded-[1px] px-[3px] text-center font-mono leading-[13px] font-semibold tracking-tight tabular-nums whitespace-nowrap",
-                text.length > 4 ? "text-[8px]" : "text-[9px]",
+                "paper-label -mt-px block rounded-[1px] px-[2px] text-center font-mono text-[11px] leading-[15px] font-semibold tracking-tighter tabular-nums whitespace-nowrap",
                 local && "border-dashed bg-[var(--bar-white)] text-[var(--bar-white-fg)]",
                 mate && "bg-ink text-background",
               )}
