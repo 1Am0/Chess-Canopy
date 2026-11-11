@@ -9,7 +9,9 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { splitRare } from "@/components/explorer/rare";
 import { describePosition } from "@/components/board/describe-position";
 import { BOARD_THEMES } from "@/lib/board-themes";
-import { BoardOverlay, type OverlayArrow } from "@/components/board/BoardOverlay";
+import { BoardOverlay, type OverlayArrow, type UserArrow, type UserInk } from "@/components/board/BoardOverlay";
+import { fibreStrands, svgDataUri, washPath } from "@/lib/paper";
+import { useTheme } from "next-themes";
 
 const MAX_ARROWS = 3;
 const MIN_ARROW_SHARE = 0.1;
@@ -17,7 +19,42 @@ const MIN_WIDTH = 9.4; // 6/64 of a square (100 units)
 const MAX_WIDTH = 23.4; // 15/64 of a square
 const HOVER_WIDTH = 20;
 
-const overlay = (rgba: string) => `linear-gradient(${rgba}, ${rgba})`;
+/**
+ * Muted inks for arrows the user draws (right-drag, plus Shift / Ctrl / Alt / Cmd). The strings only matter while the
+ * stroke is being dragged (the library paints that preview); once committed, BoardOverlay redraws the arrow as ink.
+ */
+const USER_INKS: Record<string, UserInk> = {
+  "#4d7a55": "green",
+  "#a8503f": "red",
+  "#b88a2e": "ochre",
+  "#4a77a0": "blue",
+  "#5b574d": "graphite",
+};
+const INK_STRINGS = { default: "#4d7a55", shift: "#a8503f", ctrl: "#b88a2e", alt: "#4a77a0", meta: "#5b574d" };
+
+/** A very faint paper fibre for the squares (a static 96px tile; the squares themselves stay flat colour). */
+function fibreTile(seed: string, dark: string, light: string): string {
+  const strands = fibreStrands(seed, 96, 96, 26, { min: 6, max: 20, margin: 0, spread: Math.PI });
+  const half = Math.ceil(strands.length / 2);
+  const path = (ds: string[], stroke: string) => `<path d='${ds.join("")}' fill='none' stroke='${stroke}' stroke-width='0.7' stroke-linecap='round'/>`;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'>${path(strands.slice(0, half), dark)}${path(strands.slice(half), light)}</svg>`;
+  return `url("${svgDataUri(svg)}")`;
+}
+/**
+ * A highlighter wash for one square: two uneven passes of a marker. It is a background image of the square (so the
+ * piece stays crisp on top); in light mode it multiplies with the square colour like ink soaking into paper.
+ */
+function washImage(seed: string, color: string, alpha: number): string {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><g fill='${color}'><path transform='translate(3 3)' fill-opacity='${alpha}' d='${washPath(seed, 94, 94, 4)}'/><path transform='translate(8 2)' fill-opacity='${alpha * 0.6}' d='${washPath(`${seed}b`, 86, 96, 3)}'/></g></svg>`;
+  return `url("${svgDataUri(svg)}")`;
+}
+const WASH = {
+  light: { last: "#f6e98c", sel: "#b4dde4", alpha: 0.8, blend: "multiply" },
+  dark: { last: "#f1dc6a", sel: "#9fd9e0", alpha: 0.4, blend: "normal" },
+} as const;
+
+const FIBRE_LIGHT = fibreTile("sq-light", "rgba(60,45,20,0.07)", "rgba(255,255,255,0.35)");
+const FIBRE_DARK = fibreTile("sq-dark", "rgba(20,25,15,0.1)", "rgba(255,255,255,0.12)");
 
 export function ExplorerBoard() {
   const { fen, visible, lastMove, key, turn } = usePosition();
@@ -27,6 +64,8 @@ export function ExplorerBoard() {
   const boardTheme = useExplorerStore((s) => s.boardTheme);
   const playMove = useExplorerStore((s) => s.playMove);
   const [selected, setSelected] = useState<string | null>(null);
+  const { resolvedTheme } = useTheme();
+  const [userArrows, setUserArrows] = useState<UserArrow[]>([]);
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const box = useRef<HTMLDivElement>(null);
 
@@ -142,29 +181,23 @@ export function ExplorerBoard() {
   }, [result, key, fen, hoverMove]);
 
   const squareStyles = useMemo(() => {
-    const layers: Record<string, string[]> = {};
-    const add = (sq: string, img: string) => (layers[sq] ||= []).push(img);
-    // Layers are painted first-listed on top; build in top-to-bottom order.
-    for (const t of legalTargets) {
-      add(
-        t.to,
-        t.capture
-          ? "radial-gradient(circle, transparent 62%, rgba(20,20,20,0.3) 64%)"
-          : "radial-gradient(circle, rgba(20,20,20,0.28) 21%, transparent 23%)",
-      );
-    }
-    if (selected) add(selected, overlay("color-mix(in oklab, var(--highlight-selected) 50%, transparent)"));
-    if (lastMove) {
-      for (const sq of [lastMove.from, lastMove.to]) {
-        // a1 is dark: file+rank parity even => dark square.
-        const dark = (sq.charCodeAt(0) - 97 + Number(sq[1]) - 1) % 2 === 0;
-        add(sq, overlay(`color-mix(in oklab, var(--highlight-last) ${dark ? 65 : 45}%, transparent)`));
-      }
-    }
+    const w = resolvedTheme === "dark" ? WASH.dark : WASH.light;
     const s: Record<string, React.CSSProperties> = {};
-    for (const [sq, imgs] of Object.entries(layers)) s[sq] = { backgroundImage: imgs.join(", ") };
+    const mark = (sq: string, tone: "last" | "sel") => {
+      // a1 is dark: file+rank parity even => dark square.
+      const dark = (sq.charCodeAt(0) - 97 + Number(sq[1]) - 1) % 2 === 0;
+      s[sq] = {
+        backgroundImage: `${washImage(`${tone}${sq}`, w[tone], w.alpha)}, ${dark ? FIBRE_DARK : FIBRE_LIGHT}`,
+        backgroundBlendMode: `${w.blend}, normal`,
+      };
+    };
+    if (lastMove) {
+      mark(lastMove.from, "last");
+      mark(lastMove.to, "last");
+    }
+    if (selected) mark(selected, "sel");
     return s;
-  }, [lastMove, selected, legalTargets]);
+  }, [lastMove, selected, resolvedTheme]);
 
   const theme = BOARD_THEMES[boardTheme];
 
@@ -186,29 +219,29 @@ export function ExplorerBoard() {
           allowDrawingArrows: true,
           clearArrowsOnPositionChange: true,
           animationDurationInMs: reduceMotion ? 0 : 150,
+          onArrowsChange: ({ arrows: drawn }) =>
+            setUserArrows((prev) => {
+              const next = drawn.map((a) => ({ from: a.startSquare, to: a.endSquare, ink: USER_INKS[a.color] ?? "green" }));
+              return prev.length === 0 && next.length === 0 ? prev : next;
+            }),
           arrowOptions: {
-            colors: {
-              default: "rgba(22,163,74,0.85)",
-              shift: "rgba(220,38,38,0.85)",
-              ctrl: "rgba(245,124,0,0.85)",
-              alt: "rgba(21,101,192,0.85)",
-              meta: "rgba(147,51,234,0.85)",
-            },
-            color: "rgba(22,163,74,0.85)",
-            secondaryColor: "rgba(220,38,38,0.85)",
-            tertiaryColor: "rgba(245,124,0,0.85)",
+            colors: INK_STRINGS,
+            color: INK_STRINGS.default,
+            secondaryColor: INK_STRINGS.shift,
+            tertiaryColor: INK_STRINGS.ctrl,
             arrowLengthReducerDenominator: 8,
             sameTargetArrowLengthReducerDenominator: 4,
             arrowWidthDenominator: 5.5,
             activeArrowWidthMultiplier: 0.9,
-            opacity: 1,
-            activeOpacity: 0.6,
+            // Committed arrows are redrawn as ink by BoardOverlay; the library only paints the stroke being dragged.
+            opacity: 0,
+            activeOpacity: 0.45,
             arrowStartOffset: 0.15,
           },
           squareStyles,
-          lightSquareStyle: { backgroundColor: theme.light },
-          darkSquareStyle: { backgroundColor: theme.dark },
-          dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,255,255,0.7)" },
+          lightSquareStyle: { backgroundColor: theme.light, backgroundImage: FIBRE_LIGHT },
+          darkSquareStyle: { backgroundColor: theme.dark, backgroundImage: FIBRE_DARK },
+          dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,252,238,0.75)" },
           draggingPieceStyle: { transform: "scale(1.1)" },
           onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare ? tryMove(sourceSquare, targetSquare) : false),
           onSquareClick: ({ square }) => {
@@ -223,7 +256,7 @@ export function ExplorerBoard() {
           },
         }}
       />
-      <BoardOverlay orientation={orientation} arrows={arrows} />
+      <BoardOverlay orientation={orientation} arrows={arrows} userArrows={userArrows} marks={{ targets: legalTargets }} />
     </div>
   );
 }

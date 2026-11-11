@@ -46,7 +46,8 @@ export function BoardColumn() {
       <div data-testid="strip-bottom" className="pl-8">
         <PlayerStrip you={bottomIsYou} color={bottomIsYou ? side : opp} />
       </div>
-      <div className="pl-8">
+      {/* indented to the board's edge, except on the narrowest phones where the two card strips need the full width to stay on one row */}
+      <div className="pl-0 min-[360px]:pl-8">
         <BoardControls />
       </div>
     </PaperSheet>

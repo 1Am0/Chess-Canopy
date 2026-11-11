@@ -508,6 +508,16 @@ Same hard constraints (section 5 and R3.4). Every agent screenshots its work
 in light and dark (scripts in the scratchpad; coordinator rebuilds between
 merges), self-reviews at least twice, and logs to the Status log.
 
+- **Workstream H (Overlays & pages): done.**
+  - Files: `components/layout/{Header,ThemeToggle,SoundToggle,ShortcutsDialog,AppShell}.tsx`, `components/players/{PlayerSwitcher,ImportForm,ImportProgress,ImportIndicator,PlayerManager}.tsx`, `components/filters/FilterSheet.tsx`, `components/onboarding/{Welcome,SpecimenPlate}.tsx`.
+  - Header: theme / sound / help are round `chit` buttons; the player switcher trigger has a drawn dog-ear (folded corner); filter count is an ink dot. Appearance menu: dropped the local padding/separator overrides (kit card), `RubberStamp` "default", swatches are mounted mini prints. Switcher popover: `paper-row` rows (wash on hover / focus-within), manila `PaperLabel` source tags, pencil separators.
+  - Import: source tabs now use the kit folder tabs (local overrides removed); drop zones are `Envelope` pockets (flap lifts on drag); progress is a manila measuring tape (ticks + numbers, ink-green length); header chip is a `paper-label`. Manager: each player is a `PaperSheet` register card with a taped manila source label, red head rule, `RubberStamp` on the delete confirmation, `EmptySpecimen` when empty. Shortcuts: "key to symbols" with paper keycaps (multi-key entry split into Tab / arrows / Enter).
+  - Filters: time control chips are kit outline buttons (`aria-pressed` = pushed in), opponent trigger override dropped, the Win/Draw/Loss perspective is a pencil `Handnote` (the sentence stays in the description as `sr-only`).
+  - AppShell LoadingShell: desk ground now also while loading, board mat + explorer sheet (`PaperSheet`) with the pencilled skeleton lines in the same slots.
+  - Welcome: desk spread. Headline on a cream sheet over an under-sheet with tape, import form on an index card (red head rule, sage tape), the plate as a print with photo corners on a mat, steps as numbered manila tabs, one true pencil note ("wider ribbon = played more often"), footer line on a paper label. Checked at 320/390 px (no horizontal scroll). SpecimenPlate lost its own border/bg tint (mat provides the frame); caption reworded.
+  - Checks: typecheck, lint, vitest, e2e 34/34. Screenshots in light and dark over two iterations (`shots/h2-*`, `h2b-*`, `h2c-*`).
+  - Risks / notes: dark-mode Envelope pocket is a light grey overlay (kit `oklch(1 0 0 / .16)`), reads a little pale; Welcome desktop leaves empty desk under the plate column; forced-colors not visually tested. Requests: none.
+
 ---
 
 # Paper kit v2 reference (Workstream K)
@@ -567,3 +577,30 @@ Generators in `lib/paper.ts` (all tested in `tests/paper.test.ts`): `inkStrokePa
 - Toggle/pressed look is built into `.paper-btn` (`aria-pressed`, `aria-expanded`, `data-state=open|on`), so toolbar toggles need no extra classes.
 - Dark mode: highlight washes are dark bands behind text, tapes are low-alpha without multiply, notes are olive; do not hard-code light-only colours in new objects, use the tokens.
 - `PaperSheet`/`paper-scope` inside menus is not needed: `.paper-card` already redefines `--card/--background/--specimen`.
+
+- **Workstream E (Board): done.**
+  - Files: `components/board/{EvalBar,BoardOverlay,ExplorerBoard,PlayerStrip,BoardControls,BoardColumn}.tsx` only.
+  - Eval bar: cream measuring strip, printed ticks per pawn (major 0/+-2/+-5, cream copies over the ink), black share is an ink fill cut with a seeded
+    irregular `clip-path` polygon (same vertex count, so it still animates), a paper tag with a notch at the boundary carries the mono value on the larger side.
+    States: loading = pulsing pencil hatch, no eval = static hatch, cloud = manila tag, local = dashed cream tag, mate = inverted ink tag. Same slot (w-7, self-stretch), role="img" + labels unchanged.
+  - Board: squares flat with a faint seeded fibre tile; last-move / selected = two-pass highlighter wash as a background image of the square (multiply with the square colour in light,
+    lighter alpha in dark, pieces stay crisp); legal moves = ink dots, captures = seeded ink rings (overlay); coordinates mono in ink tones, no outline.
+  - Arrows: three overlay layers (ink dots + coords, paper under-stroke, ink). Candidates = tapered `inkArrowPath` in blue-black ink (knights are an L: stroke + arrow), width and opacity still encode share,
+    hover preview = graphite pencil with a second thinner pass. Seeded by from+to. Fixed node count kept (3 candidate slots + 1 hover, each with a constant number of nodes). User-drawn arrows: the library now only paints the
+    in-progress drag (muted ink at 45%); committed arrows (`onArrowsChange`) are redrawn as ink in green / red / ochre / blue / graphite (default / Shift / Ctrl / Alt / Cmd).
+  - Strips / toolbar: names are `PaperLabel`s (You = manila), side = ink blot (Black) or pen ring (White); toolbar = two runs of `outline` card buttons sharing borders (32px / 36px, all names kept).
+    Toolbar loses the board-edge indent below 360px so both runs stay on one row at 320 (checked 320/360/390).
+  - Local tokens: `--ov-*` ink colours are defined in a `<style>` inside BoardOverlay (light + `.dark`), because `globals.css` is not mine. Candidate for K to promote to tokens if wanted.
+  - Risks: overlay highlights moved from the overlay to `squareStyles`, which reads `resolvedTheme` (light for one frame before hydration); user-drag preview uses literal colour strings; hairline wash edges look cut at the square boundary by design.
+  - Checks: typecheck, lint, vitest; screenshots `shots/e2-*` (light/dark/mobile, select, hover, user arrows, eval states). Requests: none.
+
+- **Workstream F (Explorer, S2.2): done.**
+  - Files: `components/explorer/{WdbBar,MoveRow,MoveTable,LinePanel,GamesList,CanopyTree,OpeningHeader}.tsx`, new `components/explorer/ink.tsx` (seeded pencil underline / margin tick / sort arrow / cross / slash marks), `components/filters/FilterRow.tsx`, `components/layout/SideSwitch.tsx`.
+  - Side switch: kit ToggleGroup items with `folder-tab`, active forward with a pencil underline under the name, mono counts (h-11, radio roles/names kept). Opening header: faint pencil crumbs with pencil slashes, italic serif name. Filter row: `PaperLabel` manila tags held by a small `PaperClip`, drawn cross to remove, tag-button "Clear all", "+ add filter" as a Caveat pencil note (aria-label "Add filter", h-8 kept).
+  - Line strip: `TicketEdge` perforated (role=region "Line"), mono moves, current move in an `InkCircle` seeded per ply, "Start" a small `RubberStamp` (aria-current, keep-in-view, h-11 kept).
+  - W/D/B bar: three strips (paper / graphite / ink) with seeded irregular cut ends (clip-path), a printed hairline outline via drop-shadows, mono labels; legend swatches are tiny paper snips. `WdbBar` takes a `seed`.
+  - Move table: active row = `HighlighterWash` across the row (the `tr` is the containing block) + pencil margin tick; low-sample rows pencilled; ink sort arrows; rare toggle as a pencil note. Games: `RubberStamp` W/D/L (seeded tilt within 1.8deg), mono dates, ink-underlined names, loaded game = green wash. Canopy: three-layer multiplied watercolour ribbons, node bars via `inkStrokePath`, legend as a paper key card, depth buttons are kit outline `xs` buttons.
+  - Dropped local fake styling (borders / tints / ring classes) on Button and the Line box; kept `TRIGGER` overrides in `ExplorerPanel` (they still merge with the kit's folder tab).
+  - Checks: typecheck, lint, vitest, e2e (see log). Screenshots: `scratchpad/shots/f2-{light,dark}-{a-start,b-moves,c-games,d-canopy,e-black}.png`, `f2-mobile-light.png`.
+  - Risks: the row wash relies on `position: relative` on `tr` (works in Chromium; Firefox/Safari untested, falls back to the wash behind the first cell only). The PencilUnderline needs an inline size because `Button` forces `svg:size-4`. Canopy hover emphasis now raises three stacked opacities.
+  - Requests: none.

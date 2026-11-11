@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Chess } from "chess.js";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
 
@@ -44,16 +45,19 @@ function Tip({ label, keys, children }: { label: string; keys?: string; children
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent>
         {label}
-        {keys && <kbd className="ml-1.5 rounded-[2px] bg-background/20 px-1 font-mono text-[10px]">{keys}</kbd>}
+        {keys && <kbd className="ml-1.5 rounded-[1px] border border-current/30 px-1 font-mono text-[10px]">{keys}</kbd>}
       </TooltipContent>
     </Tooltip>
   );
 }
 
-// Below sm (640px) buttons are 32px and the groups are tight so both groups fit on one row
-// in the 276px-wide toolbar of a 320px viewport. From sm up, the original 36px / gap-0.5 look.
-const btn = "size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9";
-const group = "flex items-center gap-0 sm:gap-0.5 rounded-md border border-rule-strong bg-card p-0.5";
+// Below sm (640px) buttons are 32px so both strips fit on one row in the 276px-wide toolbar of a 320px viewport
+// (4 x 32 minus shared borders, twice, plus a gap). From sm up they are 36px. Each strip is a run of card buttons
+// butted together like a ticket of cards: they share a border, and the hovered / focused one lifts above its neighbours.
+const btn =
+  "relative size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9 rounded-none first:rounded-l-[2px] last:rounded-r-[2px] -ml-px first:ml-0 hover:z-10 focus-visible:z-10";
+const btnAfterGap = "ml-1.5 sm:ml-2 rounded-l-[2px]";
+const group = "flex items-center";
 
 export function BoardControls() {
   const cursor = useExplorerStore((s) => s.cursor);
@@ -96,45 +100,44 @@ export function BoardControls() {
     <div role="group" aria-label="Board controls" className="flex flex-wrap items-center justify-between gap-x-1 gap-y-1">
       <div className={group}>
         <Tip label="Start" keys="↑">
-          <Button variant="ghost" size="icon" className={btn} onClick={toStart} disabled={atStart} aria-label="Go to start (↑)">
+          <Button variant="outline" size="icon" className={btn} onClick={toStart} disabled={atStart} aria-label="Go to start (↑)">
             <ChevronsLeft />
           </Button>
         </Tip>
         <Tip label="Previous move" keys="←">
-          <Button variant="ghost" size="icon" className={btn} onClick={undo} disabled={atStart} aria-label="Previous move (←)">
+          <Button variant="outline" size="icon" className={btn} onClick={undo} disabled={atStart} aria-label="Previous move (←)">
             <ChevronLeft />
           </Button>
         </Tip>
         <Tip label="Next move" keys="→">
-          <Button variant="ghost" size="icon" className={btn} onClick={redo} disabled={atEnd} aria-label="Next move (→)">
+          <Button variant="outline" size="icon" className={btn} onClick={redo} disabled={atEnd} aria-label="Next move (→)">
             <ChevronRight />
           </Button>
         </Tip>
         <Tip label="End" keys="↓">
-          <Button variant="ghost" size="icon" className={btn} onClick={toEnd} disabled={atEnd} aria-label="Go to end (↓)">
+          <Button variant="outline" size="icon" className={btn} onClick={toEnd} disabled={atEnd} aria-label="Go to end (↓)">
             <ChevronsRight />
           </Button>
         </Tip>
       </div>
       <div className={group}>
         <Tip label="Flip board" keys="F">
-          <Button variant="ghost" size="icon" className={btn} onClick={flip} aria-label="Flip board (F)">
+          <Button variant="outline" size="icon" className={btn} onClick={flip} aria-label="Flip board (F)">
             <FlipVertical2 />
           </Button>
         </Tip>
-        <span className="mx-0 h-5 w-px bg-rule-strong sm:mx-0.5" aria-hidden />
-        <Tip label="Copy FEN">
-          <Button variant="ghost" size="icon" className={btn} onClick={copyFen} aria-label="Copy FEN">
+                <Tip label="Copy FEN">
+          <Button variant="outline" size="icon" className={cn(btn, btnAfterGap)} onClick={copyFen} aria-label="Copy FEN">
             <Copy />
           </Button>
         </Tip>
         <Tip label="Copy PGN of this line">
-          <Button variant="ghost" size="icon" className={btn} onClick={copyPgn} aria-label="Copy PGN">
+          <Button variant="outline" size="icon" className={btn} onClick={copyPgn} aria-label="Copy PGN">
             <ListOrdered />
           </Button>
         </Tip>
         <Tip label="Copy share link">
-          <Button variant="ghost" size="icon" className={btn} onClick={copyLink} aria-label="Copy share link">
+          <Button variant="outline" size="icon" className={btn} onClick={copyLink} aria-label="Copy share link">
             <Link2 />
           </Button>
         </Tip>
