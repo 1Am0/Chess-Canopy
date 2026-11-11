@@ -6,14 +6,9 @@ export interface BoardPalette {
 }
 
 /**
- * Square palettes harmonized with the Canopy brand (see docs/palette.md).
- * Default theme is "lichen"; its values are mirrored by `--board-light` /
- * `--board-dark` in app/globals.css. Keep the two in sync.
+ * Board square colors (see docs/palette.md). The values are mirrored by
+ * `--board-light` / `--board-dark` in app/globals.css. Keep the two in sync.
  */
 export const BOARD_THEMES: Record<BoardTheme, BoardPalette> = {
   lichen: { light: "#e8e4d4", dark: "#8fa08a" },
-  green: { light: "#ecefd6", dark: "#6e9358" },
-  brown: { light: "#f0dbb8", dark: "#b3865c" },
-  blue: { light: "#dfe6ea", dark: "#7f9aa8" },
-  slate: { light: "#d3d7de", dark: "#667690" },
 };

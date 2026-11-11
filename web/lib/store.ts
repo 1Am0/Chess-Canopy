@@ -6,7 +6,7 @@ import type { Color, Filters, Player, QueryResult, SelectionSummary } from "@/li
 import { DEFAULT_SOUND_THEME, setSoundsEnabled, type SoundTheme } from "@/lib/sound";
 import { canonicalLine, legalSan, linePositions } from "@/lib/position-cache";
 
-export type BoardTheme = "lichen" | "green" | "brown" | "blue" | "slate";
+export type BoardTheme = "lichen";
 
 function readLocal(key: string): string | null {
   try {
@@ -336,7 +336,7 @@ export function migratePersisted(persisted: unknown, version: number): ExplorerS
   }
   if (version < 3 && p.sideExplicit === undefined) p = { ...p, sideExplicit: false };
   // v4: the default sound theme became "standard" (Lichess default); nobody picked "sfx" on purpose yet.
-  if (version < 4 && (p.soundTheme === undefined || p.soundTheme === "sfx")) p = { ...p, soundTheme: "standard" };
+  if (version < 4 && (p.soundTheme === undefined || (p.soundTheme as string) === "sfx")) p = { ...p, soundTheme: "standard" };
   // v5: one look only (Lichen board, "standard" sounds). The pickers are gone, so older stored choices are dropped.
   if (version < 5) {
     delete p.boardTheme;
