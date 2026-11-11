@@ -47,6 +47,13 @@ const ALL_SQUARES = Array.from({ length: 64 }, (_, i) => `${"abcdefgh"[i % 8]}${
 
 export function ExplorerBoard() {
   const { fen, visible, lastMove, key, turn } = usePosition();
+  // Stepping back over a capture brings a piece back, and the library's slide animation pairs the pieces up wrongly
+  // (two of them fly across the board for a moment). More pieces than before = a capture was undone: snap, don't slide.
+  const [seenFen, setSeenFen] = useState({ fen, pieces: pieceCount(fen), snap: false });
+  if (seenFen.fen !== fen) {
+    const pieces = pieceCount(fen);
+    setSeenFen({ fen, pieces, snap: pieces > seenFen.pieces });
+  }
   const orientation = useExplorerStore((s) => s.orientation);
   const result = useExplorerStore((s) => s.result);
   const hoverMove = useExplorerStore((s) => s.hoverMove);
@@ -261,7 +268,7 @@ export function ExplorerBoard() {
           showNotation: false,
           allowDrawingArrows: true,
           clearArrowsOnPositionChange: true,
-          animationDurationInMs: reduceMotion ? 0 : 160,
+          animationDurationInMs: reduceMotion || seenFen.snap ? 0 : 160,
           onArrowsChange: ({ arrows: drawn }) =>
             setUserArrows((prev) => {
               const next = drawn.map((a) => ({ from: a.startSquare, to: a.endSquare, ink: USER_INKS[a.color] ?? "green" }));
@@ -302,4 +309,9 @@ export function ExplorerBoard() {
       <BoardOverlay orientation={orientation} arrows={arrows} userArrows={userArrows} marks={{ targets: legalTargets }} />
     </div>
   );
+}
+
+/** Number of pieces on the board in a FEN. */
+function pieceCount(fen: string): number {
+  return fen.split(" ")[0].replace(/[^a-zA-Z]/g, "").length;
 }
