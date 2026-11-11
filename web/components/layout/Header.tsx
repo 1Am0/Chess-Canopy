@@ -31,7 +31,7 @@ export function Header({ showTools }: { showTools: boolean }) {
               <Filter />
               <span className="hidden sm:inline">Filters</span>
               {count > 0 && (
-                <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-sm bg-primary px-1 font-mono text-xs font-semibold text-primary-foreground tabular-nums">
+                <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-sm bg-primary px-1 text-xs font-semibold text-primary-foreground tabular-nums">
                   {count}
                 </span>
               )}

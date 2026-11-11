@@ -41,7 +41,7 @@ export function SideSwitch({ className }: { className?: string }) {
             key={s.id}
             value={s.id}
             aria-label={`View games as ${s.label}`}
-            className="group/side -mb-px h-full min-w-0 flex-1 justify-center gap-2 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 first:rounded-none last:rounded-none hover:bg-accent data-[state=on]:border-primary data-[state=on]:bg-transparent data-[state=on]:text-ink [&:not(:first-child)]:ml-0"
+            className="group/side -mb-px h-full min-w-0 flex-1 justify-center gap-2 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 first:rounded-none last:rounded-none hover:bg-accent data-[state=on]:border-primary data-[state=on]:bg-transparent data-[state=on]:text-strong [&:not(:first-child)]:ml-0"
           >
             <span className="font-semibold">{s.label}</span>
             <span className="min-w-[5ch] text-left text-sm font-normal text-muted-foreground tabular-nums">

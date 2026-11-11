@@ -329,7 +329,7 @@ export function migratePersisted(persisted: unknown, version: number): ExplorerS
     p = { ...p, filters };
   }
   if (version < 3 && p.sideExplicit === undefined) p = { ...p, sideExplicit: false };
-  // v5: one look only (Lichen board, standard sounds). The pickers are gone, so older stored choices are dropped.
+  // v5: one look only (default board colors, standard sounds). The pickers are gone, so older stored choices are dropped.
   if (version < 5) {
     delete (p as Record<string, unknown>).boardTheme;
     delete (p as Record<string, unknown>).soundTheme;

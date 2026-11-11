@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { inkArrowPath, inkEllipsePath, inkStrokePath } from "@/lib/strokes";
+import { arrowPath, ellipsePath, strokePath } from "@/lib/strokes";
 
 export type OverlayArrowKind = "candidate" | "hover";
-export type UserInk = "green" | "red" | "ochre" | "blue" | "graphite";
+export type UserColor = "green" | "red" | "amber" | "blue" | "gray";
 
 export interface OverlayArrow {
   from: string;
@@ -18,7 +18,7 @@ export interface OverlayArrow {
 export interface UserArrow {
   from: string;
   to: string;
-  ink: UserInk;
+  color: UserColor;
 }
 
 export interface OverlayMarks {
@@ -60,8 +60,8 @@ const norm = (v: Pt): Pt => {
 };
 
 /** Arrow width multipliers; move frequency still scales the width. */
-const INK_SCALE = 0.78;
-const PENCIL_SCALE = 0.62;
+const STROKE_SCALE = 0.78;
+const PREVIEW_SCALE = 0.62;
 const TIP_GAP = 26; // the tip stops short of the target center so the piece stays visible
 const START_GAP = 16;
 
@@ -83,8 +83,8 @@ function geometry(from: string, to: string, kind: OverlayArrowKind | "user", wid
   const dy = Math.abs(t.y - s.y) / 100;
   const knight = (dx === 1 && dy === 2) || (dx === 2 && dy === 1);
   const seed = `${from}${to}${kind === "hover" ? "p" : ""}`;
-  const pencil = kind === "hover";
-  const w = width * (pencil ? PENCIL_SCALE : INK_SCALE);
+  const preview = kind === "hover";
+  const w = width * (preview ? PREVIEW_SCALE : STROKE_SCALE);
 
   const legs = (sd: string, off: number, wMul: number, taperTail: number): string => {
     const ww = w * wMul;
@@ -100,20 +100,20 @@ function geometry(from: string, to: string, kind: OverlayArrowKind | "user", wid
       const c2 = add(corner, n2);
       const tip = add(add(t, d2, -TIP_GAP), n2);
       return (
-        inkStrokePath(`${sd}a`, a.x, a.y, c1.x, c1.y, { width: ww }) +
-        inkArrowPath(`${sd}b`, c2.x, c2.y, tip.x, tip.y, { width: ww, taper: taperTail, ...head })
+        strokePath(`${sd}a`, a.x, a.y, c1.x, c1.y, { width: ww }) +
+        arrowPath(`${sd}b`, c2.x, c2.y, tip.x, tip.y, { width: ww, taper: taperTail, ...head })
       );
     }
     const dir = norm(sub(t, s));
     const n: Pt = { x: -dir.y * off, y: dir.x * off };
     const a = add(add(s, dir, START_GAP), n);
     const tip = add(add(t, dir, -TIP_GAP), n);
-    return inkArrowPath(sd, a.x, a.y, tip.x, tip.y, { width: ww, ...head });
+    return arrowPath(sd, a.x, a.y, tip.x, tip.y, { width: ww, ...head });
   };
 
   return {
     d: legs(seed, 0, 1, 1),
-    d2: pencil ? legs(`${seed}2`, 5, 0.55, 1) : "",
+    d2: preview ? legs(`${seed}2`, 5, 0.55, 1) : "",
   };
 }
 
@@ -124,12 +124,12 @@ const OVERLAY_CSS = `
     --ov-halo: color-mix(in oklab, var(--bar-white) 72%, transparent);
     --ov-dot: oklch(0.22 0.03 160 / 0.62);
     --ov-cand: oklch(0.3 0.07 262);
-    --ov-pencil: oklch(0.4 0.012 80);
+    --ov-preview: oklch(0.4 0.012 80);
     --ov-green: oklch(0.42 0.1 152);
     --ov-red: oklch(0.47 0.15 28);
-    --ov-ochre: oklch(0.58 0.12 78);
+    --ov-amber: oklch(0.58 0.12 78);
     --ov-blue: oklch(0.46 0.1 238);
-    --ov-graphite: oklch(0.32 0.01 80);
+    --ov-gray: oklch(0.32 0.01 80);
   }
   .board-overlay .ov-arrow { transition: opacity 180ms ease; }
   @media (prefers-reduced-motion: reduce) {
@@ -140,12 +140,12 @@ const OVERLAY_CSS = `
   }
 `;
 
-const INK_VAR: Record<UserInk, string> = {
+const COLOR_VAR: Record<UserColor, string> = {
   green: "var(--ov-green)",
   red: "var(--ov-red)",
-  ochre: "var(--ov-ochre)",
+  amber: "var(--ov-amber)",
   blue: "var(--ov-blue)",
-  graphite: "var(--ov-graphite)",
+  gray: "var(--ov-gray)",
 };
 
 const svgBase = "board-overlay pointer-events-none absolute inset-0 z-20 size-full select-none";
@@ -204,7 +204,7 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
     () =>
       (marks?.targets ?? []).map((t) => {
         const c = squareCenter(t.to, orientation);
-        return { ...t, c, ring: t.capture ? inkEllipsePath(`cap${t.to}`, 88, 88, { pad: 3, turns: 1.08, wobble: 0.025 }) : "" };
+        return { ...t, c, ring: t.capture ? ellipsePath(`cap${t.to}`, 88, 88, { pad: 3, turns: 1.08, wobble: 0.025 }) : "" };
       }),
     [marks?.targets, orientation],
   );
@@ -263,17 +263,17 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
       </svg>
 
       {/* Layer 3: the arrows. Candidates are dark blue (thicker = played more); the hover preview is dark gray. */}
-      <svg viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-ink`} style={{ pointerEvents: "none", mixBlendMode: "multiply" }}>
+      <svg viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-stroke`} style={{ pointerEvents: "none", mixBlendMode: "multiply" }}>
         {slots.map(({ a, g, show }, i) => (
           <g key={i} className="ov-arrow" data-slot={i} style={{ opacity: show ? 0.82 : 0, visibility: show ? "visible" : "hidden" }}>
             <g style={{ opacity: a.opacity }}>
-              <path d={g.d} style={{ fill: a.kind === "hover" ? "var(--ov-pencil)" : "var(--ov-cand)" }} />
-              <path d={g.d2} style={{ fill: "var(--ov-pencil)", opacity: 0.7 }} />
+              <path d={g.d} style={{ fill: a.kind === "hover" ? "var(--ov-preview)" : "var(--ov-cand)" }} />
+              <path d={g.d2} style={{ fill: "var(--ov-preview)", opacity: 0.7 }} />
             </g>
           </g>
         ))}
         {users.map((u) => (
-          <path key={`${u.from}${u.to}`} d={u.g.d} style={{ fill: INK_VAR[u.ink], opacity: 0.86 }} />
+          <path key={`${u.from}${u.to}`} d={u.g.d} style={{ fill: COLOR_VAR[u.color], opacity: 0.86 }} />
         ))}
       </svg>
     </>

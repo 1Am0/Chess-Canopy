@@ -28,7 +28,7 @@
   --input: oklch(0.64 0.008 255);
   --ring: oklch(0.5 0.1 190);
 
-  --ink: oklch(0.16 0.01 255);
+  --strong: oklch(0.16 0.01 255);
   --rule-strong: oklch(0.64 0.008 255);
   --scrim: oklch(0.2 0.01 255 / 0.4);
   --pop-shadow: 0 6px 20px -4px oklch(0.2 0.01 255 / 0.18);
@@ -81,7 +81,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ink: var(--ink);
+  --color-strong: var(--strong);
   --color-rule-strong: var(--rule-strong);
   --color-tree-low: var(--tree-low);
   --color-tree-mid: var(--tree-mid);
@@ -132,7 +132,7 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
-  /* Mono (moves, codes, tabular numbers): Martian Mono wdth axis at 87.5% (wdth 75-112.5). */
+  /* Mono (moves and codes): Martian Mono wdth axis at 87.5% (wdth 75-112.5). */
   .font-mono,
   code,
   kbd {
@@ -140,7 +140,7 @@
   }
   ::selection {
     background: color-mix(in oklab, var(--primary) 24%, transparent);
-    color: var(--ink);
+    color: var(--strong);
   }
   ::-webkit-scrollbar {
     width: 10px;

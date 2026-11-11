@@ -5,7 +5,7 @@ Chess Canopy is a quiet, dense tool for reading your own openings. The interface
 ## Look
 
 - Light mode only. A neutral light palette with one deep teal-green accent. The exact values live in [`palette.md`](palette.md); do not copy them elsewhere.
-- One sans font, Schibsted Grotesk, for all UI text. Martian Mono for moves, codes (SAN, FEN, ECO) and tabular numbers such as percentages, counts, dates and rating ticks.
+- One sans font, Schibsted Grotesk, for all UI text. Martian Mono only for moves and codes (SAN, FEN, ECO). Numbers use the sans with tabular figures.
 - Flat panels with 1px borders. Shadow is used only on floating layers (popovers, dialogs, toasts).
 - Corners are lightly rounded and consistent across controls and panels.
 

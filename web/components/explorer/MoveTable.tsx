@@ -25,7 +25,7 @@ const FOOT_PX = 32;
 const NO_ROWS: NextMove[] = [];
 
 /**
- * The Moves tab: a scroll region with a sticky header and a sticky Σ total row
+ * The Moves tab: a scroll region with a sticky header and a sticky total row
  * (Lichess explorer style). Every row is a single 32px line. Rare moves, the loading
  * state and the empty / out-of-book states all live inside the same region, so the
  * region's size never depends on the position.
@@ -138,8 +138,8 @@ export function MoveTable({ className }: { className?: string }) {
         type="button"
         onClick={() => toggle(k)}
         className={cn(
-          "-mx-1 inline-flex min-h-6 min-w-6 items-center gap-1 whitespace-nowrap px-1 outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
-          sort.key === k && "text-ink",
+          "-mx-1 inline-flex min-h-6 min-w-6 items-center gap-1 whitespace-nowrap px-1 outline-none hover:text-strong focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
+          sort.key === k && "text-strong",
         )}
       >
         {short ? (
@@ -227,7 +227,7 @@ export function MoveTable({ className }: { className?: string }) {
                     type="button"
                     aria-expanded={showRare}
                     onClick={() => setShowRare((v) => !v)}
-                    className="flex h-8 w-full items-center justify-center gap-1.5 px-3 text-sm leading-none text-muted-foreground outline-none hover:bg-secondary hover:text-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                    className="flex h-8 w-full items-center justify-center gap-1.5 px-3 text-sm leading-none text-muted-foreground outline-none hover:bg-secondary hover:text-strong focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring"
                   >
                     {showRare ? "Hide" : "Show"} {rare.length} rare {rare.length === 1 ? "move" : "moves"}
                     {showRare ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />}
@@ -242,7 +242,7 @@ export function MoveTable({ className }: { className?: string }) {
           <tfoot className="sticky bottom-0 z-10">
             <tr className="h-8 bg-card font-semibold [&>td]:border-t [&>td]:border-border">
               <td className={COL.move}>
-                <span className="text-base text-ink" aria-label="Total">Σ</span>
+                <span className="text-sm font-medium text-strong">Total</span>
               </td>
               <td className={cn(COL.games, "text-[13px]")}>{compact(total)}</td>
               <td className={cn(COL.share, "text-xs font-normal text-muted-foreground")}>100%</td>

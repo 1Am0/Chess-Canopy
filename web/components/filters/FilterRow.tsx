@@ -62,7 +62,7 @@ export function FilterRow({ className }: { className?: string }) {
       {chips.length === 0 ? (
         <>
           <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">All games · no filters</p>
-          <Button variant="ghost" size="sm" aria-label="Add filter" className="h-7 px-2 text-sm font-medium text-ink underline decoration-ink/40 underline-offset-[3px] hover:bg-transparent hover:decoration-ink" onClick={() => setUi({ filtersOpen: true })}>
+          <Button variant="ghost" size="sm" aria-label="Add filter" className="h-7 px-2 text-sm font-medium text-strong underline decoration-strong/40 underline-offset-[3px] hover:bg-transparent hover:decoration-strong" onClick={() => setUi({ filtersOpen: true })}>
             <span aria-hidden>+ Add filter</span>
           </Button>
         </>
@@ -74,13 +74,13 @@ export function FilterRow({ className }: { className?: string }) {
             className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto overscroll-x-contain whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {chips.map((c) => (
-              <span key={c.label} className="inline-flex h-6 shrink-0 items-center gap-1 rounded-sm border border-input pr-0.5 pl-2 text-xs text-ink">
+              <span key={c.label} className="inline-flex h-6 shrink-0 items-center gap-1 rounded-sm border border-input pr-0.5 pl-2 text-xs text-strong">
                 {c.label}
                 <button
                   type="button"
                   onClick={() => setFilters(c.clear)}
                   aria-label={`Remove filter ${c.label}`}
-                  className="grid size-5 place-items-center text-muted-foreground outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-1px] focus-visible:outline-ring"
+                  className="grid size-5 place-items-center text-muted-foreground outline-none hover:text-strong focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-1px] focus-visible:outline-ring"
                 >
                   <X className="size-3" aria-hidden />
                 </button>

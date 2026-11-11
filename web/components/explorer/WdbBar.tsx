@@ -55,7 +55,7 @@ export function WdbBar({
             key={s.key}
             title={w && n ? `${s.name}: ${n.toLocaleString()} (${Math.round(pc)}%)` : undefined}
             className={cn(
-              "flex h-full min-w-0 items-center justify-center overflow-hidden font-mono whitespace-nowrap transition-[width] duration-300 ease-out motion-reduce:transition-none forced-colors:border forced-colors:border-[CanvasText]",
+              "flex h-full min-w-0 items-center justify-center overflow-hidden tabular-nums font-medium whitespace-nowrap transition-[width] duration-300 ease-out motion-reduce:transition-none forced-colors:border forced-colors:border-[CanvasText]",
               s.cls,
             )}
             style={{ width: `${pc}%` }}

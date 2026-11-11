@@ -58,7 +58,7 @@ export function PlayerManager() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Manage players</DialogTitle>
-          <DialogDescription>Export a player as schema v1 JSON for the Python CLI.</DialogDescription>
+          <DialogDescription>Download a player&rsquo;s games as a JSON file.</DialogDescription>
         </DialogHeader>
         <ul className="-mx-1 max-h-[60vh] space-y-4 overflow-y-auto px-1 pt-1 pb-2">
           {players.length === 0 && (

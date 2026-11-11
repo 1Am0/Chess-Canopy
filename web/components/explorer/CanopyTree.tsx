@@ -292,10 +292,10 @@ export function CanopyTree({ active }: { active: boolean }) {
                     width={NODE_W}
                     height={p.h}
                     rx={1}
-                    style={{ fill: root ? "var(--ink)" : `color-mix(in oklab, ${scoreColor(p.sc)} 72%, var(--ink))` }}
+                    style={{ fill: root ? "var(--strong)" : `color-mix(in oklab, ${scoreColor(p.sc)} 72%, var(--strong))` }}
                   />
                   {root && lay.padL >= PAD_L && (
-                    <text x={p.x - 7} textAnchor="end" y={cy - 1} className="font-sans" style={{ fontSize: 13, fontWeight: 600, fill: "var(--ink)" }}>
+                    <text x={p.x - 7} textAnchor="end" y={cy - 1} className="font-sans" style={{ fontSize: 13, fontWeight: 600, fill: "var(--strong)" }}>
                       {label}
                       <tspan x={p.x - 7} dy={13} className="font-sans" style={{ fontSize: 12, fontVariantNumeric: "tabular-nums", fill: "var(--muted-foreground)" }}>
                         {compact(games)} {games === 1 ? "game" : "games"}
@@ -309,7 +309,7 @@ export function CanopyTree({ active }: { active: boolean }) {
                         y={two ? cy - 2 : cy}
                         dominantBaseline={two ? "auto" : "central"}
                         className="font-mono"
-                        style={{ fontSize: 12, fontWeight: 600, fill: "var(--ink)" }}
+                        style={{ fontSize: 12, fontWeight: 600, fill: "var(--strong)" }}
                       >
                         {label}
                       </text>
@@ -366,13 +366,13 @@ export function CanopyTree({ active }: { active: boolean }) {
             <span className="hidden min-[430px]:inline">Width: games. Color: your score.</span>
           </span>
           <span className="hidden items-center gap-1.5 text-xs text-muted-foreground tabular-nums min-[430px]:flex" aria-hidden="true">
-            <span className="font-mono">{`≤${pct(0.5 - SPREAD)}`}</span>
+            <span className="tabular-nums">{`≤${pct(0.5 - SPREAD)}`}</span>
             <span className="flex">
               {[0, 0.25, 0.5, 0.75, 1].map((t) => (
                 <span key={t} className="h-2 w-3 shadow-[inset_0_0_0_0.5px_var(--bar-border)]" style={{ background: scoreColor(0.5 - SPREAD + t * 2 * SPREAD) }} />
               ))}
             </span>
-            <span className="font-mono">{`≥${pct(0.5 + SPREAD)}`}</span>
+            <span className="tabular-nums">{`≥${pct(0.5 + SPREAD)}`}</span>
           </span>
         </div>
         <div role="group" aria-label="Tree depth" className="pointer-events-auto flex shrink-0 items-center gap-1.5 text-xs">
@@ -389,7 +389,7 @@ export function CanopyTree({ active }: { active: boolean }) {
                 aria-pressed={depth === d}
                 aria-label={`Show ${d} plies`}
                 onClick={() => setDepth(d)}
-                className="min-w-6 px-1.5 font-mono text-xs tabular-nums"
+                className="min-w-6 px-1.5 text-xs tabular-nums"
               >
                 {d}
               </Button>

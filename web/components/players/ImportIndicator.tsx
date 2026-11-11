@@ -18,7 +18,7 @@ export function ImportIndicator() {
   if (!running || importOpen || managerOpen) return null;
   const { label, pct } = progressSummary(progress);
   return (
-    <div role="status" aria-live="polite" data-testid="import-indicator" className="flex h-9 items-center rounded-md border border-input bg-card font-mono text-xs sm:h-8">
+    <div role="status" aria-live="polite" data-testid="import-indicator" className="flex h-9 items-center rounded-md border border-input bg-card text-xs tabular-nums sm:h-8">
       <button
         type="button"
         onClick={() => setUi({ importOpen: true })}

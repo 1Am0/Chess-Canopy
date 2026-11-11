@@ -54,7 +54,7 @@ export function MoveRow({
       className={cn("relative isolate h-8 cursor-pointer transition-colors hover:bg-secondary [&>td]:border-b [&>td]:border-border", active && "bg-accent hover:bg-accent [&>td:first-child]:shadow-[inset_2px_0_0_var(--primary)]")}
     >
       <td className={COL.move} title={openingName ?? undefined}>
-        <div className={cn("flex min-w-0 items-baseline gap-2 text-ink", dim && "text-muted-foreground")}>
+        <div className={cn("flex min-w-0 items-baseline gap-2 text-strong", dim && "text-muted-foreground")}>
           <span className="shrink-0 font-mono text-sm font-semibold">{item.move}</span>
           {openingName && <span className="hidden min-w-0 truncate text-xs text-muted-foreground @md:inline">{openingName}</span>}
         </div>

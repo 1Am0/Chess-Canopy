@@ -42,7 +42,7 @@ function FileDrop({ accept, label, file, onFile }: { accept: string; label: stri
         className={`flex min-h-32 flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-6 text-center ${over ? "border-primary bg-accent" : "border-border"}`}
       >
         <p className="max-w-full truncate text-sm text-muted-foreground">
-          {file ? <span className="font-mono text-xs text-foreground">{file.name}</span> : label}
+          {file ? <span className="text-xs text-foreground">{file.name}</span> : label}
         </p>
         <Button type="button" size="sm" variant="outline" onClick={() => input.current?.click()}>
           {file ? "Change file" : "Choose file"}

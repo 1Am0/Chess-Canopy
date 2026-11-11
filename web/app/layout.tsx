@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const schibsted = Schibsted_Grotesk({ subsets: ["latin"], weight: "variable", variable: "--font-schibsted" });
-// Mono for moves, codes and tabular numbers. The wdth axis is set to 87.5% via `font-stretch` in globals.css.
+// Mono for moves and codes (SAN, FEN, ECO). The wdth axis is set to 87.5% via `font-stretch` in globals.css.
 const martian = Martian_Mono({ subsets: ["latin"], weight: "variable", axes: ["wdth"], preload: false, variable: "--font-martian" });
 
 const title = "Chess Canopy: opening explorer for your own games";

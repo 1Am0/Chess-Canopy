@@ -85,7 +85,7 @@ function RatingRange({
         onValueChange={([lo, hi]) => onChange(lo <= R_MIN ? null : lo, hi >= R_MAX ? null : hi)}
         aria-label={label}
       />
-      <div aria-hidden className="-mt-1 flex justify-between font-mono text-xs text-muted-foreground tabular-nums">
+      <div aria-hidden className="-mt-1 flex justify-between text-xs text-muted-foreground tabular-nums">
         <span>{R_MIN}</span>
         <span>{R_MAX}+</span>
       </div>
@@ -134,7 +134,7 @@ function DateField({ label, aria, value, onChange }: { label: string; aria: stri
       <span aria-hidden className="pointer-events-none absolute top-1 left-2.5 text-xs text-muted-foreground">
         {label}
       </span>
-      <Input type="date" aria-label={aria} value={value} onChange={(e) => onChange(e.target.value)} className="h-12 pt-5 font-mono text-sm tabular-nums" />
+      <Input type="date" aria-label={aria} value={value} onChange={(e) => onChange(e.target.value)} className="h-12 pt-5 text-sm tabular-nums" />
     </div>
   );
 }

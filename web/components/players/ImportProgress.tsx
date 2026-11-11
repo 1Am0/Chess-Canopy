@@ -24,7 +24,7 @@ export function ImportProgress({ progress, onCancel }: { progress: Progress; onC
           style={pct != null ? { width: `${pct}%` } : undefined}
         />
       </div>
-      <p className="font-mono text-xs text-muted-foreground tabular-nums">{detail}</p>
+      <p className="text-xs text-muted-foreground tabular-nums">{detail}</p>
     </div>
   );
 }

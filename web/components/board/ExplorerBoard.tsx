@@ -8,7 +8,7 @@ import { usePosition } from "@/hooks/use-position";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { splitRare } from "@/components/explorer/rare";
 import { describePosition } from "@/components/board/describe-position";
-import { BoardOverlay, type OverlayArrow, type UserArrow, type UserInk } from "@/components/board/BoardOverlay";
+import { BoardOverlay, type OverlayArrow, type UserArrow, type UserColor } from "@/components/board/BoardOverlay";
 
 const MAX_ARROWS = 3;
 const MIN_ARROW_SHARE = 0.1;
@@ -20,18 +20,18 @@ const HOVER_WIDTH = 20;
  * Muted colors for arrows the user draws (right-drag, plus Shift / Ctrl / Alt / Cmd). The strings only matter while the
  * stroke is being dragged (the library paints that preview); once committed, BoardOverlay redraws the arrow.
  */
-const USER_INKS: Record<string, UserInk> = {
+const USER_COLORS: Record<string, UserColor> = {
   "#4d7a55": "green",
   "#a8503f": "red",
-  "#b88a2e": "ochre",
+  "#b88a2e": "amber",
   "#4a77a0": "blue",
-  "#5b574d": "graphite",
+  "#5b574d": "gray",
 };
-const INK_STRINGS = { default: "#4d7a55", shift: "#a8503f", ctrl: "#b88a2e", alt: "#4a77a0", meta: "#5b574d" };
+const COLOR_STRINGS = { default: "#4d7a55", shift: "#a8503f", ctrl: "#b88a2e", alt: "#4a77a0", meta: "#5b574d" };
 
 /** Flat translucent highlights, layered over the square color. */
 const tint = (c: string): React.CSSProperties => ({ backgroundImage: `linear-gradient(${c}, ${c})` });
-const HIGHLIGHT = { last: tint("rgba(255, 214, 10, 0.4)"), sel: tint("rgba(20, 110, 190, 0.4)") } as const;
+const HIGHLIGHT = { last: tint("rgba(0, 93, 89, 0.25)"), sel: tint("rgba(20, 110, 190, 0.4)") } as const;
 
 export function ExplorerBoard() {
   const { fen, visible, lastMove, key, turn } = usePosition();
@@ -184,14 +184,14 @@ export function ExplorerBoard() {
           animationDurationInMs: reduceMotion ? 0 : 150,
           onArrowsChange: ({ arrows: drawn }) =>
             setUserArrows((prev) => {
-              const next = drawn.map((a) => ({ from: a.startSquare, to: a.endSquare, ink: USER_INKS[a.color] ?? "green" }));
+              const next = drawn.map((a) => ({ from: a.startSquare, to: a.endSquare, color: USER_COLORS[a.color] ?? "green" }));
               return prev.length === 0 && next.length === 0 ? prev : next;
             }),
           arrowOptions: {
-            colors: INK_STRINGS,
-            color: INK_STRINGS.default,
-            secondaryColor: INK_STRINGS.shift,
-            tertiaryColor: INK_STRINGS.ctrl,
+            colors: COLOR_STRINGS,
+            color: COLOR_STRINGS.default,
+            secondaryColor: COLOR_STRINGS.shift,
+            tertiaryColor: COLOR_STRINGS.ctrl,
             arrowLengthReducerDenominator: 8,
             sameTargetArrowLengthReducerDenominator: 4,
             arrowWidthDenominator: 5.5,

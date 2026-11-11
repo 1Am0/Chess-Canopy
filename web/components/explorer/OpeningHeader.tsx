@@ -22,7 +22,7 @@ export function OpeningHeader({ className }: { className?: string }) {
         <>
           <span className="shrink-0 rounded-sm border border-border bg-secondary px-1.5 font-mono text-xs leading-5 text-foreground">{opening.eco}</span>
           <nav aria-label="Opening" className="min-w-0 flex-1">
-            <ol key={opening.name} className="animate-in fade-in truncate text-base leading-7 text-ink duration-200 motion-reduce:animate-none">
+            <ol key={opening.name} className="animate-in fade-in truncate text-base leading-7 text-strong duration-200 motion-reduce:animate-none">
               {crumbs.map((c, i) => {
                 const last = i === crumbs.length - 1;
                 return (

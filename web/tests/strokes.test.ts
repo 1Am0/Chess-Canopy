@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   createRng,
   hashSeed,
-  inkArrowPath,
-  inkEllipsePath,
-  inkStrokePath,
+  arrowPath,
+  ellipsePath,
+  strokePath,
   isWellFormedPath,
   pathPoints,
 } from "@/lib/strokes";
@@ -57,18 +57,18 @@ describe("stroke generators", () => {
     };
   };
 
-  it("inkArrowPath is deterministic, well formed and seed dependent", () => {
-    const a = inkArrowPath("e2e4", 10, 10, 200, 90, { width: 6 });
+  it("arrowPath is deterministic, well formed and seed dependent", () => {
+    const a = arrowPath("e2e4", 10, 10, 200, 90, { width: 6 });
     expect(isWellFormedPath(a)).toBe(true);
     expect(a.endsWith("Z")).toBe(true);
-    expect(inkArrowPath("e2e4", 10, 10, 200, 90, { width: 6 })).toBe(a);
-    expect(inkArrowPath("d2d4", 10, 10, 200, 90, { width: 6 })).not.toBe(a);
+    expect(arrowPath("e2e4", 10, 10, 200, 90, { width: 6 })).toBe(a);
+    expect(arrowPath("d2d4", 10, 10, 200, 90, { width: 6 })).not.toBe(a);
   });
 
-  it("inkArrowPath puts the tip exactly on the target and stays near the line", () => {
+  it("arrowPath puts the tip exactly on the target and stays near the line", () => {
     const x2 = 180;
     const y2 = 40;
-    const d = inkArrowPath(5, 20, 100, x2, y2, { width: 5 });
+    const d = arrowPath(5, 20, 100, x2, y2, { width: 5 });
     expect(d).toContain(`${x2} ${y2}`);
     const b = bbox(d);
     const slack = 5 * 2 + 4;
@@ -78,21 +78,21 @@ describe("stroke generators", () => {
     expect(b.maxY).toBeLessThanOrEqual(100 + slack);
   });
 
-  it("inkArrowPath copes with tiny and zero-length arrows and keeps a fixed size", () => {
-    expect(isWellFormedPath(inkArrowPath(1, 5, 5, 5, 5))).toBe(true);
-    expect(isWellFormedPath(inkArrowPath(1, 5, 5, 6, 5.5, { width: 8 }))).toBe(true);
+  it("arrowPath copes with tiny and zero-length arrows and keeps a fixed size", () => {
+    expect(isWellFormedPath(arrowPath(1, 5, 5, 5, 5))).toBe(true);
+    expect(isWellFormedPath(arrowPath(1, 5, 5, 6, 5.5, { width: 8 }))).toBe(true);
     const count = (d: string) => (d.match(/[MLQ]/g) ?? []).length;
-    expect(count(inkArrowPath(2, 0, 0, 40, 0))).toBe(count(inkArrowPath(2, 0, 0, 400, 300)));
+    expect(count(arrowPath(2, 0, 0, 40, 0))).toBe(count(arrowPath(2, 0, 0, 400, 300)));
   });
 
-  it("inkArrowPath is fast enough to run for every arrow on every render", () => {
+  it("arrowPath is fast enough to run for every arrow on every render", () => {
     const t0 = performance.now();
-    for (let i = 0; i < 4000; i++) inkArrowPath(i, 0, 0, 120 + (i % 50), 60);
+    for (let i = 0; i < 4000; i++) arrowPath(i, 0, 0, 120 + (i % 50), 60);
     expect(performance.now() - t0).toBeLessThan(400);
   });
 
-  it("inkStrokePath tapers: thinner at the start than in the middle", () => {
-    const d = inkStrokePath(3, 0, 50, 200, 50, { width: 8, wobble: 0 });
+  it("strokePath tapers: thinner at the start than in the middle", () => {
+    const d = strokePath(3, 0, 50, 200, 50, { width: 8, wobble: 0 });
     expect(isWellFormedPath(d)).toBe(true);
     const pts = pathPoints(d).filter((p) => p.x > -1 && p.x < 201);
     const spread = (lo: number, hi: number) => {
@@ -102,12 +102,12 @@ describe("stroke generators", () => {
     expect(spread(0, 10)).toBeLessThan(spread(80, 120));
   });
 
-  it("inkEllipsePath stays near its box, is open and deterministic", () => {
-    const d = inkEllipsePath("c", 60, 24);
+  it("ellipsePath stays near its box, is open and deterministic", () => {
+    const d = ellipsePath("c", 60, 24);
     expect(isWellFormedPath(d)).toBe(true);
     expect(d.endsWith("Z")).toBe(false);
-    expect(inkEllipsePath("c", 60, 24)).toBe(d);
-    expect(inkEllipsePath("c2", 60, 24)).not.toBe(d);
+    expect(ellipsePath("c", 60, 24)).toBe(d);
+    expect(ellipsePath("c2", 60, 24)).not.toBe(d);
     const b = bbox(d);
     expect(b.minX).toBeGreaterThanOrEqual(-3);
     expect(b.maxX).toBeLessThanOrEqual(63);

@@ -28,7 +28,7 @@ export function PositionSummary({ className, note }: { className?: string; note?
       <div className={cn("flex h-5 items-center gap-3 whitespace-nowrap transition-opacity duration-200", loading && result && "opacity-50")}>
         {result ? (
           <p className="flex min-w-0 items-baseline gap-1.5 overflow-hidden">
-            <span className="text-lg leading-none font-semibold tracking-tight text-ink tabular-nums">{total.toLocaleString()}</span>
+            <span className="text-lg leading-none font-semibold tracking-tight text-strong tabular-nums">{total.toLocaleString()}</span>
             <span className="text-sm text-muted-foreground">{total === 1 ? "game" : "games"}</span>
             {total > 0 && (
               <>

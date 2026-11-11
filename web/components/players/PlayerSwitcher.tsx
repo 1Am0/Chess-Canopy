@@ -47,7 +47,7 @@ export function PlayerSwitcher() {
         <label className="flex cursor-pointer items-center gap-2.5 rounded-sm px-2 py-2 text-sm hover:bg-accent has-[:focus-visible]:bg-accent">
           <Checkbox checked={isAll} onCheckedChange={() => setSelected("all")} aria-label="All players" />
           <span className="min-w-0 flex-1 font-semibold">All players</span>
-          <span className="font-mono text-xs text-muted-foreground tabular-nums">
+          <span className="text-xs text-muted-foreground tabular-nums">
             {players.reduce((n, p) => n + p.gameCount, 0).toLocaleString()}
           </span>
         </label>
@@ -60,7 +60,7 @@ export function PlayerSwitcher() {
                 <span className="min-w-0 truncate">{p.displayName}</span>
                 <span className="shrink-0 rounded-sm border border-border bg-secondary px-1.5 text-xs leading-5 text-muted-foreground">{sourceLabel(p.source)}</span>
                 <span className="flex-1" aria-hidden="true" />
-                <span className="min-w-9 text-right font-mono text-xs text-muted-foreground tabular-nums">{p.gameCount.toLocaleString()}</span>
+                <span className="min-w-9 text-right text-xs text-muted-foreground tabular-nums">{p.gameCount.toLocaleString()}</span>
               </label>
             </li>
           ))}

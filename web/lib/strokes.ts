@@ -120,7 +120,7 @@ function noise1d(rng: Rng, knots: number): (t: number) => number {
 const dotPath = (x: number, y: number, r: number) =>
   `M${n2(x - r)} ${n2(y)}L${n2(x)} ${n2(y - r)}L${n2(x + r)} ${n2(y)}L${n2(x)} ${n2(y + r)}Z`;
 
-export interface InkStrokeOptions {
+export interface StrokeOptions {
   /** Stroke width at its fullest, in px (default 4). */
   width?: number;
   /** Width at the start as a fraction of `width` (default 0.45: the stroke starts light). */
@@ -131,7 +131,7 @@ export interface InkStrokeOptions {
   samples?: number;
 }
 
-export interface InkArrowOptions extends InkStrokeOptions {
+export interface ArrowOptions extends StrokeOptions {
   /** Length of the arrow head along the line (default width * 2.6 + 4, capped at 62% of the line). */
   head?: number;
   /** Full width of the head across its barbs (default width * 1.55 + 3). */
@@ -169,7 +169,7 @@ const fmt = (p: Pt) => `${n2(p.x)} ${n2(p.y)}`;
  * full in the middle, a touch thinner at the end, wandering sideways by a pixel or so.
  * Pure and fast (about 16 points however long the line is); use it for underlines and hover marks.
  */
-export function inkStrokePath(seed: number | string, x1: number, y1: number, x2: number, y2: number, opts: InkStrokeOptions = {}): string {
+export function strokePath(seed: number | string, x1: number, y1: number, x2: number, y2: number, opts: StrokeOptions = {}): string {
   const w = opts.width ?? 4;
   const len = Math.hypot(x2 - x1, y2 - y1);
   if (len < 0.5) return dotPath(x1, y1, Math.max(0.5, w / 2));
@@ -192,12 +192,12 @@ export function inkStrokePath(seed: number | string, x1: number, y1: number, x2:
 }
 
 /**
- * A tapered arrow as a FILLED outline: an `inkStrokePath` shaft ending in a head whose barbs are
+ * A tapered arrow as a FILLED outline: an `strokePath` shaft ending in a head whose barbs are
  * slightly unequal and whose edges bow out a little. The tip sits exactly on (x2, y2).
  * Pure, about 22 points whatever the length: fast enough to call for every arrow on every render.
  * Fill it, do not stroke it. Seeded: the same move always gives the same shape.
  */
-export function inkArrowPath(seed: number | string, x1: number, y1: number, x2: number, y2: number, opts: InkArrowOptions = {}): string {
+export function arrowPath(seed: number | string, x1: number, y1: number, x2: number, y2: number, opts: ArrowOptions = {}): string {
   const w = opts.width ?? 4;
   const len = Math.hypot(x2 - x1, y2 - y1);
   if (len < 0.5) return dotPath(x1, y1, Math.max(0.5, w / 2));
@@ -237,7 +237,7 @@ export function inkArrowPath(seed: number | string, x1: number, y1: number, x2: 
  * center and overshooting its own start, the radius drifting outward as it goes round. Open path
  * (stroke it, do not fill). Points stay within `pad` px of the box (default 3).
  */
-export function inkEllipsePath(seed: number | string, w: number, h: number, opts: { turns?: number; wobble?: number; pad?: number } = {}): string {
+export function ellipsePath(seed: number | string, w: number, h: number, opts: { turns?: number; wobble?: number; pad?: number } = {}): string {
   const rng = createRng(seed);
   const turns = opts.turns ?? 1.1;
   const wob = opts.wobble ?? 0.035;
