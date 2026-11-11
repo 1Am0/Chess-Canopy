@@ -8,6 +8,7 @@ import { PlayerSwitcher } from "@/components/players/PlayerSwitcher";
 import { Logo } from "@/components/layout/Logo";
 import { SoundToggle } from "@/components/layout/SoundToggle";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { TornEdge } from "@/components/paper";
 
 export function Header({ showTools }: { showTools: boolean }) {
   const filters = useExplorerStore((s) => s.filters);
@@ -15,7 +16,12 @@ export function Header({ showTools }: { showTools: boolean }) {
   const count = activeFilterCount(filters);
 
   return (
-    <header className="rule-double sticky top-0 z-30 bg-background/85 backdrop-blur">
+    <header
+      className="paper-scope sticky top-0 z-30 bg-sheet forced-colors:border-b"
+      style={{ backgroundImage: "var(--sheet-tile)" }}
+    >
+      {/* a torn strip of cream paper laid across the top of the desk */}
+      <TornEdge seed={11} />
       <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:px-4">
         <div className="mr-1 flex shrink-0 items-center gap-2 text-primary">
           <Logo className="size-7" />

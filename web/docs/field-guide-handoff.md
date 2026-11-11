@@ -388,3 +388,30 @@ any measured rect (overflow-visible wrappers or box-shadow, never padding).
 5. Filter sheet: an index card pinned/taped on the right (keep Radix sheet
    behaviour and section content from round 2).
 6. Light and dark. Then stop for owner review.
+
+## Status log (round 3)
+
+- **Round 3 prototype (R3.5): done, awaiting owner review.**
+  - Files: `lib/paper.ts` (seeded mulberry32 + generators: `edgeProfile`, `tornStripPath`, `tornEdgeLine`, `tapePath`,
+    `deckledPath`, `wobbleLine`, `handArrow`, `fibreStrands`, `svgDataUri`, validators), `tests/paper.test.ts`,
+    `components/paper/{PaperSheet,Tape,PhotoCorners,UnderSheet,TornEdge,StringTag,Handnote,use-size,index}`,
+    `scripts/gen-paper-textures.mts` -> `app/paper-textures.css` (static desk + sheet fibre tiles, light/dark),
+    `app/globals.css` (R3.3 tokens light+dark, `desk`, `sheet-paper`, `paper-scope`, `paper-deco`, `folder-tab` utilities, `font-hand`),
+    `app/layout.tsx` (Caveat, preload false), `components/explorer/best-move.ts` + `tests/best-move.test.ts`.
+    Applied in: `AppShell` (desk ground on the explorer wrapper only, paddings, board chrome 12rem -> 14.25rem), `Header`, `BoardColumn`,
+    `ExplorerBoard` (radius only), `ExplorerPanel`, `PositionSummary`, `OpeningHeader`, `FilterSheet`, `ui/sheet.tsx` (overlay uses new `--scrim`; the old `bg-ink/50` washed out in dark).
+  - Objects: header = cream strip with a seeded torn bottom edge (darker under-strip, lighter fibre rim, contact + lift shadow);
+    board = print on a cream mat, four folded photo corners (flap, fold line, highlight), eval bar/strips/toolbar on the mat;
+    explorer = one cream sheet over a deckled under-sheet (5,7px, 0.7deg) with an ochre tape strip; Moves/Games/Canopy = chamfered folder tabs
+    (active joined to the panel, inactive darker and 4px lower, same h-9 slot); ECO = manila string tag with reinforced hole and string inside the h-7;
+    filters = index card (red head rule) taped top and bottom (ochre + sage), Radix behaviour kept, inset 16px from the edge on desktop.
+  - Handnote: "best for you: <move> . <score>" from `bestCandidate` (best score among non-rare moves, needs 2+ candidates and no tie), shown in the
+    free middle of the summary row when the sheet is >= 38rem wide, otherwise as a handwritten tape label on the top strip. Absolute, no rect changes.
+  - Checked: typecheck, lint, vitest (incl. 18 new), e2e 34/34. Reviewed light + dark at 2x over two build iterations (first pass had the under-sheet
+    painting over the sheet: a stacking context paints its own background below negative-z children, so it now lives in a sibling wrapper).
+  - Skips / not done: arrow variant of Handnote exists but is unused (nothing fixed to point at); SideSwitch, FilterRow, LinePanel, toolbar still
+    rounded 2-4px controls; dialogs/popovers/toasts/Welcome/loading shell not converted; mobile only checked by e2e (no screenshots);
+    forced-colors fallback untested visually; no new contrast rows in palette.md (sheet tones are close to the old card; dark sheet is oklch 0.295).
+  - Risks: TornEdge uses CSS `mask-image` data URIs (Chromium/WebKit/Firefox OK, prefixed too); UnderSheet measures via ResizeObserver (renders after hydration);
+    `@container/sheet` adds layout containment to the explorer sheet; dark sheet vs walnut desk contrast is low-key (shadows carry the separation);
+    decorations on kraft (tape) are subtle in light mode by design (multiply).

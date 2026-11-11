@@ -10,15 +10,23 @@ import { PositionSummary } from "@/components/explorer/PositionSummary";
 import { MoveTable } from "@/components/explorer/MoveTable";
 import { GamesList } from "@/components/explorer/GamesList";
 import { CanopyTree } from "@/components/explorer/CanopyTree";
+import { PaperSheet, Tape, UnderSheet } from "@/components/paper";
+import { bestCandidate } from "@/components/explorer/best-move";
+import { useExplorerStore } from "@/lib/store";
+import { pct } from "@/lib/format";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Tab = "moves" | "games" | "canopy";
 
+/**
+ * Folder tabs (see the `folder-tab` utility): the active tab is the same paper as the panel and
+ * stands in the h-9 slot; inactive tabs are a shade darker and sit 4px lower, slightly behind.
+ */
 const TRIGGER =
-  "h-full flex-1 rounded-none border-0 bg-transparent px-3 text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_-2px_0_var(--color-primary)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent lg:flex-none lg:px-4";
+  "folder-tab h-[calc(100%-4px)] flex-1 self-end rounded-none border-0 bg-transparent px-3 text-muted-foreground shadow-none hover:text-foreground data-[state=active]:h-full data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-ink data-[state=active]:shadow-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent lg:flex-none lg:px-5";
 
 /** Panels are always mounted (state and data stay warm); inactive ones are display:none. */
-const PANEL = "min-h-0 flex-none overflow-hidden data-[state=inactive]:hidden lg:flex-1";
+const PANEL = "min-h-0 flex-none overflow-hidden rounded-none border border-rule-strong bg-sheet-flat data-[state=inactive]:hidden lg:flex-1";
 
 /**
  * The workspace column, as a stack of fixed-height slots so nothing moves when moves
@@ -33,22 +41,33 @@ const PANEL = "min-h-0 flex-none overflow-hidden data-[state=inactive]:hidden lg
 export function ExplorerPanel() {
   const [tab, setTab] = useState<Tab>("moves");
   const value: Tab = tab;
+  const result = useExplorerStore((s) => s.result);
+  const fresh = useExplorerStore((s) => !s.resultLoading && s.result != null);
+  // A pencilled margin note, only when it is a real comparison (see best-move.ts).
+  const best = fresh && result ? bestCandidate(result.next, result.stats.total) : null;
+  const note = best ? `best for you: ${best.move} · ${pct(best.score)}` : null;
 
   return (
-    <div className="flex min-w-0 flex-col gap-2 lg:h-full lg:min-h-0">
+    // One cream sheet with a second sheet peeking out from under it and a strip of tape across its top edge.
+    <div className="relative isolate min-w-0 lg:h-full lg:min-h-0">
+    <UnderSheet seed={7} dx={5} dy={7} rotate={0.7} />
+    <PaperSheet className="@container/sheet flex min-w-0 flex-col gap-2 p-3 pt-4 lg:h-full lg:min-h-0">
+      {/* wide sheets show the note beside the summary; narrow ones carry it on the tape */}
+      <Tape variant="ochre" length={104} angle={-2.5} seed="top-wide" className="-top-2 left-[22%] hidden @[38rem]/sheet:block" />
+      <Tape variant="ochre" length={note ? 196 : 104} angle={-2.5} seed="top-narrow" label={note} className="-top-2 left-[22%] @[38rem]/sheet:hidden" />
       <PositionAnnouncer />
-      <SideSwitch />
+      <SideSwitch className="rounded-[2px]" />
       <OpeningHeader />
       <FilterRow />
       <LinePanel />
-      <PositionSummary />
+      <PositionSummary note={note} />
       <Tabs
         value={value}
         onValueChange={(v) => setTab(v as Tab)}
         data-testid="explorer-region"
-        className="gap-0 overflow-hidden rounded-lg border border-rule-strong bg-card shadow-none lg:min-h-[13rem] lg:flex-1"
+        className="gap-0 overflow-hidden lg:min-h-[13rem] lg:flex-1"
       >
-        <TabsList aria-label="Explorer views" className="h-9 w-full shrink-0 justify-start gap-0 rounded-none border-b border-rule bg-transparent p-0">
+        <TabsList aria-label="Explorer views" className="h-9 w-full shrink-0 justify-start gap-0.5 rounded-none border-b-0 bg-transparent p-0">
           <TabsTrigger value="moves" className={TRIGGER}>Moves</TabsTrigger>
           <TabsTrigger value="games" className={TRIGGER}>Games</TabsTrigger>
           <TabsTrigger value="canopy" className={TRIGGER}>Canopy</TabsTrigger>
@@ -63,6 +82,7 @@ export function ExplorerPanel() {
           <CanopyTree active={value === "canopy"} />
         </TabsContent>
       </Tabs>
+    </PaperSheet>
     </div>
   );
 }

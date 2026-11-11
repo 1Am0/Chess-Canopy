@@ -13,6 +13,7 @@ import { CountedOption, FieldSection } from "@/components/field";
 import { InkTick } from "@/components/field/InkTick";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Tape } from "@/components/paper";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -245,8 +246,14 @@ export function FilterSheet() {
 
   return (
     <Sheet open={open} onOpenChange={(o) => setUi({ filtersOpen: o })}>
-      <SheetContent side={desktop ? "right" : "bottom"} className="max-h-[88dvh] gap-0 lg:max-h-none lg:w-[26rem] lg:max-w-[26rem]">
-        <SheetHeader kicker="Sampling criteria">
+      {/* An index card taped to the desk: card stock with a red head rule, two strips of tape across its edges. */}
+      <SheetContent
+        side={desktop ? "right" : "bottom"}
+        className="paper-scope sheet-paper max-h-[88dvh] gap-0 border-0 before:hidden lg:inset-y-4 lg:right-4 lg:h-auto lg:max-h-none lg:w-[26rem] lg:max-w-[26rem]"
+      >
+        <Tape variant="ochre" length={104} angle={-3} seed="card-a" className="-top-2.5 left-[9%]" />
+        <Tape variant="sage" length={92} angle={2.5} seed="card-b" className="-bottom-2.5 left-[58%]" />
+        <SheetHeader kicker="Sampling criteria" className="border-b-[1.5px] border-solid border-margin">
           <SheetTitle className="font-serif text-xl font-semibold tracking-tight">Filters</SheetTitle>
           <SheetDescription>Results update as you change filters. Win / Draw / Loss is from your point of view.</SheetDescription>
         </SheetHeader>

@@ -5,6 +5,7 @@ import { ExplorerBoard } from "@/components/board/ExplorerBoard";
 import { BoardControls } from "@/components/board/BoardControls";
 import { EvalBar } from "@/components/board/EvalBar";
 import { PlayerStrip } from "@/components/board/PlayerStrip";
+import { PaperSheet, PhotoCorners } from "@/components/paper";
 import type { Color } from "@/lib/engine/types";
 
 /**
@@ -23,14 +24,21 @@ export function BoardColumn() {
   const bottomIsYou = orientation === side;
 
   return (
-    <div className="mx-auto flex flex-col gap-1.5 lg:mx-0" style={{ width: BOARD_COLUMN_WIDTH, maxWidth: "100%" }}>
+    // The print on its mat: a cream mount (12px of paper around everything, 8px on phones). The mat is
+    // as wide as the board column plus its own padding, so the board keeps the size the layout asks for.
+    <PaperSheet
+      className="mx-auto flex w-[var(--board-size)] max-w-full flex-col gap-1.5 p-2 lg:mx-0 lg:w-[calc(var(--board-size)+1.5rem)] lg:p-3"
+      data-testid="board-mat"
+    >
       <div data-testid="strip-top" className="pl-8">
         <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} />
       </div>
       <div className="flex gap-1">
         <EvalBar />
-        <div className="min-w-0 flex-1 rounded-md shadow-[0_0_0_3px_var(--card),0_0_0_4px_var(--rule-strong)]">
+        {/* the print, held by four photo corners */}
+        <div className="relative min-w-0 flex-1 shadow-print">
           <ExplorerBoard />
+          <PhotoCorners />
         </div>
       </div>
       <div data-testid="strip-bottom" className="pl-8">
@@ -39,6 +47,6 @@ export function BoardColumn() {
       <div className="pl-8">
         <BoardControls />
       </div>
-    </div>
+    </PaperSheet>
   );
 }

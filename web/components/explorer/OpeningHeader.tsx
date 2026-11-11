@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { splitOpeningName } from "@/lib/format";
 import { usePosition } from "@/hooks/use-position";
+import { StringTag } from "@/components/paper";
 import { cn } from "@/lib/utils";
 
 /** Fixed 28px, single line: ECO + opening breadcrumb, truncated (full name in the tooltip). */
@@ -20,9 +21,7 @@ export function OpeningHeader({ className }: { className?: string }) {
     >
       {opening ? (
         <>
-          <span className="inline-flex h-5 shrink-0 items-center rounded-sm border border-rule-strong bg-specimen px-1.5 font-mono text-[11px] leading-none tracking-wide text-ink tabular-nums">
-            {opening.eco}
-          </span>
+          <StringTag>{opening.eco}</StringTag>
           <nav aria-label="Opening" className="min-w-0 flex-1">
             <ol key={opening.name} className="animate-in fade-in truncate text-base leading-7 text-ink duration-200 motion-reduce:animate-none">
               {crumbs.map((c, i) => {

@@ -4,6 +4,7 @@ import { useExplorerStore } from "@/lib/store";
 import { pct, score } from "@/lib/format";
 import { scoreTextClass, toWdb, wdbPercents } from "@/components/explorer/wdb";
 import { WdbBar, WdbSwatch } from "@/components/explorer/WdbBar";
+import { Handnote } from "@/components/paper";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ const LEGEND = [
  * Fixed 52px slot: "N games · score%" + legend on one line, the W/D/B bar below.
  * Never collapses: out of book it reads "0 games" over an empty striped bar.
  */
-export function PositionSummary({ className }: { className?: string }) {
+export function PositionSummary({ className, note }: { className?: string; note?: string | null }) {
   const result = useExplorerStore((s) => s.result);
   const loading = useExplorerStore((s) => s.resultLoading);
   const side = useExplorerStore((s) => s.filters.color ?? "white");
@@ -30,7 +31,7 @@ export function PositionSummary({ className }: { className?: string }) {
     <section
       aria-label="Position summary"
       aria-busy={loading || !result}
-      className={cn("flex h-[52px] shrink-0 flex-col justify-center gap-1.5", className)}
+      className={cn("relative flex h-[52px] shrink-0 flex-col justify-center gap-1.5", className)}
     >
       <div className={cn("flex h-5 items-center justify-between gap-3 whitespace-nowrap transition-opacity duration-200", loading && result && "opacity-50")}>
         {result ? (
@@ -59,6 +60,13 @@ export function PositionSummary({ className }: { className?: string }) {
           ))}
         </p>
       </div>
+      {note && (
+        // A pencil note in the free middle of the first row (absolute, so the 52px slot is untouched).
+        // Only on wide sheets: narrower ones carry the same note on the tape across the top.
+        <Handnote seed="best" rotate={-1.2} className="absolute top-[3px] left-[35%] hidden @[38rem]/sheet:inline-block">
+          {note}
+        </Handnote>
+      )}
       <WdbBar stats={stats} side={side} labels={false} className={cn("transition-opacity duration-200", loading && result && "opacity-50")} />
     </section>
   );

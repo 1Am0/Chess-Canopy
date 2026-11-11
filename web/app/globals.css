@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./paper-textures.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -81,6 +82,28 @@
   --margin-x: 2.25rem;
   --stamp: var(--primary);
   --paper-shadow: 0 1px 0 oklch(0.3 0.03 90 / 0.06), 0 8px 24px -8px oklch(0.3 0.04 100 / 0.25);
+
+  /* Round 3 scrapbook tokens (light): kraft board, cream paper, tape, tags, pencil */
+  --desk: oklch(0.8 0.04 76);
+  --sheet: oklch(0.975 0.022 90);
+  --sheet-flat: oklch(0.988 0.012 90);
+  --sheet-under: oklch(0.915 0.042 84);
+  --sheet-rim: oklch(0.998 0.01 92);
+  --sheet-specimen: oklch(0.93 0.036 92);
+  --tape-ochre: oklch(0.9 0.05 92 / 0.72);
+  --tape-sage: oklch(0.87 0.045 150 / 0.7);
+  --tape-blend: multiply;
+  --photo-corner: oklch(0.3 0.025 55);
+  --string: oklch(0.52 0.07 70);
+  --tag: oklch(0.86 0.065 85);
+  --tag-edge: oklch(0.6 0.075 72);
+  --tag-reinforce: oklch(0.95 0.03 90);
+  --tag-ink: oklch(0.2 0.02 60);
+  --pencil: oklch(0.38 0.01 80);
+  --shadow-ink: oklch(0.25 0.04 65);
+  --scrim: oklch(0.22 0.03 60 / 0.45);
+  --sheet-shadow: inset 0 0 0 0.5px oklch(0.4 0.04 80 / 0.14), 0.5px 1px 1px oklch(0.25 0.04 65 / 0.38), 2px 3px 4px -1px oklch(0.25 0.04 65 / 0.2), 7px 12px 24px -8px oklch(0.25 0.05 65 / 0.34);
+  --print-shadow: 0 0 0 1px oklch(0.25 0.03 70 / 0.55), 0.5px 1px 1px 1px oklch(0.25 0.04 65 / 0.3), 2px 4px 7px -1px oklch(0.25 0.04 65 / 0.34);
 
   --chart-1: oklch(0.54 0.125 155);
   --chart-2: oklch(0.55 0.13 245);
@@ -169,6 +192,28 @@
   --margin: oklch(0.7 0.11 30 / 0.5);
   --stamp: var(--primary);
   --paper-shadow: 0 1px 0 oklch(0 0 0 / 0.3), 0 10px 28px -8px oklch(0 0 0 / 0.6);
+
+  /* Round 3 scrapbook tokens (dark): walnut board, dim cream paper, lighter low-alpha tape */
+  --desk: oklch(0.215 0.027 55);
+  --sheet: oklch(0.295 0.016 88);
+  --sheet-flat: oklch(0.262 0.014 90);
+  --sheet-under: oklch(0.245 0.016 82);
+  --sheet-rim: oklch(0.4 0.016 90);
+  --sheet-specimen: oklch(0.34 0.02 92);
+  --tape-ochre: oklch(0.82 0.06 90 / 0.4);
+  --tape-sage: oklch(0.76 0.05 150 / 0.38);
+  --tape-blend: normal;
+  --photo-corner: oklch(0.6 0.03 70);
+  --string: oklch(0.72 0.05 80);
+  --tag: oklch(0.73 0.06 82);
+  --tag-edge: oklch(0.5 0.05 75);
+  --tag-reinforce: oklch(0.84 0.04 88);
+  --tag-ink: oklch(0.2 0.02 60);
+  --pencil: oklch(0.8 0.01 80);
+  --shadow-ink: oklch(0 0 0);
+  --scrim: oklch(0 0 0 / 0.55);
+  --sheet-shadow: inset 0 0.5px 0 oklch(1 0 0 / 0.08), 0.5px 1px 1px oklch(0 0 0 / 0.55), 2px 3px 4px -1px oklch(0 0 0 / 0.35), 8px 14px 26px -8px oklch(0 0 0 / 0.6);
+  --print-shadow: 0 0 0 1px oklch(0 0 0 / 0.7), 0.5px 1px 1px 1px oklch(0 0 0 / 0.45), 2px 4px 7px -1px oklch(0 0 0 / 0.5);
 
   --chart-1: oklch(0.76 0.12 150);
   --chart-2: oklch(0.7 0.13 245);
@@ -299,6 +344,18 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-sheet: var(--sheet);
+  --color-sheet-flat: var(--sheet-flat);
+  --color-sheet-under: var(--sheet-under);
+  --color-tape-ochre: var(--tape-ochre);
+  --color-tape-sage: var(--tape-sage);
+  --color-photo-corner: var(--photo-corner);
+  --color-string: var(--string);
+  --color-pencil: var(--pencil);
+  --color-desk: var(--desk);
+  --shadow-sheet: var(--sheet-shadow);
+  --shadow-print: var(--print-shadow);
+  --font-hand: var(--font-caveat), "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
   --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-newsreader), ui-serif, Georgia, "Times New Roman", serif;
   --font-mono: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -478,6 +535,89 @@
     color-mix(in oklab, var(--rule-strong) 55%, transparent) 0 1px,
     transparent 1px 0.6rem
   );
+}
+
+/* ---- Round 3: scrapbook paper ------------------------------------------------------------ */
+
+/* The kraft board everything is pasted on: colour plus a static fibre tile. */
+@utility desk {
+  background-color: var(--desk);
+  background-image: var(--desk-tile);
+  background-repeat: repeat;
+}
+
+/* A cut sheet of cream paper: fibre tile + two-part shadow (tight contact, soft lift). Square corners. */
+@utility sheet-paper {
+  background-color: var(--sheet);
+  background-image: var(--sheet-tile);
+  box-shadow: var(--sheet-shadow);
+  @media (forced-colors: active) {
+    background-image: none;
+    border: 1px solid CanvasText;
+  }
+}
+
+/*
+ * Inside paper, every kit component that reads --card / --background / --specimen sits on
+ * the paper tone instead (no restyling of the components themselves).
+ */
+@utility paper-scope {
+  --card: var(--sheet);
+  --background: var(--sheet);
+  --specimen: var(--sheet-specimen);
+}
+
+/* Decorative paper objects (tape, corners, tags, under-sheets) disappear in forced-colors mode. */
+@utility paper-deco {
+  pointer-events: none;
+  @media (forced-colors: active) {
+    display: none;
+  }
+}
+
+/*
+ * Folder tab: a paper tab sticking up from the panel. The outline is a clipped layer behind a
+ * clipped fill (so the chamfered corners keep a hairline); the active tab's fill reaches 1px
+ * below the tab bar and hides the panel's top border, joining tab and panel as one piece.
+ */
+@utility folder-tab {
+  --tab-fill: var(--sheet-under);
+  position: relative;
+  isolation: isolate;
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+  }
+  &::before {
+    inset: 0;
+    background: var(--rule-strong);
+    clip-path: polygon(0 100%, 0 7px, 7px 0, calc(100% - 7px) 0, 100% 7px, 100% 100%);
+  }
+  &::after {
+    inset: 1px 1px 0 1px;
+    background: var(--tab-fill);
+    clip-path: polygon(0 100%, 0 6.2px, 6.2px 0, calc(100% - 6.2px) 0, 100% 6.2px, 100% 100%);
+  }
+  &[data-state="active"] {
+    --tab-fill: var(--sheet-flat);
+    z-index: 1;
+  }
+  &[data-state="active"]::after {
+    inset: 1px 1px -1px 1px;
+  }
+  &:hover:not([data-state="active"]) {
+    --tab-fill: color-mix(in oklab, var(--sheet-under) 60%, var(--sheet-flat));
+  }
+  @media (forced-colors: active) {
+    border: 1px solid CanvasText;
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
 }
 
 @layer base {
