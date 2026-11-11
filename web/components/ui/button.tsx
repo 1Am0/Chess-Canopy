@@ -13,7 +13,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "paper-btn paper-btn-primary",
+        default: "paper-btn paper-btn-primary disabled:opacity-100 disabled:[--primary:oklch(0.43_0.035_152)] disabled:[--pb-img:var(--sheet-tile)] disabled:saturate-75",
         destructive: "paper-btn paper-btn-primary [--primary-foreground:var(--destructive-foreground)] [--primary:var(--destructive)]",
         outline: "paper-btn text-foreground",
         secondary: "paper-btn paper-btn-quiet text-secondary-foreground",

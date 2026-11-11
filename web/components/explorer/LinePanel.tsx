@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { useExplorerStore } from "@/lib/store";
-import { InkCircle, RubberStamp, TicketEdge } from "@/components/paper";
+import { InkCircle } from "@/components/paper";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -98,15 +98,8 @@ export function LinePanel({ className }: { className?: string }) {
   };
 
   return (
-    // A paper ticket: perforated ends, moves typed in mono, the current move circled in ink.
-    <TicketEdge
-      role="region"
-      aria-label="Line"
-      ends="perforated"
-      seed="line"
-      wrapperClassName="h-11 shrink-0"
-      className={cn("flex h-11 items-center gap-1 pr-2 pl-3.5", className)}
-    >
+    // A plain ruled strip: moves typed in mono, the current move circled in ink.
+    <div role="region" aria-label="Line" className={cn("flex h-11 shrink-0 items-center gap-1 border-y border-rule pr-1 pl-1", className)}>
       <div
         ref={scroller}
         onWheel={onWheel}
@@ -118,14 +111,18 @@ export function LinePanel({ className }: { className?: string }) {
           type="button"
           onClick={() => goTo(0)}
           aria-current={cursor === 0 ? "step" : undefined}
-          className="h-7 shrink-0 px-1 outline-none focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring"
+          className={cn(
+            "h-7 shrink-0 px-2 text-xs font-medium text-pencil outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
+            cursor === 0 && "font-semibold text-ink",
+          )}
         >
-          <RubberStamp variant="single" size="sm" rotate={-1.6} seed="start" tone={cursor === 0 ? "primary" : "muted"} className="pointer-events-none">
-            Start
-          </RubberStamp>
+          Start
         </button>
         {path.length === 0 ? (
-          <p className="shrink-0 px-2 text-sm whitespace-nowrap text-muted-foreground">Play a move on the board or pick one from the table</p>
+          <p className="min-w-0 shrink-0 px-2 text-sm whitespace-nowrap text-muted-foreground">
+            <span className="@[34rem]/sheet:hidden">Play a move to start</span>
+            <span className="hidden @[34rem]/sheet:inline">Play a move on the board or pick one from the table</span>
+          </p>
         ) : (
           <ol ref={listRef} className="flex items-center">
             {Array.from({ length: pairs }).map((_, r) => (
@@ -141,6 +138,6 @@ export function LinePanel({ className }: { className?: string }) {
       <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={toStart} disabled={cursor === 0} aria-label="Reset to start" title="Reset to start">
         <RotateCcw className="size-3.5" />
       </Button>
-    </TicketEdge>
+    </div>
   );
 }

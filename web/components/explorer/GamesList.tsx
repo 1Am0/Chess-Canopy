@@ -184,7 +184,7 @@ export function GamesList({ className, active = true }: { className?: string; ac
               >
                 <span className="sr-only">Load game: {r} </span>
                 <span aria-hidden className="flex w-9 shrink-0 justify-center">
-                  <RubberStamp tone={RESULT_TONE[r]} variant="single" size="sm" rotate={tilt(gameKey)} seed={gameKey} className="min-w-[1.5rem] justify-center text-center">
+                  <RubberStamp tone={RESULT_TONE[r]} variant="single" size="md" rotate={tilt(gameKey)} seed={gameKey} className="min-w-[1.5rem] justify-center text-center">
                     {r[0]}
                   </RubberStamp>
                 </span>

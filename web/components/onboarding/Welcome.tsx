@@ -12,8 +12,29 @@ const STEPS = [
   { numeral: "III", title: "Filter", text: "Switch between White and Black, then slice by result, time control, rating, date or opponent." },
 ];
 
-// CSS-only entrance (tw-animate-css); off under prefers-reduced-motion. Opacity/transform only.
-const enter = "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1 motion-safe:duration-500 motion-safe:fill-mode-backwards";
+// Content is never hidden waiting for motion: a short settle (opacity starts at 0.7), off under prefers-reduced-motion.
+const enter = "motion-safe:animate-in motion-safe:fade-in-70 motion-safe:slide-in-from-bottom-1 motion-safe:duration-200";
+
+
+function Plate() {
+  return (
+    <>
+      <div className="relative isolate flex flex-1 flex-col">
+        <UnderSheet seed="welcome-mat" dx={5} dy={6} rotate={0.7} />
+        <PaperSheet className="flex flex-1 flex-col p-4 sm:p-5">
+          <Tape variant="ochre" length={96} angle={2} seed="welcome-c" className="-top-2.5 left-[34%]" />
+          <div className="relative flex flex-1 flex-col">
+            <SpecimenPlate className="flex-1" />
+            <PhotoCorners />
+          </div>
+        </PaperSheet>
+      </div>
+      <Handnote seed="plate-note" rotate={-2} className="mt-6 ml-[22%] block w-fit text-[20px]" arrow={{ x1: -10, y1: 2, x2: -42, y2: -22 }}>
+        wider ribbon = played more often
+      </Handnote>
+    </>
+  );
+}
 
 /**
  * The landing page as a scrapbook spread on the desk: the headline on a cream sheet over an under-sheet, the import form on
@@ -21,10 +42,10 @@ const enter = "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in
  */
 export function Welcome() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pt-9 pb-10 sm:px-8 sm:pt-12 sm:pb-14">
-      <div className="grid gap-12 lg:grid-cols-12 lg:gap-14">
-        <div className="min-w-0 space-y-9 lg:col-span-7">
-          <div className={`relative isolate motion-safe:delay-75 ${enter}`}>
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pt-8 pb-8 sm:px-8 sm:pt-10 sm:pb-10">
+      <div className="grid gap-8 lg:grid-cols-2 lg:gap-8">
+        <div className="min-w-0 space-y-8">
+          <div className={`relative isolate ${enter}`}>
             <UnderSheet seed="welcome-head" dx={6} dy={7} rotate={-0.8} />
             <PaperSheet as="section" className="px-5 py-6 sm:px-9 sm:py-9">
               <Tape variant="ochre" length={110} angle={-3} seed="welcome-a" className="-top-2.5 left-[8%]" />
@@ -41,7 +62,7 @@ export function Welcome() {
             </PaperSheet>
           </div>
 
-          <div className={`relative isolate max-w-lg motion-safe:delay-200 ${enter}`}>
+          <div className={`relative isolate ${enter}`}>
             <UnderSheet seed="welcome-form" dx={5} dy={6} rotate={0.7} />
             <PaperSheet as="section" className="p-4 sm:p-5">
               <Tape variant="sage" length={92} angle={2.5} seed="welcome-b" className="-top-2.5 right-[10%]" />
@@ -53,24 +74,12 @@ export function Welcome() {
           </div>
         </div>
 
-        <div className={`min-w-0 lg:col-span-5 lg:pt-12 motion-safe:delay-300 ${enter}`}>
-          <div className="relative isolate">
-            <UnderSheet seed="welcome-mat" dx={5} dy={6} rotate={0.7} />
-            <PaperSheet className="p-4 sm:p-6">
-              <Tape variant="ochre" length={96} angle={2} seed="welcome-c" className="-top-2.5 left-[34%]" />
-              <div className="relative">
-                <SpecimenPlate />
-                <PhotoCorners />
-              </div>
-            </PaperSheet>
-          </div>
-          <Handnote seed="plate-note" rotate={-2} className="mt-6 ml-[22%] block w-fit text-[20px]" arrow={{ x1: -10, y1: 2, x2: -42, y2: -22 }}>
-            wider ribbon = played more often
-          </Handnote>
+        <div className={`hidden min-w-0 flex-col lg:flex ${enter}`}>
+          <Plate />
         </div>
       </div>
 
-      <ol className={`mt-16 grid gap-9 sm:mt-20 md:grid-cols-3 md:gap-7 motion-safe:delay-500 ${enter}`}>
+      <ol className={`mt-8 grid gap-8 md:grid-cols-3 ${enter}`}>
         {STEPS.map((s) => (
           <li key={s.title} className="relative">
             <PaperSheet className="h-full px-4 pt-7 pb-5">
@@ -84,7 +93,11 @@ export function Welcome() {
         ))}
       </ol>
 
-      <p className="mt-12 text-center">
+      <div className={`mt-8 lg:hidden ${enter}`}>
+        <Plate />
+      </div>
+
+      <p className="mt-8 text-center">
         <PaperLabel className="label-caps text-[11px] font-sans whitespace-normal text-muted-foreground">
           Runs entirely in your browser · nothing uploaded · MIT
         </PaperLabel>

@@ -359,7 +359,10 @@ export function CanopyTree({ active }: { active: boolean }) {
       <div className="pointer-events-none absolute inset-x-2 top-1.5 flex items-start justify-between gap-2">
         {/* the key: a little paper card, colour chips cut from the same scale as the ribbons */}
         <PaperLabel tone="cream" rotate={-0.5} className="h-auto min-w-0 flex-wrap gap-x-3 gap-y-0.5 py-1 font-sans tracking-normal">
-          <Kicker as="span" className="mb-0">width = games · colour = your score</Kicker>
+          <Kicker as="span" className="mb-0">
+            <span className="min-[430px]:hidden">games · score</span>
+            <span className="hidden min-[430px]:inline">width = games · colour = your score</span>
+          </Kicker>
           <span className="hidden items-center gap-1.5 text-pencil tabular-nums min-[430px]:flex" aria-hidden="true">
             <span className="font-mono">{`≤${pct(0.5 - SPREAD)}`}</span>
             <span className="flex">
@@ -371,7 +374,7 @@ export function CanopyTree({ active }: { active: boolean }) {
           </span>
         </PaperLabel>
         <div role="group" aria-label="Tree depth" className="pointer-events-auto flex shrink-0 items-center gap-1.5 text-[11px]">
-          <Kicker as="span" className="mb-0" aria-hidden="true">
+          <Kicker as="span" className="mb-0 hidden min-[430px]:inline" aria-hidden="true">
             Plies
           </Kicker>
           <div className="flex items-center gap-1">

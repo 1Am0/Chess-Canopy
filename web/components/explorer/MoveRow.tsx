@@ -14,11 +14,11 @@ import { cn } from "@/lib/utils";
  * 24rem wide table and the inline opening name from 28rem (else it is only a tooltip).
  */
 export const COL = {
-  move: "overflow-hidden whitespace-nowrap pr-2 pl-4",
-  games: "w-16 px-2 text-right tabular-nums whitespace-nowrap",
+  move: "overflow-hidden whitespace-nowrap pr-1 pl-3 @xs:pr-2 @xs:pl-4",
+  games: "w-14 px-1 text-right @xs:w-16 @xs:px-2 tabular-nums whitespace-nowrap",
   share: "hidden w-14 px-2 text-right tabular-nums whitespace-nowrap @sm:table-cell",
-  bar: "w-[38%] px-2",
-  score: "w-14 pr-3 pl-1 text-right tabular-nums whitespace-nowrap",
+  bar: "w-[36%] px-1 @xs:w-[38%] @xs:px-2",
+  score: "w-12 pr-2 pl-1 @xs:w-14 @xs:pr-3 text-right tabular-nums whitespace-nowrap",
 } as const;
 
 export function MoveRow({

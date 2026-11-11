@@ -6,13 +6,14 @@ import { useExplorerStore } from "@/lib/store";
 import { playSound, unlockSound } from "@/lib/sound";
 
 /** Header button: mute / unmute the move sounds. */
-export function SoundToggle() {
+export function SoundToggle({ className }: { className?: string }) {
   const on = useExplorerStore((s) => s.soundEnabled);
   const setOn = useExplorerStore((s) => s.setSoundEnabled);
   return (
     <Button
       variant="chit"
       size="icon"
+      className={className}
       aria-label="Move sounds"
       aria-pressed={on}
       title={on ? "Move sounds on (click to mute)" : "Move sounds off (click to unmute)"}

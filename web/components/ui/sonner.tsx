@@ -1,4 +1,6 @@
 "use client";
+import { useSyncExternalStore } from "react";
+import { useExplorerStore } from "@/lib/store";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 /*
@@ -28,12 +30,28 @@ const ICONS = {
   error: mark(<path d="M3.6 3.4L12.5 12.7M12.4 3.3L3.5 12.6" />),
 };
 
+const PHONE = "(max-width: 639.98px)";
+const subscribe = (cb: () => void) => {
+  const m = window.matchMedia(PHONE);
+  m.addEventListener("change", cb);
+  return () => m.removeEventListener("change", cb);
+};
+
 const Toaster = ({ ...props }: ToasterProps) => {
+  const phone = useSyncExternalStore(subscribe, () => window.matchMedia(PHONE).matches, () => false);
+  const sheetOpen = useExplorerStore((s) => s.filtersOpen || s.importOpen || s.managerOpen);
+  // Phones: top-centre, just under the 56px header. Desktop: bottom-right, moving to the top while a sheet/dialog
+  // is open so the notes never cover its footer buttons.
+  const position = phone ? "top-center" : sheetOpen ? "top-right" : "bottom-right";
   return (
     <Sonner
       theme="light"
       className="toaster group"
       icons={ICONS}
+      position={position}
+      duration={4000}
+      offset={{ top: 68, right: 16, bottom: 16, left: 16 }}
+      mobileOffset={{ top: 64, left: 12, right: 12 }}
       toastOptions={{ classNames: { toast: "paper-note", title: "text-sm", description: "text-sm" } }}
       {...props}
     />

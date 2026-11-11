@@ -105,7 +105,7 @@ test("320px: header controls do not overlap and the summary is not clipped (H3)"
       expect(overlap, `${boxes[i].name} overlaps ${boxes[j].name}`).toBeLessThanOrEqual(0.5);
     }
   }
-  // Summary: the text line and the legend sit side by side without covering each other.
+  // Summary: the text line fits its row (the bar strips carry their own labels; no separate legend).
   const summary = page.getByRole("region", { name: "Position summary" });
   await expect(summary).toHaveAttribute("aria-busy", "false");
   const rects = await summary.locator("p").evaluateAll((ps) =>
@@ -114,8 +114,7 @@ test("320px: header controls do not overlap and the summary is not clipped (H3)"
       return { l: r.left, r: r.right, scrollW: p.scrollWidth, clientW: p.clientWidth };
     }),
   );
-  expect(rects).toHaveLength(2);
-  expect(rects[0].r).toBeLessThanOrEqual(rects[1].l + 0.5);
+  expect(rects).toHaveLength(1);
   expect(rects[0].scrollW).toBeLessThanOrEqual(rects[0].clientW + 1);
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
 });

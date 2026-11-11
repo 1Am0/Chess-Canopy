@@ -11,21 +11,20 @@ const SAMPLE: Branch[] = [
   { san: "1… c6", n: 6, score: 0.34, kids: [{ san: "2. d4", n: 6, score: 0.34 }] },
 ];
 
-// 4:3 viewBox. Text sizes are in these units (~11px at the plate's desktop width).
-const W = 480;
-const H = 360;
-const PAD_TOP = 26; // room for the root label
-const PAD_BOTTOM = 10;
+type Dims = { W: number; H: number; X_L1: number; X_L2: number; LABEL_COL: number; san: number; sub: number | null };
+
+// Two layouts, both in viewBox units sized so the text lands at 11px or more at the widths they are shown at:
+// wide (sm and up, ~1 unit per px) with two lines per label, narrow (phones, ~0.8 to 1 unit per px) with one.
+const WIDE: Dims = { W: 400, H: 380, X_L1: 110, X_L2: 262, LABEL_COL: 62, san: 13, sub: 11.5 };
+const NARROW: Dims = { W: 290, H: 390, X_L1: 66, X_L2: 196, LABEL_COL: 52, san: 14, sub: null };
+const PAD_TOP = 28; // room for the root label
+const PAD_BOTTOM = 8;
 const GAP = 4;
 const BAR = 5;
 const X_ROOT = 0;
-const X_L1 = 150;
-const X_L2 = 322;
-const LABEL_COL = 66; // clear space right of the level-1 bars; ribbons resume after it
 
 const LEAVES = SAMPLE.reduce((s, b) => s + b.kids.length, 0);
 const TOTAL = SAMPLE.reduce((s, b) => s + b.n, 0);
-const SCALE = (H - PAD_TOP - PAD_BOTTOM - GAP * (LEAVES - 1)) / TOTAL; // units per game
 
 /** Score → bar/ribbon colour, interpolating low → mid → high in oklch. */
 function scoreColour(score: number, alpha = 100) {
@@ -45,7 +44,8 @@ function band(xa: number, a0: number, a1: number, xb: number, b0: number, b1: nu
 
 type Placed = Node & { y0: number; y1: number };
 
-function layout() {
+function layout(H: number) {
+  const SCALE = (H - PAD_TOP - PAD_BOTTOM - GAP * (LEAVES - 1)) / TOTAL; // units per game
   // Level 1: branches stacked with gaps, centred on the full-height stack.
   const l1Height = TOTAL * SCALE + GAP * (SAMPLE.length - 1);
   let y = PAD_TOP;
@@ -76,22 +76,18 @@ function layout() {
   return { rootY0, rootY1: rootY0 + rootH, l1 };
 }
 
-const { rootY0, rootY1, l1 } = layout();
 
-const SAN_CLS = "font-mono font-semibold text-[13px] max-sm:text-[17px]";
-const SUB_CLS = "font-mono text-[10.5px] max-sm:hidden";
-
-function Label({ x, y0, y1, node }: { x: number; y0: number; y1: number; node: Node }) {
+function Label({ x, y0, y1, node, d }: { x: number; y0: number; y1: number; node: Node; d: Dims }) {
   const mid = (y0 + y1) / 2;
   // Drop the second line for nodes too short to hold two lines without crowding a neighbour.
-  const two = y1 - y0 >= 22;
+  const two = d.sub !== null && y1 - y0 >= 28;
   return (
     <g>
-      <text x={x} y={two ? mid - 1 : mid} dominantBaseline={two ? "auto" : "central"} className={SAN_CLS} style={{ fill: "var(--ink)" }}>
+      <text x={x} y={two ? mid - 1 : mid} dominantBaseline={two ? "auto" : "central"} fontSize={d.san} className="font-mono font-semibold" style={{ fill: "var(--ink)" }}>
         {node.san}
       </text>
       {two && (
-        <text x={x} y={mid + 11} className={SUB_CLS} style={{ fill: "var(--muted-foreground)" }}>
+        <text x={x} y={mid + 13} fontSize={d.sub ?? 0} className="font-mono" style={{ fill: "var(--muted-foreground)" }}>
           {Math.round(node.score * 100)}% · {node.n}
         </text>
       )}
@@ -99,9 +95,11 @@ function Label({ x, y0, y1, node }: { x: number; y0: number; y1: number; node: N
   );
 }
 
-function Tree() {
+function Tree({ d, className }: { d: Dims; className?: string }) {
+  const { W, H, X_L1, X_L2, LABEL_COL } = d;
+  const { rootY0, rootY1, l1 } = layout(H);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="block h-auto w-full" aria-hidden="true" focusable="false">
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className={cn("block h-auto w-full", className)} aria-hidden="true" focusable="false">
       {/* Ribbons */}
       <g>
         {l1.map((b) => (
@@ -130,14 +128,14 @@ function Tree() {
         ))}
       </g>
       {/* Labels */}
-      <text x={X_ROOT} y={14} className={SAN_CLS} style={{ fill: "var(--ink)" }}>
+      <text x={X_ROOT} y={16} fontSize={d.san} className="font-mono font-semibold" style={{ fill: "var(--ink)" }}>
         1. e4
       </text>
       {l1.map((b) => (
         <g key={b.san}>
-          <Label x={X_L1 + BAR + 8} y0={b.y0} y1={b.y1} node={b} />
+          <Label x={X_L1 + BAR + 8} y0={b.y0} y1={b.y1} node={b} d={d} />
           {b.kids.map((k) => (
-            <Label key={k.san} x={X_L2 + BAR + 8} y0={k.y0} y1={k.y1} node={k} />
+            <Label key={k.san} x={X_L2 + BAR + 8} y0={k.y0} y1={k.y1} node={k} d={d} />
           ))}
         </g>
       ))}
@@ -151,12 +149,15 @@ function Tree() {
  */
 export function SpecimenPlate({ className }: { className?: string }) {
   return (
-    <figure className={cn("border border-rule-strong/50 bg-[var(--sheet-flat)] p-3.5 sm:p-5", className)} aria-hidden="true">
+    <figure className={cn("flex flex-col border border-rule-strong/50 bg-[var(--sheet-flat)] p-4 sm:p-5", className)} aria-hidden="true">
       <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-rule pb-2">
-        <span className="label-caps text-sm">Plate I — 1. e4, {TOTAL} games</span>
-        <span className="font-mono text-[10px] text-muted-foreground">No. 001</span>
+        <span className="label-caps text-xs sm:text-sm">Plate I — 1. e4, {TOTAL} games</span>
+        <span className="shrink-0 font-mono text-[11px] text-muted-foreground">No. 001</span>
       </div>
-      <Tree />
+      <div className="flex min-h-0 flex-1 items-center">
+        <Tree d={NARROW} className="sm:hidden" />
+        <Tree d={WIDE} className="hidden sm:block" />
+      </div>
       <figcaption className="mt-3 flex items-center justify-between gap-3 border-t border-rule pt-2 text-xs text-muted-foreground">
         <span className="font-serif italic">Sample data. Yours is built from your own games.</span>
         <span className="label-caps hidden shrink-0 sm:inline">Sample</span>

@@ -5,10 +5,17 @@ import { createRng, n2 } from "@/lib/paper";
 import { cn } from "@/lib/utils";
 
 const SEGMENTS = [
-  { key: "white", name: "White wins", cls: "bg-bar-white text-bar-white-fg" },
-  { key: "draw", name: "Draws", cls: "bg-bar-draw text-bar-draw-fg" },
-  { key: "black", name: "Black wins", cls: "bg-bar-black text-bar-black-fg" },
+  { key: "white", name: "White wins", label: "White", cls: "bg-bar-white text-bar-white-fg" },
+  { key: "draw", name: "Draws", label: "Draw", cls: "bg-bar-draw text-bar-draw-fg" },
+  { key: "black", name: "Black wins", label: "Black", cls: "bg-bar-black text-bar-black-fg" },
 ] as const;
+
+/** Summary-bar label: "White 40%" when the strip is wide, "40%" when narrow, nothing when a sliver. */
+function namedLabel(name: string, p: number): string | null {
+  if (p < 7) return null;
+  const n = Math.round(p);
+  return p >= 27 ? `${name} ${n}%` : `${n}%`;
+}
 
 /**
  * The cut of each strip: a left and a right edge with four slightly different x offsets (0 to 2.2px), so the
@@ -33,6 +40,7 @@ export function WdbBar({
   stats,
   side,
   labels = true,
+  named = false,
   seed = "wdb",
   className,
 }: {
@@ -40,6 +48,8 @@ export function WdbBar({
   stats: Stats | null | undefined;
   side: Color;
   labels?: boolean;
+  /** Label each strip with its name ("White 40%") where it is wide enough, digits where it is not (summary bar). */
+  named?: boolean;
   /** Varies the cut ends between bars (the move table passes the move). */
   seed?: string;
   className?: string;
@@ -52,7 +62,7 @@ export function WdbBar({
       role="img"
       aria-label={w ? wdbLabel(w) : "No games"}
       className={cn(
-        "relative flex h-4 w-full text-[10px] leading-none font-medium tabular-nums",
+        "relative flex h-4 w-full text-[11px] leading-none font-medium tabular-nums",
         !w && "bar-empty border border-dashed border-rule-strong",
         className,
       )}
@@ -71,24 +81,10 @@ export function WdbBar({
             )}
             style={{ width: `${pc}%`, clipPath: cuts[i] }}
           >
-            {labels ? segmentLabel(pc) : null}
+            {named ? namedLabel(s.label, pc) : labels ? segmentLabel(pc) : null}
           </span>
         );
       })}
     </div>
-  );
-}
-
-/** Tiny paper swatch matching a bar strip, for legends: a snip of the same stock with a hair of shadow. */
-export function WdbSwatch({ kind, className }: { kind: "white" | "draw" | "black"; className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "inline-block h-2.5 w-3 shrink-0 [background-image:var(--sheet-tile)] shadow-[inset_0_0_0_1px_var(--bar-border),0.5px_1px_1px_var(--btn-drop)]",
-        kind === "white" ? "bg-bar-white" : kind === "draw" ? "bg-bar-draw" : "bg-bar-black",
-        className,
-      )}
-    />
   );
 }

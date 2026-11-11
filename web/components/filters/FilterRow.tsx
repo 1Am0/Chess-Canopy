@@ -2,8 +2,7 @@
 
 import type { Filters } from "@/lib/engine/types";
 import { useExplorerStore } from "@/lib/store";
-import { InkCross, PencilUnderline } from "@/components/explorer/ink";
-import { PaperClip, PaperLabel } from "@/components/paper";
+import { InkCross } from "@/components/explorer/ink";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -63,11 +62,8 @@ export function FilterRow({ className }: { className?: string }) {
       {chips.length === 0 ? (
         <>
           <p className="min-w-0 flex-1 truncate text-sm text-pencil/80">All games · no filters</p>
-          <Button variant="ghost" size="sm" aria-label="Add filter" className="group/add h-7 px-2 font-hand text-[19px] leading-none font-medium text-pencil" onClick={() => setUi({ filtersOpen: true })}>
-            <span aria-hidden className="relative inline-block pb-px">
-              + add filter
-              <PencilUnderline seed="add" className="top-full -mt-[2px]" />
-            </span>
+          <Button variant="ghost" size="sm" aria-label="Add filter" className="h-7 px-2 text-sm font-medium text-ink underline decoration-ink/40 underline-offset-[3px] hover:bg-transparent hover:decoration-ink" onClick={() => setUi({ filtersOpen: true })}>
+            <span aria-hidden>+ Add filter</span>
           </Button>
         </>
       ) : (
@@ -75,12 +71,10 @@ export function FilterRow({ className }: { className?: string }) {
           <div
             aria-label="Active filters"
             role="group"
-            className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto px-1 pt-1 overscroll-x-contain whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto overscroll-x-contain whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {chips.map((c, i) => (
-              <PaperLabel key={c.label} tone="manila" rotate={i % 2 ? 0.7 : -0.6} className="relative h-6 gap-1.5 pr-0.5 pl-[17px] tracking-wide text-[color:var(--tag-ink)]">
-                {/* a small paper clip holds the tag to the sheet */}
-                <PaperClip size={0.5} angle={i % 2 ? 6 : -5} className="absolute top-[-3px] left-[3px]" />
+            {chips.map((c) => (
+              <span key={c.label} className="inline-flex h-6 shrink-0 items-center gap-1 border border-rule-strong pr-0.5 pl-2 text-xs text-ink">
                 {c.label}
                 <button
                   type="button"
@@ -90,7 +84,7 @@ export function FilterRow({ className }: { className?: string }) {
                 >
                   <InkCross seed={c.label} />
                 </button>
-              </PaperLabel>
+              </span>
             ))}
           </div>
           <Button variant="tag" size="xs" className="shrink-0" onClick={clear}>

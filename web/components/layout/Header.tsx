@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ImportIndicator } from "@/components/players/ImportIndicator";
 import { PlayerSwitcher } from "@/components/players/PlayerSwitcher";
 import { Logo } from "@/components/layout/Logo";
+import { MoreMenu } from "@/components/layout/MoreMenu";
 import { SoundToggle } from "@/components/layout/SoundToggle";
 import { TornEdge } from "@/components/paper";
 
@@ -27,10 +28,10 @@ export function Header({ showTools }: { showTools: boolean }) {
           <span className="hidden font-serif text-xl leading-none font-semibold tracking-tight text-foreground sm:inline">Chess Canopy</span>
         </div>
         {showTools && <div className="min-w-0 shrink" data-testid="player-switcher"><PlayerSwitcher /></div>}
-        <div className="ml-auto flex shrink-0 items-center gap-1.5">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 max-sm:gap-2">
           {showTools && <ImportIndicator />}
           {showTools && (
-            <Button variant="outline" size="sm" onClick={() => setUi({ filtersOpen: true })} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
+            <Button variant="outline" size="sm" className="max-sm:h-9 max-sm:px-2.5" onClick={() => setUi({ filtersOpen: true })} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
               <Filter />
               <span className="hidden sm:inline">Filters</span>
               {count > 0 && (
@@ -41,13 +42,14 @@ export function Header({ showTools }: { showTools: boolean }) {
             </Button>
           )}
           {showTools && (
-            <Button variant="outline" size="sm" onClick={() => setUi({ importOpen: true })} aria-label="Import games">
+            <Button variant="outline" size="sm" className="max-sm:h-9 max-sm:px-2.5" onClick={() => setUi({ importOpen: true })} aria-label="Import games">
               <Plus />
               <span className="hidden sm:inline">Import</span>
             </Button>
           )}
-          <SoundToggle />
-          <Button variant="chit" size="icon" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
+          <SoundToggle className="max-sm:hidden" />
+          <MoreMenu />
+          <Button variant="chit" size="icon" className="max-sm:hidden" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
             <HelpCircle />
           </Button>
         </div>
