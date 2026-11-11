@@ -687,3 +687,55 @@ geometry, e2e names, a11y, CSP).
   - Plate frame: box-shadow on the board element (hairline + paper strip + heavy rule = 3.5px, fits the 4px gap), board rect unchanged. No `globals.css` change needed.
   - Checks: typecheck, lint, test clean; 34/34 e2e pass; legible at 40px (mobile) and 85px squares.
   - Requests: none. `--board-light/--board-dark` in globals.css and `lib/board-themes.ts` are no longer read by the board (kept as plumbing).
+
+---
+
+# Round 5: better board arrows (drafts first)
+
+Owner: the current arrows "are buns". Close-up review (coordinator): the
+tapered ink stroke reads as a thin wobbly grey sliver with a doubled, ghosted
+head; too faint against the hatched lichen squares, and it doesn't look like a
+deliberate, skilled mark. Process: **draft 4 styles on the real board, owner
+picks, then implement properly.**
+
+## R5.1 What good chess arrows do (research, chessground `src/svg.ts`)
+
+Units: S = one square.
+- **Constant-width shaft** (chessground: 10/64 S ≈ 0.156 S), round caps.
+  No taper: taper reads as sloppy at board scale.
+- **Head with fixed proportions**: length ≈ 3× shaft width, base ≈ 4× shaft
+  width, half-angle ≈ 30-34°. A defined, sharp head; never a blob.
+- **Start at the origin square centre, stop short of the target centre**
+  (margin ≈ 0.16 S; more when several arrows converge on one square) so the
+  destination piece stays readable.
+- **Frequency as a discrete width ladder** (3 steps) plus opacity
+  (1 / ~0.75 / ~0.55), not opacity alone, which washes out on cream.
+- **Hover preview must look different**, not just thicker: dashed or
+  outline-only.
+- Crossing arrows darken each other; manage with a paper-coloured under-stroke
+  or ordering.
+- Straight knight arrows are fine (Lichess); an L is optional.
+
+## R5.2 Four drafts to build (all in the site's ink, on the plate board)
+
+| Draft | Geometry |
+| --- | --- |
+| **A. Engraved hatch** | Shaft filled with fine 45° engraving hatch (clipped), outlined with a thin ink rule; solid ink head (length ≈ 0.30 S, base ≈ 0.36 S). Ladder 0.16 / 0.11 / 0.07 S. Hover: outline only, hairline. Fits the engraved pieces best; must survive a 40px-square render (check moiré). |
+| **B. Pen stroke** | One confident constant-width ink stroke (0.10 / 0.075 / 0.055 S), crisp **open chevron** head (two legs, mitred, ~32°, length ≈ 0.28 S), opacity 1 / 0.75 / 0.55. Hover: same geometry, dashed. Cleanest "skilled pen" look. |
+| **C. Letterpress ribbon** | Paper-coloured shaft (0.16 S) outlined by a thin ink double rule, outlined head with the same proportions; frequency by ink weight/fill. Hover: dashed outline. Reads printed; check it doesn't hide pieces. |
+| **D. Printed block** | Flat ink shaft with butt caps (0.13 / 0.09 / 0.06 S), isosceles head (length ≈ 0.32 S, base ≈ 0.34 S) with a fine inner key line (printed-block detail); opacity ladder. Hover: key line / outline only. Closest to Lichess proportions, very legible. |
+
+All drafts: same ink colour family for candidates (deep ink from tokens), a
+thin paper-coloured under-stroke (halo) so arrows stay legible over pieces,
+deterministic (no wobble unless it is the draft's point), fixed SVG node count
+preserved, reduced-motion respected. User-drawn arrows: same style per draft in
+the existing muted ink colours.
+
+## R5.3 Draft mechanics
+
+Build all four behind a temporary, non-UI switch (e.g. a `?arrows=a|b|c|d`
+query parameter read once on load, default = current). Produce comparison
+screenshots per draft: start position with the 3 candidate arrows; a hovered
+table row (preview + candidates); a middlegame with a knight candidate; a
+user-drawn arrow; desktop (~80px squares) and mobile (~40px squares). After the
+owner picks, the switch and losing drafts are removed.
