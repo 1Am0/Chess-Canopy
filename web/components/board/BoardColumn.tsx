@@ -5,7 +5,7 @@ import { ExplorerBoard } from "@/components/board/ExplorerBoard";
 import { BoardControls } from "@/components/board/BoardControls";
 import { EvalBar } from "@/components/board/EvalBar";
 import { PlayerStrip } from "@/components/board/PlayerStrip";
-import { PaperSheet, PhotoCorners, Tape, UnderSheet } from "@/components/paper";
+import { PaperSheet, Tape, UnderSheet } from "@/components/paper";
 import type { Color } from "@/lib/engine/types";
 
 /**
@@ -37,10 +37,9 @@ export function BoardColumn() {
       </div>
       <div className="flex gap-2">
         <EvalBar />
-        {/* the print, held by four photo corners */}
+        {/* the print */}
         <div className="relative min-w-0 flex-1 shadow-print">
           <ExplorerBoard />
-          <PhotoCorners />
         </div>
       </div>
       <div data-testid="strip-bottom" className="pl-10">

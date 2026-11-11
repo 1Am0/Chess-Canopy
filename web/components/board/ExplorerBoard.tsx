@@ -207,7 +207,7 @@ export function ExplorerBoard() {
           showNotation: false,
           allowDrawingArrows: true,
           clearArrowsOnPositionChange: true,
-          animationDurationInMs: reduceMotion ? 0 : 150,
+          animationDurationInMs: reduceMotion ? 0 : 240,
           onArrowsChange: ({ arrows: drawn }) =>
             setUserArrows((prev) => {
               const next = drawn.map((a) => ({ from: a.startSquare, to: a.endSquare, ink: USER_INKS[a.color] ?? "green" }));

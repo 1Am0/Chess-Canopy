@@ -27,6 +27,7 @@ export function MoveRow({
   positionTotal,
   active,
   openingName,
+  index = 0,
   onPlay,
   onHover,
 }: {
@@ -37,6 +38,7 @@ export function MoveRow({
   active: boolean;
   /** Opening reached by this move, only when it differs from the current one */
   openingName?: string | null;
+  index?: number;
   onPlay: () => void;
   onHover: (hover: boolean) => void;
 }) {
@@ -48,7 +50,8 @@ export function MoveRow({
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       aria-selected={active}
-      className={cn("relative isolate h-8 cursor-pointer transition-colors hover:bg-specimen/60 [&>td]:border-b [&>td]:border-rule", active && "[&>td]:border-transparent")}
+      style={{ animationDelay: `${Math.min(index, 12) * 28}ms` }}
+      className={cn("row-in group/row relative isolate h-8 cursor-pointer transition-colors hover:bg-specimen/60 [&>td]:border-b [&>td]:border-rule", active && "[&>td]:border-transparent")}
     >
       <td className={COL.move} title={openingName ?? undefined}>
         {active && (
@@ -58,7 +61,7 @@ export function MoveRow({
             <PencilTick seed={item.move} className="absolute top-1/2 left-[2px] -translate-y-1/2" />
           </>
         )}
-        <div className={"flex min-w-0 items-baseline gap-2 text-ink"}>
+        <div className={"flex min-w-0 items-baseline gap-2 text-ink motion-safe:transition-transform motion-safe:duration-150 motion-safe:group-hover/row:translate-x-1"}>
           <span className="shrink-0 font-mono text-sm font-semibold">{item.move}</span>
           {openingName && <span className="hidden min-w-0 truncate font-serif text-xs text-muted-foreground italic @md:inline">{openingName}</span>}
         </div>

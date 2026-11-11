@@ -213,7 +213,7 @@ export function MoveTable({ className }: { className?: string }) {
               </tr>
             ))}
           {!empty &&
-            rows.map((item, i) => <MoveRow key={item.move} {...rowProps(item, i)} />)}
+            rows.map((item, i) => <MoveRow key={`${posKey}-${item.move}`} {...rowProps(item, i)} />)}
         </tbody>
         {result && !empty && (
           <tfoot className="sticky bottom-0 z-10">
@@ -296,6 +296,7 @@ export function MoveTable({ className }: { className?: string }) {
   function rowProps(item: NextMove, i: number) {
     return {
       id: `move-row-${i}`,
+      index: i,
       item,
       side,
       positionTotal: total,
