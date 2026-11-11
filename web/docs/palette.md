@@ -380,3 +380,30 @@ Arrows sit on mid-tone squares so a hard 3:1 is not achievable against every dar
 - Do not use win green for brand chrome; keep brand `primary` for interaction, `win` strictly for results.
 - Highlights: apply `--highlight-last` at about 0.45-0.7 alpha via `color-mix(in oklab, var(--highlight-last) 55%, transparent)`.
 - Section labels use the `label-caps` utility; the header uses `rule-double`.
+
+## Round 3 paper tones (scrapbook prototype)
+
+Sheet = `--sheet`, strip = header paper `--strip`, tag = `--tag`. Generated with the contrast script (`--sheet` flattened over white).
+
+| Mode | Foreground | Background | Ratio | Min | Result |
+|---|---|---|---|---|---|
+| light | foreground | sheet | 16.76 | 4.5 | PASS |
+| light | ink | sheet | 17.72 | 4.5 | PASS |
+| light | muted-foreground | sheet | 7.20 | 4.5 | PASS |
+| light | primary (kicker) | sheet | 8.21 | 4.5 | PASS |
+| light | pencil (margin note) | sheet | 9.33 | 4.5 | PASS |
+| light | rule-strong (control boundary) | sheet | 3.67 | 3 | PASS |
+| light | tag-ink | tag | 11.84 | 4.5 | PASS |
+| light | foreground | strip (header) | 15.46 | 4.5 | PASS |
+| light | muted-foreground | sheet-under (inactive tab) | 5.55 | 4.5 | PASS |
+| light | sheet | desk (separation, non-text) | 1.75 | 1.3 | PASS |
+| dark | foreground | sheet | 11.24 | 4.5 | PASS |
+| dark | ink | sheet | 12.29 | 4.5 | PASS |
+| dark | muted-foreground | sheet | 5.62 | 4.5 | PASS |
+| dark | primary (kicker) | sheet | 6.54 | 4.5 | PASS |
+| dark | pencil (margin note) | sheet | 7.17 | 4.5 | PASS |
+| dark | rule-strong (control boundary) | sheet | 3.30 | 3 | PASS |
+| dark | tag-ink | tag | 7.56 | 4.5 | PASS |
+| dark | foreground | strip (header) | 12.05 | 4.5 | PASS |
+| dark | muted-foreground | sheet-under (inactive tab) | 6.63 | 4.5 | PASS |
+| dark | sheet | desk (separation, non-text) | 1.40 | 1.3 | PASS |

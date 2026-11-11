@@ -28,7 +28,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
  * chrome is 14.25rem (header 3.5rem + padding 2.25rem + mat 1.5rem + strips/toolbar/gaps 6.9rem).
  */
 const BOARD_COLUMN =
-  "[--board-size:min(calc(100vw-1.5rem),62dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-1rem),52rem),calc(100dvh-14.25rem))]";
+  "[--board-size:min(calc(100vw-1.5rem),62dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-1rem),52rem),calc(100dvh-13.5rem))]";
 
 /** Placeholder with the same slots as the explorer, so the first paint doesn't jump. */
 function LoadingShell() {
@@ -64,7 +64,7 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <ImportProvider>
-      <div className={`flex min-h-dvh flex-col ${explorer ? "desk lg:h-dvh lg:overflow-hidden" : ""}`}>
+      <div className={`flex min-h-dvh flex-col ${explorer ? "desk overflow-x-clip lg:h-dvh lg:overflow-hidden" : ""}`}>
         <UrlSideSync />
         <Header showTools={explorer} />
         {!ready && <LoadingShell />}
@@ -75,7 +75,7 @@ export function AppShell() {
           >
             <section
               aria-label="Board"
-              className="px-3 pt-4 pb-2 sm:px-4 lg:h-[calc(100dvh-3.5rem)] lg:overflow-hidden lg:pt-6 lg:pr-4 lg:pb-3"
+              className="px-3 pt-4 pb-2 sm:px-4 lg:h-[calc(100dvh-3.5rem)] lg:overflow-hidden lg:pt-[18px] lg:pr-4 lg:pb-3"
             >
               <BoardColumn />
             </section>
@@ -86,7 +86,7 @@ export function AppShell() {
             */}
             <aside
               aria-label="Explorer"
-              className="flex min-w-0 flex-col px-3 pb-6 sm:px-4 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pt-6 lg:pb-3 lg:pl-1"
+              className="flex min-w-0 flex-col px-3 pb-6 sm:px-4 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pt-[18px] lg:pb-5 lg:pl-1"
             >
               <ExplorerPanel />
             </aside>

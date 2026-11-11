@@ -31,7 +31,7 @@ export function UnderSheet({
   className?: string;
 }) {
   const [ref, size] = useElementSize<HTMLSpanElement>();
-  const clip = useMemo(() => (size ? deckledPath(seed, size.w, size.h, 1.5, 6) : null), [seed, size]);
+  const clip = useMemo(() => (size ? deckledPath(seed, size.w, size.h, 2.2, 5) : null), [seed, size]);
   return (
     <span
       ref={ref}
@@ -44,7 +44,7 @@ export function UnderSheet({
           className="absolute inset-0 block"
           style={{
             transform: `translate(${dx}px, ${dy}px) rotate(${Math.max(-1, Math.min(1, rotate))}deg)`,
-            transformOrigin: "0 0",
+            transformOrigin: "50% 50%",
             backgroundColor: "var(--sheet-under)",
             backgroundImage: "var(--sheet-tile)",
             clipPath: `path("${clip}")`,

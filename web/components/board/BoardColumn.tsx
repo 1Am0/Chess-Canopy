@@ -5,7 +5,7 @@ import { ExplorerBoard } from "@/components/board/ExplorerBoard";
 import { BoardControls } from "@/components/board/BoardControls";
 import { EvalBar } from "@/components/board/EvalBar";
 import { PlayerStrip } from "@/components/board/PlayerStrip";
-import { PaperSheet, PhotoCorners } from "@/components/paper";
+import { PaperSheet, PhotoCorners, Tape, UnderSheet } from "@/components/paper";
 import type { Color } from "@/lib/engine/types";
 
 /**
@@ -24,12 +24,14 @@ export function BoardColumn() {
   const bottomIsYou = orientation === side;
 
   return (
-    // The print on its mat: a cream mount (12px of paper around everything, 8px on phones). The mat is
-    // as wide as the board column plus its own padding, so the board keeps the size the layout asks for.
-    <PaperSheet
-      className="mx-auto flex w-[var(--board-size)] max-w-full flex-col gap-1.5 p-2 lg:mx-0 lg:w-[calc(var(--board-size)+1.5rem)] lg:p-3"
-      data-testid="board-mat"
-    >
+    // The print on its mat: a cream mount (10px of paper around everything, 8px on phones) taped to the desk
+    // with two strips, over a second mount peeking out. The wrapper is as wide as the board column plus the mat's
+    // padding, so the board keeps the size the layout asks for.
+    <div className="relative isolate z-10 mx-auto w-[var(--board-size)] max-w-full lg:mx-0 lg:w-[calc(var(--board-size)+1.25rem)]">
+    <UnderSheet seed={5} dx={5} dy={6} rotate={0.7} />
+    <PaperSheet className="flex flex-col gap-1.5 p-2 lg:p-2.5" data-testid="board-mat">
+      <Tape variant="sage" angle={-3} seed="mat-l" className="-top-1.5 left-5" />
+      <Tape variant="sage" angle={3} seed="mat-r" className="-top-1.5 right-5" />
       <div data-testid="strip-top" className="pl-8">
         <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} />
       </div>
@@ -48,5 +50,6 @@ export function BoardColumn() {
         <BoardControls />
       </div>
     </PaperSheet>
+    </div>
   );
 }

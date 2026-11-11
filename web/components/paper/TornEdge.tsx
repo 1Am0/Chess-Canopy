@@ -52,7 +52,7 @@ export function TornEdge({ seed = 11, height = 13, amp = 8, className }: { seed?
     >
       <span className="absolute inset-x-0 top-0 block" style={{ height: layers.underH, backgroundColor: "var(--sheet-under)", ...layers.under }} />
       <span className="absolute inset-x-0 top-0 block" style={{ height, backgroundColor: "var(--sheet-rim)", ...layers.rim }} />
-      <span className="absolute inset-x-0 top-0 block" style={{ height, backgroundColor: "var(--sheet)", backgroundImage: "var(--sheet-tile)", ...layers.body }} />
+      <span className="absolute inset-x-0 top-0 block" style={{ height, backgroundColor: "var(--strip)", backgroundImage: "var(--sheet-tile)", ...layers.body }} />
     </span>
   );
 }

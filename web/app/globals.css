@@ -87,13 +87,15 @@
   --desk: oklch(0.8 0.04 76);
   --sheet: oklch(0.975 0.022 90);
   --sheet-flat: oklch(0.988 0.012 90);
-  --sheet-under: oklch(0.915 0.042 84);
+  --sheet-under: oklch(0.89 0.052 80);
+  --strip: oklch(0.948 0.034 86);
+  --sheet-vignette: oklch(0.4 0.05 75 / 0.1);
   --sheet-rim: oklch(0.998 0.01 92);
   --sheet-specimen: oklch(0.93 0.036 92);
-  --tape-ochre: oklch(0.9 0.05 92 / 0.72);
-  --tape-sage: oklch(0.87 0.045 150 / 0.7);
+  --tape-ochre: oklch(0.86 0.085 88 / 0.8);
+  --tape-sage: oklch(0.82 0.07 150 / 0.78);
   --tape-blend: multiply;
-  --photo-corner: oklch(0.3 0.025 55);
+  --photo-corner: oklch(0.27 0.02 60);
   --string: oklch(0.52 0.07 70);
   --tag: oklch(0.86 0.065 85);
   --tag-edge: oklch(0.6 0.075 72);
@@ -102,7 +104,7 @@
   --pencil: oklch(0.38 0.01 80);
   --shadow-ink: oklch(0.25 0.04 65);
   --scrim: oklch(0.22 0.03 60 / 0.45);
-  --sheet-shadow: inset 0 0 0 0.5px oklch(0.4 0.04 80 / 0.14), 0.5px 1px 1px oklch(0.25 0.04 65 / 0.38), 2px 3px 4px -1px oklch(0.25 0.04 65 / 0.2), 7px 12px 24px -8px oklch(0.25 0.05 65 / 0.34);
+  --sheet-shadow: inset 0 0 22px -4px var(--sheet-vignette), inset 0 0 0 0.5px oklch(0.4 0.04 80 / 0.14), 0.5px 1px 1px oklch(0.25 0.04 65 / 0.38), 2px 3px 4px -1px oklch(0.25 0.04 65 / 0.2), 7px 12px 24px -8px oklch(0.25 0.05 65 / 0.34);
   --print-shadow: 0 0 0 1px oklch(0.25 0.03 70 / 0.55), 0.5px 1px 1px 1px oklch(0.25 0.04 65 / 0.3), 2px 4px 7px -1px oklch(0.25 0.04 65 / 0.34);
 
   --chart-1: oklch(0.54 0.125 155);
@@ -194,16 +196,18 @@
   --paper-shadow: 0 1px 0 oklch(0 0 0 / 0.3), 0 10px 28px -8px oklch(0 0 0 / 0.6);
 
   /* Round 3 scrapbook tokens (dark): walnut board, dim cream paper, lighter low-alpha tape */
-  --desk: oklch(0.215 0.027 55);
-  --sheet: oklch(0.295 0.016 88);
+  --desk: oklch(0.185 0.026 55);
+  --sheet: oklch(0.305 0.02 88);
   --sheet-flat: oklch(0.262 0.014 90);
-  --sheet-under: oklch(0.245 0.016 82);
-  --sheet-rim: oklch(0.4 0.016 90);
+  --sheet-under: oklch(0.255 0.02 80);
+  --strip: oklch(0.285 0.02 86);
+  --sheet-vignette: oklch(0 0 0 / 0.22);
+  --sheet-rim: oklch(0.47 0.022 90);
   --sheet-specimen: oklch(0.34 0.02 92);
-  --tape-ochre: oklch(0.82 0.06 90 / 0.4);
-  --tape-sage: oklch(0.76 0.05 150 / 0.38);
+  --tape-ochre: oklch(0.82 0.07 90 / 0.5);
+  --tape-sage: oklch(0.76 0.06 150 / 0.48);
   --tape-blend: normal;
-  --photo-corner: oklch(0.6 0.03 70);
+  --photo-corner: oklch(0.6 0.05 70);
   --string: oklch(0.72 0.05 80);
   --tag: oklch(0.73 0.06 82);
   --tag-edge: oklch(0.5 0.05 75);
@@ -212,7 +216,7 @@
   --pencil: oklch(0.8 0.01 80);
   --shadow-ink: oklch(0 0 0);
   --scrim: oklch(0 0 0 / 0.55);
-  --sheet-shadow: inset 0 0.5px 0 oklch(1 0 0 / 0.08), 0.5px 1px 1px oklch(0 0 0 / 0.55), 2px 3px 4px -1px oklch(0 0 0 / 0.35), 8px 14px 26px -8px oklch(0 0 0 / 0.6);
+  --sheet-shadow: inset 0 0 22px -4px var(--sheet-vignette), inset 0 1px 0 oklch(1 0 0 / 0.17), 0.5px 1px 1px oklch(0 0 0 / 0.55), 2px 3px 4px -1px oklch(0 0 0 / 0.35), 8px 14px 26px -8px oklch(0 0 0 / 0.6);
   --print-shadow: 0 0 0 1px oklch(0 0 0 / 0.7), 0.5px 1px 1px 1px oklch(0 0 0 / 0.45), 2px 4px 7px -1px oklch(0 0 0 / 0.5);
 
   --chart-1: oklch(0.76 0.12 150);
@@ -602,14 +606,14 @@
     clip-path: polygon(0 100%, 0 6.2px, 6.2px 0, calc(100% - 6.2px) 0, 100% 6.2px, 100% 100%);
   }
   &[data-state="active"] {
-    --tab-fill: var(--sheet-flat);
+    --tab-fill: var(--sheet);
     z-index: 1;
   }
   &[data-state="active"]::after {
     inset: 1px 1px -1px 1px;
   }
   &:hover:not([data-state="active"]) {
-    --tab-fill: color-mix(in oklab, var(--sheet-under) 60%, var(--sheet-flat));
+    --tab-fill: color-mix(in oklab, var(--sheet-under) 55%, var(--sheet));
   }
   @media (forced-colors: active) {
     border: 1px solid CanvasText;

@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  */
 export function Tape({
   variant = "ochre",
-  length = 96,
+  length = 120,
   height = 22,
   angle = -2,
   seed = 1,
@@ -46,7 +46,7 @@ export function Tape({
       const dy = rng.range(-0.5, 0.5);
       lines.push({ d: `M${n2(x1)} ${n2(y)}L${n2(x2)} ${n2(y + dy)}`, light: i % 2 === 0 });
     }
-    return { body: tapePath(seed, length, height), fibres: lines };
+    return { body: tapePath(seed, length, height, 4.8), fibres: lines };
   }, [seed, length, height]);
 
   const fill = variant === "sage" ? "var(--tape-sage)" : "var(--tape-ochre)";
@@ -68,7 +68,7 @@ export function Tape({
         height={height}
         viewBox={`0 0 ${length} ${height}`}
         className="block overflow-visible"
-        style={{ filter: "drop-shadow(0 0.6px 0.6px color-mix(in oklab, var(--shadow-ink) 38%, transparent))" }}
+        style={{ filter: "drop-shadow(0 1px 1px color-mix(in oklab, var(--shadow-ink) 42%, transparent)) drop-shadow(1px 2.5px 3px color-mix(in oklab, var(--shadow-ink) 24%, transparent))" }}
       >
         <defs>
           <clipPath id={`${uid}-c`}>

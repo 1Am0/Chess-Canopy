@@ -90,7 +90,7 @@ export function LinePanel({ className }: { className?: string }) {
   };
 
   return (
-    <section aria-label="Line" className={cn("flex h-11 shrink-0 items-center gap-1 rounded-lg border bg-card pr-1.5 pl-1.5", className)}>
+    <section aria-label="Line" className={cn("flex h-11 shrink-0 items-center gap-1 rounded-none border border-rule-strong bg-card pr-1.5 pl-1.5", className)}>
       <div
         ref={scroller}
         onWheel={onWheel}

@@ -415,3 +415,15 @@ any measured rect (overflow-visible wrappers or box-shadow, never padding).
   - Risks: TornEdge uses CSS `mask-image` data URIs (Chromium/WebKit/Firefox OK, prefixed too); UnderSheet measures via ResizeObserver (renders after hydration);
     `@container/sheet` adds layout containment to the explorer sheet; dark sheet vs walnut desk contrast is low-key (shadows carry the separation);
     decorations on kraft (tape) are subtle in light mode by design (multiply).
+- **Round 3 refinement pass (coordinator review): done.**
+  - Photo corners: 29px, two layers of paper (darker back, lighter folded front), bright crease, shadow cast on the print, own contact shadow.
+  - Tape: 120x22 default, stronger ochre/sage alpha, deeper zig-zag ends (jag 4.8), two-part edge shadow. Photo corners hold the print; sage tape holds the mat
+    (top-left/top-right); ochre tape on the explorer sheet's top-left/top-right (left strip carries the note on narrow sheets). Header is now z-5 and the
+    mat/sheet wrappers z-10, so tape lies over the torn strip instead of under it.
+  - Layering: explorer under-sheet 7,8px at -1deg (fans out bottom-left), deckle amp 2.2; the mat has its own under-sheet (5,6px, +0.7deg). Aside bottom padding 12 -> 20px so it is not clipped.
+  - Double framing removed: tab panel has only a hairline top rule (active tab covers it), no box; SideSwitch and LinePanel are square printed hairline boxes.
+  - Sheet: fibre tile stronger, `--sheet-vignette` as an inset glow on `--sheet-shadow` (margins only; the table is on the plain sheet), header paper is its own `--strip` tone.
+  - Dark: desk L 0.185, sheet L 0.305 warm, light top rim (inset 1px). Contrast rows added to `docs/palette.md` (all pass; sheet vs desk is only 1.4:1 by design, shadows and rim do the rest).
+  - Board size: top padding 18px, mat padding 10px, chrome 14.25rem -> 13.5rem (board is 12px bigger than the first prototype, still 21px under the original 12rem).
+  - StringTag redrawn: 22px manila tag, washer, string with knot loop and a frayed hanging strand; screenshots after 1.e4 e5 2.Nf3 in `shots/r3-final-moves-*.png`.
+  - Checks: typecheck, lint, vitest and e2e 34/34 re-run after the pass.

@@ -17,7 +17,7 @@ export function Header({ showTools }: { showTools: boolean }) {
 
   return (
     <header
-      className="paper-scope sticky top-0 z-30 bg-sheet forced-colors:border-b"
+      className="paper-scope sticky top-0 z-[5] bg-[var(--strip)] forced-colors:border-b"
       style={{ backgroundImage: "var(--sheet-tile)" }}
     >
       {/* a torn strip of cream paper laid across the top of the desk */}
