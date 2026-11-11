@@ -46,9 +46,9 @@ export function ExplorerPanel() {
         value={value}
         onValueChange={(v) => setTab(v as Tab)}
         data-testid="explorer-region"
-        className="gap-0 overflow-hidden rounded-lg border bg-card lg:min-h-[13rem] lg:flex-1"
+        className="gap-0 overflow-hidden rounded-lg border border-rule-strong bg-card shadow-none lg:min-h-[13rem] lg:flex-1"
       >
-        <TabsList aria-label="Explorer views" className="h-9 w-full shrink-0 justify-start gap-0 rounded-none border-b bg-transparent p-0">
+        <TabsList aria-label="Explorer views" className="h-9 w-full shrink-0 justify-start gap-0 rounded-none border-b border-rule bg-transparent p-0">
           <TabsTrigger value="moves" className={TRIGGER}>Moves</TabsTrigger>
           <TabsTrigger value="games" className={TRIGGER}>Games</TabsTrigger>
           <TabsTrigger value="canopy" className={TRIGGER}>Canopy</TabsTrigger>

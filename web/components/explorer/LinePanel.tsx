@@ -62,8 +62,8 @@ export function LinePanel({ className }: { className?: string }) {
         aria-current={current ? "step" : undefined}
         data-current={current || undefined}
         className={cn(
-          "h-7 shrink-0 rounded-md px-1.5 font-mono text-sm font-medium outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60",
-          current && "bg-primary font-bold text-primary-foreground hover:bg-primary",
+          "h-7 shrink-0 rounded-sm px-1.5 font-mono text-sm font-medium text-ink outline-none transition-colors hover:bg-specimen focus-visible:ring-2 focus-visible:ring-ring/60",
+          current && "bg-specimen font-bold shadow-[inset_0_-2px_0_var(--color-primary)]",
           !current && i >= cursor && "font-normal text-muted-foreground italic",
         )}
       >
@@ -73,7 +73,7 @@ export function LinePanel({ className }: { className?: string }) {
   };
 
   return (
-    <section aria-label="Line" className={cn("flex h-11 shrink-0 items-center gap-1 rounded-lg border bg-card pr-1.5 pl-1", className)}>
+    <section aria-label="Line" className={cn("flex h-11 shrink-0 items-center gap-1 rounded-lg border bg-card pr-1.5 pl-1.5", className)}>
       <div
         ref={scroller}
         onWheel={onWheel}
@@ -86,8 +86,8 @@ export function LinePanel({ className }: { className?: string }) {
           onClick={() => goTo(0)}
           aria-current={cursor === 0 ? "step" : undefined}
           className={cn(
-            "h-7 shrink-0 rounded-md px-2 text-xs text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60",
-            cursor === 0 && "bg-accent font-medium text-accent-foreground",
+            "label-caps h-6 shrink-0 rounded-sm border border-rule-strong bg-specimen px-2 text-[13px] outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-ring/60",
+            cursor === 0 && "text-ink shadow-[inset_0_-2px_0_var(--color-primary)]",
           )}
         >
           Start
@@ -98,7 +98,7 @@ export function LinePanel({ className }: { className?: string }) {
           <ol className="flex items-center">
             {Array.from({ length: pairs }).map((_, r) => (
               <li key={r} className="flex shrink-0 items-center whitespace-nowrap">
-                <span className="pr-0.5 pl-1.5 font-mono text-xs text-muted-foreground tabular-nums">{r + 1}.</span>
+                <span className="pr-0.5 pl-1.5 text-xs text-muted-foreground tabular-nums">{r + 1}.</span>
                 {cell(r * 2)}
                 {cell(r * 2 + 1)}
               </li>

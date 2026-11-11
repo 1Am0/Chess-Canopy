@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { splitOpeningName } from "@/lib/format";
 import { usePosition } from "@/hooks/use-position";
@@ -22,22 +21,22 @@ export function OpeningHeader({ className }: { className?: string }) {
     >
       {opening ? (
         <>
-          <Badge variant="secondary" className="h-5 px-1.5 font-mono text-[11px] tabular-nums">
+          <span className="inline-flex h-5 shrink-0 items-center rounded-sm border border-rule-strong bg-specimen px-1.5 font-mono text-[11px] leading-none tracking-wide text-ink tabular-nums">
             {opening.eco}
-          </Badge>
+          </span>
           <nav aria-label="Opening" className="min-w-0 flex-1">
-            <ol className="truncate text-sm leading-7">
+            <ol key={opening.name} className="animate-in fade-in truncate font-serif text-base leading-7 text-ink italic duration-200 motion-reduce:animate-none">
               {crumbs.map((c, i) => (
                 <li key={i} className="inline">
                   {i > 0 && <ChevronRight className="mx-0.5 inline size-3.5 align-[-2px] text-muted-foreground" aria-hidden />}
-                  <span className={i === crumbs.length - 1 ? "font-semibold" : "text-muted-foreground"}>{c}</span>
+                  <span className={i === crumbs.length - 1 ? "font-medium" : "text-muted-foreground"}>{c}</span>
                 </li>
               ))}
             </ol>
           </nav>
         </>
       ) : (
-        <span className="truncate text-sm text-muted-foreground">{visible.length === 0 ? "Starting position" : "Out of book"}</span>
+        <span className="truncate font-serif text-base leading-7 text-muted-foreground italic">{visible.length === 0 ? "Starting position" : "Out of book"}</span>
       )}
     </div>
   );

@@ -74,13 +74,13 @@ export function FilterRow({ className }: { className?: string }) {
             className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto overscroll-x-contain whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {chips.map((c) => (
-              <span key={c.label} className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border bg-secondary pr-0.5 pl-2.5 text-xs font-medium">
+              <span key={c.label} className="inline-flex h-6 shrink-0 items-center gap-1 rounded-sm border border-rule-strong bg-specimen pr-0.5 pl-2 text-xs font-medium text-ink">
                 {c.label}
                 <button
                   type="button"
                   onClick={() => setFilters(c.clear)}
                   aria-label={`Remove filter ${c.label}`}
-                  className="rounded-full p-0.5 text-muted-foreground outline-none hover:bg-background hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+                  className="rounded-sm p-0.5 text-muted-foreground outline-none hover:bg-card hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
                 >
                   <X className="size-3" />
                 </button>

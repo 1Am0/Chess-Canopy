@@ -29,7 +29,7 @@ export function BoardColumn() {
       </div>
       <div className="flex gap-1">
         <EvalBar />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 rounded-md shadow-[0_0_0_3px_var(--card),0_0_0_4px_var(--rule-strong)]">
           <ExplorerBoard />
         </div>
       </div>

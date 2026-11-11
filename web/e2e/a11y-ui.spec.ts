@@ -64,8 +64,8 @@ test("the move table is a grid whose active row is only announced while it has f
 test("appearance menu items are radios with a checked state (M8)", async ({ page }) => {
   await importSampleJson(page);
   await page.getByRole("button", { name: "Appearance" }).click();
-  await expect(page.getByRole("menuitemradio", { name: "Green" })).toHaveAttribute("aria-checked", "true");
-  await expect(page.getByRole("menuitemradio", { name: "Brown" })).toHaveAttribute("aria-checked", "false");
+  await expect(page.getByRole("menuitemradio", { name: "Lichen" })).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByRole("menuitemradio", { name: "Green" })).toHaveAttribute("aria-checked", "false");
   await page.getByRole("menuitemradio", { name: "Dark" }).click();
   await page.getByRole("button", { name: "Appearance" }).click();
   await expect(page.getByRole("menuitemradio", { name: "Dark" })).toHaveAttribute("aria-checked", "true");

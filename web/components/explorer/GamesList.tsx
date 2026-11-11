@@ -14,9 +14,9 @@ import { cn } from "@/lib/utils";
 
 /** Player-perspective chips: this list is about *your* results, so win/loss colors apply. */
 const RESULT_STYLE = {
-  Win: "bg-win/15 text-win-text",
-  Draw: "bg-draw/20 text-draw-text",
-  Loss: "bg-loss/15 text-loss-text",
+  Win: "border-win-text/50 bg-win/10 text-win-text",
+  Draw: "border-draw-text/50 bg-draw/10 text-draw-text",
+  Loss: "border-loss-text/50 bg-loss/10 text-loss-text",
 } as const;
 
 const LIMIT = 25;
@@ -108,8 +108,8 @@ export function GamesList({ className, active = true }: { className?: string; ac
       aria-busy={active && (loading || games === null)}
       className={cn("relative h-full min-h-0 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin]", className)}
     >
-      <h3 className="sticky top-0 z-10 flex h-7 items-center gap-1.5 border-b bg-muted px-3 text-xs font-medium text-muted-foreground">
-        <span className="text-foreground">Recent games here</span>
+      <h3 className="label-caps sticky top-0 z-10 flex h-7 items-center gap-1.5 border-b border-rule-strong bg-card px-3 text-[13px]">
+        <span className="text-ink">Recent games here</span>
         {count && <span className="tabular-nums">· {count}</span>}
       </h3>
       <ul aria-label="Recent games" className={cn("transition-opacity duration-200", loading && games !== null && !failed && "opacity-50")}>
@@ -163,7 +163,7 @@ export function GamesList({ className, active = true }: { className?: string; ac
           return (
             <li
               key={gameKey}
-              className={cn("flex h-8 items-center whitespace-nowrap text-sm even:bg-muted/45", loaded && "bg-accent even:bg-accent")}
+              className={cn("flex h-8 items-center border-b border-rule whitespace-nowrap text-sm", loaded && "bg-specimen shadow-[inset_2px_0_0_var(--color-primary)]")}
             >
               <button
                 type="button"
@@ -173,23 +173,23 @@ export function GamesList({ className, active = true }: { className?: string; ac
                 }}
                 aria-pressed={loaded}
                 title="Load this game into the line"
-                className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-left outline-none transition-colors hover:bg-accent/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
+                className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-left outline-none transition-colors hover:bg-specimen/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
               >
                 <span className="sr-only">Load game: </span>
-                <span className={cn("w-11 shrink-0 rounded px-1.5 py-0.5 text-center text-xs font-medium", RESULT_STYLE[r])}>{r}</span>
+                <span className={cn("w-11 shrink-0 rounded-sm border px-1 py-0.5 text-center text-xs font-semibold", RESULT_STYLE[r])}>{r}</span>
                 <span
                   className={cn("size-3 shrink-0 rounded-full ring-1 ring-foreground/40", g.color === "white" ? "bg-white" : "bg-neutral-900")}
                   title={`Played ${g.color}`}
                   aria-label={`Played ${g.color}`}
                   role="img"
                 />
-                <span className="min-w-0 flex-1 truncate">
+                <span className="min-w-0 flex-1 truncate font-sans font-medium text-ink">
                   {g.opponent}
                   {g.opponent_rating != null && <span className="ml-1 text-muted-foreground tabular-nums">({g.opponent_rating})</span>}
                 </span>
-                <span className="hidden w-16 shrink-0 truncate text-right text-xs text-muted-foreground capitalize sm:block">{g.time_control}</span>
-                <span className="hidden w-[6.5rem] shrink-0 text-right text-xs text-muted-foreground tabular-nums sm:block">{formatDate(g.date)}</span>
-                <span className="hidden w-16 shrink-0 text-right text-[11px] text-muted-foreground sm:block">
+                <span className="label-caps hidden w-16 shrink-0 truncate text-right text-[13px] sm:block">{g.time_control}</span>
+                <span className="label-caps hidden w-[6.5rem] shrink-0 text-right text-[13px] tabular-nums sm:block">{formatDate(g.date)}</span>
+                <span className="label-caps hidden w-16 shrink-0 text-right text-[13px] sm:block">
                   {g.source === "chess.com" || g.source === "lichess" ? sourceLabel(g.source) : ""}
                 </span>
               </button>

@@ -137,7 +137,7 @@ export function MoveTable({ className }: { className?: string }) {
         onClick={() => toggle(k)}
         className={cn(
           "-mx-1 inline-flex min-h-6 min-w-6 items-center gap-0.5 whitespace-nowrap rounded-sm px-1 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
-          sort.key === k && "text-foreground",
+          sort.key === k && "text-ink",
         )}
       >
         {label}
@@ -186,7 +186,7 @@ export function MoveTable({ className }: { className?: string }) {
         className="w-full table-fixed border-separate border-spacing-0 text-left text-sm outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring/60"
       >
         <thead className="sticky top-0 z-10">
-          <tr className="h-7 bg-muted text-xs text-muted-foreground [&>th]:border-b">
+          <tr className="label-caps h-7 bg-card text-[13px] [&>th]:border-b [&>th]:border-rule-strong">
             <Th k="move" label="Move" className={COL.move} />
             <Th k="games" label="Games" className={COL.games} />
             <th scope="col" className={cn(COL.share, "font-medium")}>Share</th>
@@ -213,7 +213,7 @@ export function MoveTable({ className }: { className?: string }) {
           {!empty && rare.length > 0 && (
             <tr className="h-8">
               {([["@sm:hidden", 4], ["hidden @sm:table-cell", 5]] as const).map(([cls, span]) => (
-                <td key={span} colSpan={span} className={cn("border-y p-0", cls)}>
+                <td key={span} colSpan={span} className={cn("border-b border-rule p-0", cls)}>
                   <button
                     type="button"
                     aria-expanded={showRare}
@@ -231,9 +231,9 @@ export function MoveTable({ className }: { className?: string }) {
         </tbody>
         {result && !empty && (
           <tfoot className="sticky bottom-0 z-10">
-            <tr className="h-8 bg-[color-mix(in_oklab,var(--color-primary)_9%,var(--color-card))] font-semibold [&>td]:border-t">
+            <tr className="h-8 bg-card font-semibold [&>td]:border-t-[3px] [&>td]:border-double [&>td]:border-rule-strong">
               <td className={COL.move}>
-                <span className="font-mono text-sm" aria-label="Total">Σ</span>
+                <span className="font-serif text-base text-ink" aria-label="Total">Σ</span>
               </td>
               <td className={cn(COL.games, "text-[13px]")}>{compact(total)}</td>
               <td className={cn(COL.share, "text-xs font-normal text-muted-foreground")}>100%</td>

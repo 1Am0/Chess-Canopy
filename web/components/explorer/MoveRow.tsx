@@ -3,6 +3,7 @@ import { WdbBar } from "@/components/explorer/WdbBar";
 import { scoreTextClass } from "@/components/explorer/wdb";
 import { compact, pct, score } from "@/lib/format";
 import { shareLabel } from "@/lib/explorer-format";
+import { isLowSample } from "@/components/explorer/rare";
 import { cn } from "@/lib/utils";
 
 /**
@@ -42,6 +43,7 @@ export function MoveRow({
 }) {
   const sc = score(item.stats);
   const dim = rare || item.stats.total < 3;
+  const thin = isLowSample(item.stats.total, positionTotal);
   return (
     <tr
       id={id}
@@ -49,20 +51,26 @@ export function MoveRow({
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       aria-selected={active}
-      className={cn("h-8 cursor-pointer transition-colors even:bg-muted/45 hover:bg-accent/80", active && "bg-accent even:bg-accent")}
+      className={cn("h-8 cursor-pointer transition-colors hover:bg-specimen/70 [&>td]:border-b [&>td]:border-rule", active && "bg-specimen")}
     >
       <td className={cn(COL.move, active && "shadow-[inset_2px_0_0_var(--color-primary)]")} title={openingName ?? undefined}>
-        <div className={cn("flex min-w-0 items-baseline gap-2", dim && "text-muted-foreground")}>
+        <div className={cn("flex min-w-0 items-baseline gap-2 text-ink", dim && "text-muted-foreground")}>
           <span className="shrink-0 font-mono text-sm font-semibold">{item.move}</span>
-          {openingName && <span className="hidden min-w-0 truncate text-xs text-muted-foreground @md:inline">{openingName}</span>}
+          {openingName && <span className="hidden min-w-0 truncate font-serif text-xs text-muted-foreground italic @md:inline">{openingName}</span>}
         </div>
       </td>
       <td className={cn(COL.games, "text-[13px]", dim && "text-muted-foreground")}>{compact(item.stats.total)}</td>
       <td className={cn(COL.share, "text-xs text-muted-foreground")}>{shareLabel(item.stats.total, positionTotal)}</td>
-      <td className={cn(COL.bar, dim && "opacity-75")}>
+      <td className={cn(COL.bar, thin ? "opacity-55" : dim && "opacity-75")}>
         <WdbBar stats={item.stats} side={side} />
       </td>
-      <td className={cn(COL.score, "text-[13px] font-semibold", scoreTextClass(sc, item.stats.total))}>{pct(sc)}</td>
+      <td
+        className={cn(COL.score, "text-[13px] font-semibold", scoreTextClass(sc, item.stats.total), thin && "opacity-55")}
+        title={thin ? "Small sample" : undefined}
+        aria-description={thin ? "small sample" : undefined}
+      >
+        {pct(sc)}
+      </td>
     </tr>
   );
 }

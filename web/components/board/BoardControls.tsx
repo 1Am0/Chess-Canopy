@@ -53,7 +53,7 @@ function Tip({ label, keys, children }: { label: string; keys?: string; children
 // Below sm (640px) buttons are 32px and the groups are tight so both groups fit on one row
 // in the 276px-wide toolbar of a 320px viewport. From sm up, the original 36px / gap-0.5 look.
 const btn = "size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9";
-const group = "flex items-center gap-0 sm:gap-0.5 rounded-lg border bg-card p-0.5 shadow-xs";
+const group = "flex items-center gap-0 sm:gap-0.5 rounded-md border border-rule-strong bg-card p-0.5";
 
 export function BoardControls() {
   const cursor = useExplorerStore((s) => s.cursor);
@@ -122,7 +122,7 @@ export function BoardControls() {
             <FlipVertical2 />
           </Button>
         </Tip>
-        <span className="mx-0 h-5 w-px bg-border sm:mx-0.5" aria-hidden />
+        <span className="mx-0 h-5 w-px bg-rule-strong sm:mx-0.5" aria-hidden />
         <Tip label="Copy FEN">
           <Button variant="ghost" size="icon" className={btn} onClick={copyFen} aria-label="Copy FEN">
             <Copy />

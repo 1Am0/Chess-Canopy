@@ -172,7 +172,7 @@ export function ExplorerBoard() {
     <div
       ref={box}
       data-testid="board"
-      className="@container relative aspect-square w-full overflow-hidden rounded-md shadow-md ring-1 ring-black/15"
+      className="@container relative aspect-square w-full overflow-hidden rounded-md ring-1 ring-rule-strong"
       style={{ "--board-light": theme.light, "--board-dark": theme.dark } as React.CSSProperties}
       role="img"
       aria-label={`Chess board. ${describePosition(visible, turn)}`}

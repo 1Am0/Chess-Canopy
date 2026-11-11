@@ -31,7 +31,7 @@ export function SideSwitch({ className }: { className?: string }) {
         else setSide(side);
       }}
       aria-label="Side to view"
-      className={cn("grid h-11 w-full shrink-0 grid-cols-2 gap-1 rounded-lg bg-muted p-1", className)}
+      className={cn("grid h-11 w-full shrink-0 grid-cols-2 gap-0 rounded-md border border-rule-strong bg-specimen/50 p-0", className)}
     >
       {SIDES.map((s) => {
         const n = counts?.[s.id];
@@ -40,7 +40,7 @@ export function SideSwitch({ className }: { className?: string }) {
             key={s.id}
             value={s.id}
             aria-label={`View games as ${s.label}`}
-            className="h-9 min-w-0 flex-1 justify-center gap-2 rounded-md border-0 bg-transparent px-2 first:rounded-md last:rounded-md [&:not(:first-child)]:ml-0 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm data-[state=on]:ring-1 data-[state=on]:ring-border"
+            className="h-full min-w-0 flex-1 justify-center gap-2 rounded-none border-0 bg-transparent px-2 text-muted-foreground first:rounded-l-[5px] last:rounded-r-[5px] [&:not(:first-child)]:ml-0 [&:not(:first-child)]:border-l [&:not(:first-child)]:border-l-rule-strong data-[state=on]:bg-card data-[state=on]:text-ink data-[state=on]:shadow-[inset_0_2px_0_var(--color-primary)]"
           >
             <span
               aria-hidden

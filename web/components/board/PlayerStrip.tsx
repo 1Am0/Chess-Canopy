@@ -12,8 +12,8 @@ export function PlayerStrip({ you, color }: { you: boolean; color: Color }) {
           color === "white" ? "bg-white" : "bg-neutral-900",
         )}
       />
-      <span className="truncate font-semibold">{you ? "You" : "Opponents"}</span>
-      <span className="min-w-[7ch] truncate text-xs tabular-nums text-muted-foreground">
+      <span className="truncate font-sans font-medium text-ink">{you ? "You" : "Opponents"}</span>
+      <span className="label-caps min-w-[7ch] truncate text-[13px] tabular-nums">
         · {color === "white" ? "White" : "Black"}
       </span>
     </div>

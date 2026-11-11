@@ -35,12 +35,12 @@ export function PositionSummary({ className }: { className?: string }) {
       <div className={cn("flex h-5 items-center justify-between gap-3 whitespace-nowrap transition-opacity duration-200", loading && result && "opacity-50")}>
         {result ? (
           <p className="flex min-w-0 items-baseline gap-1.5 overflow-hidden">
-            <span className="text-base font-semibold tracking-tight tabular-nums">{total.toLocaleString()}</span>
+            <span className="font-serif text-lg leading-none font-semibold tracking-tight text-ink tabular-nums">{total.toLocaleString()}</span>
             <span className="text-sm text-muted-foreground">{total === 1 ? "game" : "games"}</span>
             {total > 0 && (
               <>
                 <span aria-hidden className="text-muted-foreground">·</span>
-                <span className={cn("text-sm font-semibold tabular-nums", scoreTextClass(sc, total))}>{pct(sc)}</span>
+                <span className={cn("font-serif text-base font-semibold tabular-nums", scoreTextClass(sc, total))}>{pct(sc)}</span>
                 <span className="sr-only text-sm text-muted-foreground sm:not-sr-only">score</span>
               </>
             )}
@@ -48,13 +48,13 @@ export function PositionSummary({ className }: { className?: string }) {
         ) : (
           <Skeleton className="h-4 w-40" />
         )}
-        <p aria-hidden={!p} className={cn("flex shrink-0 items-center gap-2.5 text-xs text-muted-foreground tabular-nums", !p && "invisible")}>
+        <p aria-hidden={!p} className={cn("label-caps flex shrink-0 items-center gap-2.5 text-[13px] tabular-nums", !p && "invisible")}>
           {LEGEND.map((l) => (
             <span key={l.kind} className="inline-flex items-center gap-1">
               <WdbSwatch kind={l.kind} />
               <span className="hidden sm:inline">{l.label}</span>
               <span className="sr-only sm:hidden">{l.label}</span>
-              <span className="min-w-[3ch] text-right text-foreground/80">{p ? `${Math.round(p[l.kind])}%` : "–"}</span>
+              <span className="min-w-[3ch] text-right text-ink/80">{p ? `${Math.round(p[l.kind])}%` : "–"}</span>
             </span>
           ))}
         </p>

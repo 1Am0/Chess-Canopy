@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 
 const SEGMENTS = [
   { key: "white", name: "White wins", cls: "bg-bar-white text-bar-white-fg [box-shadow:var(--bar-gloss-white)]" },
-  { key: "draw", name: "Draws", cls: "bg-bar-draw text-bar-draw-fg [box-shadow:var(--bar-gloss)]" },
-  { key: "black", name: "Black wins", cls: "bg-bar-black text-bar-black-fg [box-shadow:var(--bar-gloss)]" },
+  { key: "draw", name: "Draws", cls: "bg-bar-draw text-bar-draw-fg [box-shadow:inset_1px_0_0_var(--card)]" },
+  { key: "black", name: "Black wins", cls: "bg-bar-black text-bar-black-fg [box-shadow:inset_1px_0_0_var(--card)]" },
 ] as const;
 
 /**
@@ -32,7 +32,7 @@ export function WdbBar({
       role="img"
       aria-label={w ? wdbLabel(w) : "No games"}
       className={cn(
-        "relative flex h-4 w-full overflow-hidden rounded-[3px] text-[11px] leading-none font-medium tabular-nums",
+        "relative flex h-4 w-full overflow-hidden rounded-[1px] bg-card text-[11px] leading-none font-medium tabular-nums",
         !w && "bar-empty",
         className,
       )}
@@ -65,7 +65,7 @@ export function WdbSwatch({ kind, className }: { kind: "white" | "draw" | "black
     <span
       aria-hidden
       className={cn(
-        "inline-block size-2.5 shrink-0 rounded-[2px] shadow-[inset_0_0_0_1px_var(--bar-border)]",
+        "inline-block size-2.5 shrink-0 rounded-none shadow-[inset_0_0_0_1px_var(--bar-border)]",
         kind === "white" ? "bg-bar-white" : kind === "draw" ? "bg-bar-draw" : "bg-bar-black",
         className,
       )}
