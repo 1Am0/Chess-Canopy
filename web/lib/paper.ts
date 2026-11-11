@@ -104,7 +104,7 @@ export function pathPoints(d: string): Pt[] {
   return pts;
 }
 
-/* ---- Hand-drawn stroke generators used by the board overlay ---- */
+/* ---- Hand-drawn style stroke generators used by the board overlay ---- */
 
 const smoothstep = (a: number, b: number, v: number) => {
   const t = clamp((v - a) / (b - a), 0, 1);
@@ -123,7 +123,7 @@ const dotPath = (x: number, y: number, r: number) =>
 export interface InkStrokeOptions {
   /** Stroke width at its fullest, in px (default 4). */
   width?: number;
-  /** Width at the start as a fraction of `width` (default 0.45: the nib lands light). */
+  /** Width at the start as a fraction of `width` (default 0.45: the stroke starts light). */
   taper?: number;
   /** Largest sideways wander of the line in px (default min(1.1, width * 0.22)). */
   wobble?: number;
@@ -165,9 +165,9 @@ function toWorld(x1: number, y1: number, ux: number, uy: number) {
 const fmt = (p: Pt) => `${n2(p.x)} ${n2(p.y)}`;
 
 /**
- * A tapered ink stroke from (x1, y1) to (x2, y2) as a FILLED outline (not a stroked line): light where
- * the nib lands, full in the middle, a touch thinner at the end, wandering sideways by a pixel or so.
- * Pure and fast (about 16 points however long the line is); use it for pencil underlines and hover marks.
+ * A tapered stroke from (x1, y1) to (x2, y2) as a FILLED outline (not a stroked line): light at the start,
+ * full in the middle, a touch thinner at the end, wandering sideways by a pixel or so.
+ * Pure and fast (about 16 points however long the line is); use it for underlines and hover marks.
  */
 export function inkStrokePath(seed: number | string, x1: number, y1: number, x2: number, y2: number, opts: InkStrokeOptions = {}): string {
   const w = opts.width ?? 4;
@@ -192,10 +192,10 @@ export function inkStrokePath(seed: number | string, x1: number, y1: number, x2:
 }
 
 /**
- * A tapered ink arrow as a FILLED outline: an `inkStrokePath` shaft ending in a nib-like head whose barbs are
- * slightly unequal and whose edges bow out a little, like a brush flick. The tip sits exactly on (x2, y2).
+ * A tapered arrow as a FILLED outline: an `inkStrokePath` shaft ending in a head whose barbs are
+ * slightly unequal and whose edges bow out a little. The tip sits exactly on (x2, y2).
  * Pure, about 22 points whatever the length: fast enough to call for every arrow on every render.
- * Fill it (`fill="var(--ink)"`), do not stroke it. Seeded: the same move always gives the same hand.
+ * Fill it, do not stroke it. Seeded: the same move always gives the same shape.
  */
 export function inkArrowPath(seed: number | string, x1: number, y1: number, x2: number, y2: number, opts: InkArrowOptions = {}): string {
   const w = opts.width ?? 4;
@@ -233,8 +233,8 @@ export function inkArrowPath(seed: number | string, x1: number, y1: number, x2: 
 }
 
 /**
- * A hand-drawn ellipse around a w x h box: about a turn and a bit of pencil, starting top-left of
- * centre and overshooting its own start, the radius drifting outward as the hand goes round. Open path
+ * A hand-drawn style ellipse around a w x h box: a bit over one turn, starting top-left of
+ * center and overshooting its own start, the radius drifting outward as it goes round. Open path
  * (stroke it, do not fill). Points stay within `pad` px of the box (default 3).
  */
 export function inkEllipsePath(seed: number | string, w: number, h: number, opts: { turns?: number; wobble?: number; pad?: number } = {}): string {
