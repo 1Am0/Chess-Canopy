@@ -21,7 +21,7 @@ test("onboarding -> JSON import shows move table and game count", async ({ page 
 
 test("PGN import (username Hero) shows move rows in the explorer", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Explore the openings/ })).toBeVisible();
   await page.getByRole("tab", { name: "PGN" }).click();
   await page.getByLabel("Drop a .pgn file here").setInputFiles(PGN_SAMPLE);
   await page.getByLabel("Your username in these games").fill("Hero");
@@ -120,15 +120,15 @@ test("deleting the last player returns to Welcome", async ({ page }) => {
   await page.getByRole("button", { name: "Delete tester" }).click();
   await page.getByRole("button", { name: "Delete", exact: true }).click();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Explore the openings/ })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Explore the openings/ })).toBeVisible();
 });
 
 test("mobile viewport: no horizontal scroll, board visible, tabs switch", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Explore the openings/ })).toBeVisible();
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
   await importSampleJson(page);
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
