@@ -604,3 +604,73 @@ Generators in `lib/paper.ts` (all tested in `tests/paper.test.ts`): `inkStrokePa
   - Checks: typecheck, lint, vitest, e2e (see log). Screenshots: `scratchpad/shots/f2-{light,dark}-{a-start,b-moves,c-games,d-canopy,e-black}.png`, `f2-mobile-light.png`.
   - Risks: the row wash relies on `position: relative` on `tr` (works in Chromium; Firefox/Safari untested, falls back to the wash behind the first cell only). The PencilUnderline needs an inline size because `Button` forces `svg:size-4`. Canopy hover emphasis now raises three stacked opacities.
   - Requests: none.
+
+---
+
+# Round 4: one look only, and a custom board
+
+Owner (11 Nov 2026): "Plan and implement a custom board that fits the theme.
+For now don't worry about anything other than **light mode on the Lichen board
+with Lichess sounds**. Remove all the customization for that, we'll work on it
+later, so that tab is useless; don't spend effort on UI for each colour or
+light/dark mode."
+
+## R4.1 Scope decisions
+
+- **Only one configuration ships:** light theme, Lichen board, Lichess
+  ("standard") move sounds. No theme, board-colour or sound-set pickers.
+- **Keep the plumbing, drop the UI.** Leave `lib/board-themes.ts`, the sound
+  sets and the dark CSS tokens in the code (the owner will revisit), but
+  nothing reachable can select them: next-themes is forced to light, the
+  store always resolves board = lichen and sound set = standard (including
+  for returning users with older persisted values).
+- **The Appearance menu goes away.** Its one non-appearance item (Keyboard
+  shortcuts, mobile only) must stay reachable on mobile: show the help button
+  at every width. Sound **mute** stays (it's not a customization).
+- **No more dark-mode or per-board work** in any workstream until further notice.
+
+## R4.2 The custom board: "Pasted specimen plate"
+
+The board becomes a printed naturalist's plate on the cream mat, with the
+pieces as engraved figures cut out and pasted on, like specimens in the
+scrapbook. Must stay as instantly readable as a normal board.
+
+**Squares**
+- Light squares: the cream sheet paper (`--sheet` family) with its faint fibre.
+- Dark squares: the Lichen grey-green **printed as an engraved tint**: a fine
+  diagonal hatch / stipple in a slightly deeper lichen ink over a flat lichen
+  base, so it reads as ink on paper, not a flat fill. Very subtle, seeded,
+  uneven ink density per square (± a few %), never noisy enough to compete with
+  pieces. One shared pattern definition, not 32 filters.
+- A printed **plate frame**: a thin ink double rule hugging the 8×8 (drawn in
+  the existing mat gap with box-shadow/outline, so the board rect does not
+  change), like the border of an engraved plate.
+- Coordinates: small printed figures in ink tones (keep their positions).
+- Highlights, legal dots and ink arrows from round 3 stay; check they still
+  read on the new squares.
+
+**Pieces ("cut-out engravings")**
+- Silhouettes: start from the piece shapes the app already ships (the
+  react-chessboard default set) so recognition and licensing stay as they are
+  today; redraw/restyle them, don't invent unfamiliar silhouettes.
+- White pieces: cream paper fill, crisp dark-ink outline, a few fine engraved
+  hatching lines on the shadow side (right/bottom).
+- Black pieces: deep green-black ink fill (not pure #000), with a few fine cream
+  highlight lines on the lit side (left/top) so the form stays readable.
+- Every piece has a narrow **cut-paper margin** (a cream outline around the
+  silhouette, like scissors left a border) and a tiny **lift shadow** under it,
+  as if pasted onto the plate. While dragging, the lift shadow grows.
+- Rendered as React SVG components via react-chessboard's `pieces` option;
+  hatch patterns defined once and shared; no per-render randomness.
+- Pieces stay `aria-hidden` / out of the tab order (existing MutationObserver),
+  board keeps its `role="img"` description.
+
+## R4.3 Workstreams
+
+| WS | Files | Brief |
+| --- | --- | --- |
+| **S. Simplify** | `app/layout.tsx`, `components/layout/{Header,ThemeToggle,SoundToggle}.tsx`, `lib/store.ts`, `hooks/use-move-sounds.ts`, `lib/sound.ts`, `e2e/*` (only tests about appearance/theme/board/sound pickers), `README.md` | R4.1. Remove the Appearance menu and ThemeToggle from the header (delete the component if nothing else uses it), force light, force lichen + standard, keep help visible on mobile, update/remove the e2e tests that drove the menu (keep coverage of what still exists, e.g. sound mute), update README (no theme/board/sound pickers for now). |
+| **P. Plate board** | `components/board/*` (mainly `ExplorerBoard.tsx`, new `components/board/pieces.tsx`, `BoardColumn.tsx` for the frame), `lib/paper.ts` only if a new seeded helper is needed (with tests) | R4.2. Light mode + Lichen only. |
+
+Both run in parallel (disjoint files). Same hard constraints as before (layout
+geometry, e2e names, a11y, CSP).
