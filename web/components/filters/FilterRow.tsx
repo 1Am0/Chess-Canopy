@@ -80,7 +80,7 @@ export function FilterRow({ className }: { className?: string }) {
                   type="button"
                   onClick={() => setFilters(c.clear)}
                   aria-label={`Remove filter ${c.label}`}
-                  className="grid size-5 place-items-center text-muted-foreground outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring"
+                  className="grid size-5 place-items-center text-muted-foreground outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-1px] focus-visible:outline-ring"
                 >
                   <X className="size-3" aria-hidden />
                 </button>

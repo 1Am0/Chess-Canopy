@@ -138,7 +138,7 @@ export function MoveTable({ className }: { className?: string }) {
         type="button"
         onClick={() => toggle(k)}
         className={cn(
-          "-mx-1 inline-flex min-h-6 min-w-6 items-center gap-1 whitespace-nowrap px-1 outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
+          "-mx-1 inline-flex min-h-6 min-w-6 items-center gap-1 whitespace-nowrap px-1 outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
           sort.key === k && "text-ink",
         )}
       >
@@ -192,7 +192,7 @@ export function MoveTable({ className }: { className?: string }) {
           setFocused(false);
           setHoverMove(null);
         }}
-        className="w-full table-fixed border-separate border-spacing-0 text-left text-sm outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring/60"
+        className="w-full table-fixed border-separate border-spacing-0 text-left text-sm outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring/60"
       >
         <thead className="sticky top-0 z-10">
           <tr className="h-7 text-muted-foreground bg-card text-[13px] [&>th]:border-b [&>th]:border-border">
@@ -227,7 +227,7 @@ export function MoveTable({ className }: { className?: string }) {
                     type="button"
                     aria-expanded={showRare}
                     onClick={() => setShowRare((v) => !v)}
-                    className="flex h-8 w-full items-center justify-center gap-1.5 px-3 text-sm leading-none text-muted-foreground outline-none hover:bg-secondary hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                    className="flex h-8 w-full items-center justify-center gap-1.5 px-3 text-sm leading-none text-muted-foreground outline-none hover:bg-secondary hover:text-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring"
                   >
                     {showRare ? "Hide" : "Show"} {rare.length} rare {rare.length === 1 ? "move" : "moves"}
                     {showRare ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />}
@@ -290,7 +290,7 @@ export function MoveTable({ className }: { className?: string }) {
           ) : (
             <EmptyState
               className="py-2"
-              title={outOfBook ? (total > 0 ? "Your games end here" : "No games reach this position.") : "No moves found"}
+              title={outOfBook ? (total > 0 ? "Your games end here" : "No games reach this position") : "No moves found"}
               action={
                 outOfBook ? (
                   <div className="flex gap-2">

@@ -16,7 +16,7 @@ export function Header({ showTools }: { showTools: boolean }) {
 
   return (
     <header
-      className="sticky top-0 z-[5] bg-card shadow-[0_1px_0_0_var(--border)] forced-colors:border-b"
+      className="sticky top-0 z-20 bg-card shadow-[0_1px_0_0_var(--border)] forced-colors:border-b"
     >
       <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:px-4">
         <div className="mr-1 flex shrink-0 items-center gap-2 text-primary">

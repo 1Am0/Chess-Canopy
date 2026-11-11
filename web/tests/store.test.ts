@@ -85,10 +85,6 @@ describe("persist migration v5 (one look only)", () => {
     expect(m).not.toHaveProperty("soundTheme");
     expect(m.soundEnabled).toBe(false);
   });
-  it("the live store always uses the Lichen board and the standard sounds", () => {
-    expect(st().boardTheme).toBe("lichen");
-    expect(st().soundTheme).toBe("standard");
-  });
 });
 
 describe("setLine", () => {

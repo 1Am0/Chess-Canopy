@@ -1,6 +1,6 @@
 # Chess Canopy
 
-An opening explorer for your own chess.com and Lichess games. It runs entirely in the browser: nothing is uploaded and there is no backend.
+An opening explorer for your own Chess.com and Lichess games. It is a static site with no backend.
 
 ## Running it
 
@@ -19,7 +19,7 @@ pnpm typecheck
 
 `pnpm build` generates `web/lib/openings/openings.json` from [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) if it is missing. To regenerate it, run `pnpm exec tsx scripts/build-openings.ts --force`.
 
-The static export deploys anywhere. On Vercel, set the root directory to `web`. `web/vercel.json` sets the security headers; the Content Security Policy only allows requests to `api.chess.com` and `lichess.org`.
+The static export deploys anywhere. On Vercel, set the root directory to `web`. `web/vercel.json` sets the security headers; the Content Security Policy only allows requests to `api.chess.com` and `lichess.org`. Set `NEXT_PUBLIC_SITE_URL` at build time to include a preview image in the page metadata.
 
 ## How it works
 
@@ -51,7 +51,7 @@ pip install -e .
 
 | Command | Description |
 | --- | --- |
-| `chess-explore-import` | Import chess.com games into `games/chess.com/<player>.json`. |
+| `chess-explore-import` | Import Chess.com games into `games/chess.com/<player>.json`. |
 | `chess-explore-import-pgn` | Import local PGN files into the same JSON format. |
 | `chess-explore-explore` | Filter games and explore the move tree in the terminal. |
 | `chess-explore-top` | Show the most common positions after N plies. |

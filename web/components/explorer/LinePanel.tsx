@@ -79,7 +79,7 @@ export function LinePanel({ className }: { className?: string }) {
         aria-current={current ? "step" : undefined}
         data-current={current || undefined}
         className={cn(
-          "h-7 shrink-0 rounded-sm px-2 font-mono text-sm font-medium text-ink outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
+          "h-7 shrink-0 rounded-sm px-2 font-mono text-sm font-medium text-ink outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
           current && "bg-accent font-bold text-accent-foreground",
           !current && i >= cursor && "font-normal text-muted-foreground",
         )}
@@ -103,7 +103,7 @@ export function LinePanel({ className }: { className?: string }) {
           onClick={() => goTo(0)}
           aria-current={cursor === 0 ? "step" : undefined}
           className={cn(
-            "h-7 shrink-0 px-2 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
+            "h-7 shrink-0 px-2 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
             cursor === 0 && "font-semibold text-ink",
           )}
         >

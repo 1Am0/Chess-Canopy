@@ -19,7 +19,6 @@
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.955 0.003 250);
   --secondary-foreground: oklch(0.25 0.01 255);
-  --muted: oklch(0.955 0.003 250);
   --muted-foreground: oklch(0.46 0.012 255);
   --accent: oklch(0.95 0.012 195);
   --accent-foreground: oklch(0.3 0.06 190);
@@ -30,7 +29,6 @@
   --ring: oklch(0.5 0.1 190);
 
   --ink: oklch(0.16 0.01 255);
-  --rule: oklch(0.9 0.004 255);
   --rule-strong: oklch(0.64 0.008 255);
   --scrim: oklch(0.2 0.01 255 / 0.4);
   --pop-shadow: 0 6px 20px -4px oklch(0.2 0.01 255 / 0.18);
@@ -39,9 +37,6 @@
   --tree-low: oklch(0.76 0.14 65);
   --tree-mid: oklch(0.9 0.006 250);
   --tree-high: oklch(0.42 0.085 190);
-  --tree-low-foreground: oklch(0.2 0.04 65);
-  --tree-mid-foreground: oklch(0.22 0.01 255);
-  --tree-high-foreground: oklch(1 0 0);
 
   /* Data: results. Fills take white text; *-text variants are for text on surfaces. */
   --win: oklch(0.47 0.12 150);
@@ -49,7 +44,6 @@
   --win-text: oklch(0.42 0.11 150);
   --draw: oklch(0.5 0.015 255);
   --draw-foreground: oklch(1 0 0);
-  --draw-text: oklch(0.44 0.015 255);
   --loss: oklch(0.5 0.19 27);
   --loss-foreground: oklch(1 0 0);
   --loss-text: oklch(0.46 0.19 27);
@@ -63,13 +57,9 @@
   --bar-draw-fg: #111111;
   --bar-black-fg: #ffffff;
 
-  /* Board (default theme = "lichen", mirrors BOARD_THEMES.lichen) */
+  /* Board squares */
   --board-light: #e8e4d4;
   --board-dark: #8fa08a;
-  --arrow-candidate: oklch(0.44 0.19 262);
-  --arrow-preview: oklch(0.72 0.17 65);
-  --highlight-last: oklch(0.9 0.17 100);
-  --highlight-selected: oklch(0.62 0.19 255);
 }
 
 @theme inline {
@@ -83,7 +73,6 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
@@ -93,20 +82,15 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ink: var(--ink);
-  --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
   --color-tree-low: var(--tree-low);
   --color-tree-mid: var(--tree-mid);
   --color-tree-high: var(--tree-high);
-  --color-tree-low-foreground: var(--tree-low-foreground);
-  --color-tree-mid-foreground: var(--tree-mid-foreground);
-  --color-tree-high-foreground: var(--tree-high-foreground);
   --color-win: var(--win);
   --color-win-foreground: var(--win-foreground);
   --color-win-text: var(--win-text);
   --color-draw: var(--draw);
   --color-draw-foreground: var(--draw-foreground);
-  --color-draw-text: var(--draw-text);
   --color-loss: var(--loss);
   --color-loss-foreground: var(--loss-foreground);
   --color-loss-text: var(--loss-text);
@@ -117,9 +101,6 @@
   --color-bar-white-fg: var(--bar-white-fg);
   --color-bar-draw-fg: var(--bar-draw-fg);
   --color-bar-black-fg: var(--bar-black-fg);
-  --color-arrow-candidate: var(--arrow-candidate);
-  --color-arrow-preview: var(--arrow-preview);
-  --color-highlight-last: var(--highlight-last);
   --color-board-light: var(--board-light);
   --color-board-dark: var(--board-dark);
   /* One radius scale: 4px controls (sm, md), 6px panels (lg, xl). */
@@ -151,7 +132,7 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
-  /* Mono (SAN, FEN, ECO): Martian Mono wdth axis at 87.5% (wdth 75-112.5). */
+  /* Mono (moves, codes, tabular numbers): Martian Mono wdth axis at 87.5% (wdth 75-112.5). */
   .font-mono,
   code,
   kbd {

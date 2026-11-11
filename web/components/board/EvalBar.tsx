@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 /**
  * Evaluation bar beside the board: the black share filled in, the value at the larger side's end.
  * Data comes from Lichess's cloud Stockfish cache, or a Stockfish running in the browser when the cache has nothing.
- * White sits at White's end of the board. Loading and no-eval states are plain gray (loading pulses).
+ * White sits at White's end of the board. Loading and no-eval states are plain gray.
  */
 export function EvalBar() {
   const { fen } = usePosition();
@@ -37,7 +37,7 @@ export function EvalBar() {
       aria-label={label}
       title={label}
       data-testid="eval-bar"
-      className="relative w-9 shrink-0 self-stretch overflow-hidden rounded-sm border border-[var(--bar-border)] bg-[var(--bar-white)]"
+      className="relative w-9 shrink-0 self-stretch overflow-hidden rounded-sm border border-bar-border bg-bar-white"
     >
       {ok ? (
         <>
@@ -61,7 +61,7 @@ export function EvalBar() {
           </span>
         </>
       ) : (
-        <div aria-hidden className={cn("absolute inset-0 bg-secondary", res === "loading" && "motion-safe:animate-pulse")} />
+        <div aria-hidden className="absolute inset-0 bg-secondary" />
       )}
     </div>
   );

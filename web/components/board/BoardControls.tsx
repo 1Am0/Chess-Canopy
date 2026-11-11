@@ -52,7 +52,7 @@ function Tip({ label, keys, children }: { label: string; keys?: string; children
 }
 
 // Below sm (640px) buttons are 32px so both strips fit on one row in the 276px-wide toolbar of a 320px viewport
-// (4 x 32, twice, plus gaps). From sm up they are 36px. Each strip is a run of buttons butted together: only the first has a left border, so neighbours share one divider and their hit boxes never overlap.
+// (4 x 32, twice, plus gaps). From sm up they are 36px. Each strip is a run of buttons butted together: only the first has a left border, so neighbors share one divider and their hit boxes never overlap.
 const btn =
   "relative size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9 rounded-none border-l-0 first:rounded-l-md first:border-l last:rounded-r-md hover:z-10 focus-visible:z-10";
 const btnAfterGap = "ml-2 rounded-l-md border-l";

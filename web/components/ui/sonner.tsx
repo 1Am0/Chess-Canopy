@@ -21,7 +21,7 @@ const subscribe = (cb: () => void) => {
 const Toaster = ({ ...props }: ToasterProps) => {
   const phone = useSyncExternalStore(subscribe, () => window.matchMedia(PHONE).matches, () => false);
   const sheetOpen = useExplorerStore((s) => s.filtersOpen || s.importOpen || s.managerOpen);
-  // Phones: top-centre, just under the 56px header. Desktop: bottom-right, moving to the top while a sheet/dialog
+  // Phones: top-center, just under the 56px header. Desktop: bottom-right, moving to the top while a sheet/dialog
   // is open so toasts never cover its footer buttons.
   const position = phone ? "top-center" : sheetOpen ? "top-right" : "bottom-right";
   return (

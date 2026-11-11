@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useExplorerStore } from "@/lib/store";
-import { DEFAULT_SOUND_THEME, playSound, setSoundTheme, setSoundsEnabled, soundForStep, unlockSound, type LineState } from "@/lib/sound";
+import { playSound, setSoundsEnabled, soundForStep, unlockSound, type LineState } from "@/lib/sound";
 
 /**
  * Plays a sound whenever the visible position in the line changes (a move played from
@@ -17,7 +17,6 @@ export function useMoveSounds() {
   const ready = useExplorerStore((s) => s.ready);
 
   useEffect(() => setSoundsEnabled(soundEnabled), [soundEnabled]);
-  useEffect(() => setSoundTheme(DEFAULT_SOUND_THEME), []);
 
   // Browsers only allow audio after a user gesture.
   useEffect(() => {

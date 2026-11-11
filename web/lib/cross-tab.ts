@@ -39,7 +39,7 @@ export function broadcastDataChanged(): void {
   try {
     getChannel()?.postMessage({ type: "data-changed" } satisfies Message);
   } catch {
-    /* closed channel or unsupported: single-tab behaviour */
+    /* closed channel or unsupported: single-tab behavior */
   }
 }
 
