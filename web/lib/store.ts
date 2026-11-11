@@ -6,7 +6,7 @@ import type { Color, Filters, Player, QueryResult, SelectionSummary } from "@/li
 import { DEFAULT_SOUND_THEME, setSoundTheme, setSoundsEnabled, type SoundTheme } from "@/lib/sound";
 import { canonicalLine, legalSan, linePositions } from "@/lib/position-cache";
 
-export type BoardTheme = "green" | "brown" | "blue" | "slate";
+export type BoardTheme = "lichen" | "green" | "brown" | "blue" | "slate";
 
 function readLocal(key: string): string | null {
   try {
@@ -140,7 +140,7 @@ export const useExplorerStore = create<ExplorerState>()(
       filters: { color: "white" },
       sideChosen: false,
       sideExplicit: false,
-      boardTheme: "green",
+      boardTheme: "lichen",
       soundEnabled: true,
       soundTheme: DEFAULT_SOUND_THEME,
       setSoundTheme: (soundTheme) => {

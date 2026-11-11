@@ -1,10 +1,11 @@
 "use client";
 
-import { Filter, HelpCircle, Plus, Trees } from "lucide-react";
+import { Filter, HelpCircle, Plus } from "lucide-react";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { ImportIndicator } from "@/components/players/ImportIndicator";
 import { PlayerSwitcher } from "@/components/players/PlayerSwitcher";
+import { Logo } from "@/components/layout/Logo";
 import { SoundToggle } from "@/components/layout/SoundToggle";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
@@ -14,13 +15,11 @@ export function Header({ showTools }: { showTools: boolean }) {
   const count = activeFilterCount(filters);
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
+    <header className="rule-double sticky top-0 z-30 bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:px-4">
-        <div className="mr-1 flex shrink-0 items-center gap-2 font-semibold tracking-tight">
-          <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Trees className="size-4" />
-          </span>
-          <span className="hidden sm:inline">Chess Canopy</span>
+        <div className="mr-1 flex shrink-0 items-center gap-2 text-primary">
+          <Logo className="size-7" />
+          <span className="hidden font-serif text-xl leading-none font-semibold tracking-tight text-foreground sm:inline">Chess Canopy</span>
         </div>
         {showTools && <div className="min-w-0 shrink" data-testid="player-switcher"><PlayerSwitcher /></div>}
         <div className="ml-auto flex shrink-0 items-center gap-1">

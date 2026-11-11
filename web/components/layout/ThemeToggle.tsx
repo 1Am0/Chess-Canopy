@@ -19,6 +19,7 @@ import { BOARD_THEMES } from "@/lib/board-themes";
 import { SOUND_THEMES, playSound, unlockSound, type SoundTheme } from "@/lib/sound";
 
 const BOARDS: { id: BoardTheme; label: string }[] = [
+  { id: "lichen", label: "Lichen" },
   { id: "green", label: "Green" },
   { id: "brown", label: "Brown" },
   { id: "blue", label: "Blue" },
