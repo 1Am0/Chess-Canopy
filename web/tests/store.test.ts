@@ -78,14 +78,16 @@ describe("loadGame", () => {
   });
 });
 
-describe("persist migration v4 (default sound theme)", () => {
-  it("moves the old default sfx (and a missing theme) to the Lichess standard theme", () => {
-    expect(migratePersisted({ soundTheme: "sfx" }, 3).soundTheme).toBe("standard");
-    expect(migratePersisted({}, 3).soundTheme).toBe("standard");
+describe("persist migration v5 (one look only)", () => {
+  it("drops stored board colours and sound sets from older versions", () => {
+    const m = migratePersisted({ boardTheme: "green", soundTheme: "piano", soundEnabled: false }, 4);
+    expect(m).not.toHaveProperty("boardTheme");
+    expect(m).not.toHaveProperty("soundTheme");
+    expect(m.soundEnabled).toBe(false);
   });
-  it("keeps a deliberate choice", () => {
-    expect(migratePersisted({ soundTheme: "piano" }, 3).soundTheme).toBe("piano");
-    expect(migratePersisted({ soundTheme: "sfx" }, 4).soundTheme).toBe("sfx");
+  it("the live store always uses the Lichen board and the standard sounds", () => {
+    expect(st().boardTheme).toBe("lichen");
+    expect(st().soundTheme).toBe("standard");
   });
 });
 
@@ -225,7 +227,7 @@ describe("change-aware persist storage (M6)", () => {
     }
   });
   it("hovering and stepping through the line do not change the persisted selection", () => {
-    const partial = (s: ReturnType<typeof st>) => [s.selected, s.filters, s.boardTheme, s.soundEnabled, s.soundTheme, s.orientation, s.sideChosen, s.sideExplicit];
+    const partial = (s: ReturnType<typeof st>) => [s.selected, s.filters, s.soundEnabled, s.orientation, s.sideChosen, s.sideExplicit];
     st().setLine(["e4", "e5", "Nf3"]);
     const before = partial(st());
     st().setHoverMove("Nc6");

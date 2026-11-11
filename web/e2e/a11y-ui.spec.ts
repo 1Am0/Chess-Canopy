@@ -61,17 +61,17 @@ test("the move table is a grid whose active row is only announced while it has f
   await expect(page.locator("#move-row-1")).toHaveAttribute("aria-selected", "true");
 });
 
-test("appearance menu items are radios with a checked state (M8)", async ({ page }) => {
+test("one look only: no Appearance menu, light theme even when the system prefers dark (R4)", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
   await importSampleJson(page);
-  await page.getByRole("button", { name: "Appearance" }).click();
-  await expect(page.getByRole("menuitemradio", { name: "Lichen" })).toHaveAttribute("aria-checked", "true");
-  await expect(page.getByRole("menuitemradio", { name: "Green" })).toHaveAttribute("aria-checked", "false");
-  await page.getByRole("menuitemradio", { name: "Dark" }).click();
-  await page.getByRole("button", { name: "Appearance" }).click();
-  await expect(page.getByRole("menuitemradio", { name: "Dark" })).toHaveAttribute("aria-checked", "true");
-  // Arrow keys inside the menu must not step through the line.
-  expect(lineParam(page)).toBeNull();
+  await expect(page.getByRole("button", { name: "Appearance" })).toHaveCount(0);
+  await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
+  // The shortcuts help is reachable at every width.
+  await page.getByRole("button", { name: "Keyboard shortcuts" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  // Arrow keys inside the dialog must not step through the line.
   await page.keyboard.press("ArrowDown");
+  expect(lineParam(page)).toBeNull();
   await page.keyboard.press("Escape");
 });
 

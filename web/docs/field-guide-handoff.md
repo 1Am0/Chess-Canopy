@@ -674,3 +674,7 @@ scrapbook. Must stay as instantly readable as a normal board.
 
 Both run in parallel (disjoint files). Same hard constraints as before (layout
 geometry, e2e names, a11y, CSP).
+
+## Status log (round 4)
+
+- **S (Simplify), done.** Appearance menu and `ThemeToggle.tsx` removed; Keyboard shortcuts button now shows at every width (320px no-overlap test passes, header still h-14). `ThemeProvider` has `forcedTheme="light"` and `enableSystem={false}`; `sonner.tsx` fixed to `theme="light"`. Store: `setBoardTheme`/`setSoundTheme` removed; `boardTheme` ("lichen") and `soundTheme` ("standard") stay as constants in state, no longer persisted; persist version 5 migration drops old stored values. `use-move-sounds` sets the standard set once. `lib/board-themes.ts`, other sound sets and dark tokens untouched. e2e: appearance-radio test replaced by a "no Appearance / no dark class under dark system preference / shortcuts reachable" test; sound test now checks standard recordings, unmute and mute remembered across reload. README updated. typecheck, lint, test (414), build and e2e (34) pass. Note for P: `components/board/ExplorerBoard.tsx` still reads `resolvedTheme` (next-themes, always "light" now) and `boardTheme` from the store (always "lichen"); both can be dropped.

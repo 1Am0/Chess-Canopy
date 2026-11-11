@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist, type PersistStorage, type StorageValue } from "zustand/middleware";
 import type { Color, Filters, Player, QueryResult, SelectionSummary } from "@/lib/engine/types";
-import { DEFAULT_SOUND_THEME, setSoundTheme, setSoundsEnabled, type SoundTheme } from "@/lib/sound";
+import { DEFAULT_SOUND_THEME, setSoundsEnabled, type SoundTheme } from "@/lib/sound";
 import { canonicalLine, legalSan, linePositions } from "@/lib/position-cache";
 
 export type BoardTheme = "lichen" | "green" | "brown" | "blue" | "slate";
@@ -70,7 +70,6 @@ export interface ExplorerState {
   /** Sound feedback on moves and imports (persisted). */
   soundEnabled: boolean;
   soundTheme: SoundTheme;
-  setSoundTheme: (theme: SoundTheme) => void;
   setSoundEnabled: (on: boolean) => void;
   orientation: Color;
   /** true once the user picked a side (or the one-time auto pick ran) */
@@ -99,7 +98,6 @@ export interface ExplorerState {
   setSelected: (selected: string[] | "all") => void;
   setFilters: (patch: Partial<Filters>) => void;
   clearFilters: () => void;
-  setBoardTheme: (t: BoardTheme) => void;
   setHoverMove: (m: string | null) => void;
   setResult: (r: QueryResult | null) => void;
   setResultLoading: (b: boolean) => void;
@@ -140,13 +138,10 @@ export const useExplorerStore = create<ExplorerState>()(
       filters: { color: "white" },
       sideChosen: false,
       sideExplicit: false,
+      // Fixed for now: no UI picks the board colours or the sound set, and neither is persisted.
       boardTheme: "lichen",
       soundEnabled: true,
       soundTheme: DEFAULT_SOUND_THEME,
-      setSoundTheme: (soundTheme) => {
-        setSoundTheme(soundTheme);
-        set({ soundTheme });
-      },
       setSoundEnabled: (soundEnabled) => {
         setSoundsEnabled(soundEnabled);
         set({ soundEnabled });
@@ -190,7 +185,6 @@ export const useExplorerStore = create<ExplorerState>()(
           return { filters, orientation };
         }),
       clearFilters: () => set((s) => ({ filters: { color: s.filters.color ?? "white" } })),
-      setBoardTheme: (boardTheme) => set({ boardTheme }),
       setHoverMove: (hoverMove) => set({ hoverMove }),
       setResult: (result) => set({ result }),
       setResultLoading: (resultLoading) => set({ resultLoading }),
@@ -249,15 +243,13 @@ export const useExplorerStore = create<ExplorerState>()(
     {
       name: "chess-canopy:v1",
       storage: createChangeAwareStorage(),
-      version: 4,
+      version: 5,
       migrate: migratePersisted,
       skipHydration: true,
       partialize: (s) => ({
         selected: s.selected,
         filters: s.filters,
-        boardTheme: s.boardTheme,
         soundEnabled: s.soundEnabled,
-        soundTheme: s.soundTheme,
         orientation: s.orientation,
         sideChosen: s.sideChosen,
         sideExplicit: s.sideExplicit,
@@ -345,5 +337,10 @@ export function migratePersisted(persisted: unknown, version: number): ExplorerS
   if (version < 3 && p.sideExplicit === undefined) p = { ...p, sideExplicit: false };
   // v4: the default sound theme became "standard" (Lichess default); nobody picked "sfx" on purpose yet.
   if (version < 4 && (p.soundTheme === undefined || p.soundTheme === "sfx")) p = { ...p, soundTheme: "standard" };
+  // v5: one look only (Lichen board, "standard" sounds). The pickers are gone, so older stored choices are dropped.
+  if (version < 5) {
+    delete p.boardTheme;
+    delete p.soundTheme;
+  }
   return p as ExplorerState;
 }

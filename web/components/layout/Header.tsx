@@ -7,7 +7,6 @@ import { ImportIndicator } from "@/components/players/ImportIndicator";
 import { PlayerSwitcher } from "@/components/players/PlayerSwitcher";
 import { Logo } from "@/components/layout/Logo";
 import { SoundToggle } from "@/components/layout/SoundToggle";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { TornEdge } from "@/components/paper";
 
 export function Header({ showTools }: { showTools: boolean }) {
@@ -48,8 +47,7 @@ export function Header({ showTools }: { showTools: boolean }) {
             </Button>
           )}
           <SoundToggle />
-          <ThemeToggle />
-          <Button variant="chit" size="icon" className="hidden sm:inline-flex" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
+          <Button variant="chit" size="icon" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
             <HelpCircle />
           </Button>
         </div>

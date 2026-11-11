@@ -343,21 +343,20 @@ test("moves make sounds, the mute button silences them, and loading a ?line= URL
   await page.waitForTimeout(300);
   expect(await audio()).toEqual(muted);
 
-  // Unmute (plays a confirmation tap), pick a theme, and both choices survive a reload.
-  await mute.click();
-  await expect(mute).toHaveAttribute("aria-pressed", "true");
-
-  // Sound themes load their own recordings.
+  // Unmute (plays a confirmation tap); the Lichess "standard" recordings are the only set.
   const requested: string[] = [];
   page.on("request", (r) => {
     if (r.url().includes("/sounds/")) requested.push(new URL(r.url()).pathname);
   });
-  await page.getByRole("button", { name: "Appearance" }).click();
-  await page.getByRole("menuitemradio", { name: "Piano" }).click();
-  await expect.poll(() => requested.filter((u) => u.startsWith("/sounds/piano/")).length).toBeGreaterThanOrEqual(2);
-  await page.keyboard.press("Escape");
+  await mute.click();
+  await expect(mute).toHaveAttribute("aria-pressed", "true");
+  expect(requested.every((u) => u.startsWith("/sounds/standard/"))).toBe(true);
+
+  // Muting is remembered across a reload.
+  await mute.click();
+  await expect(mute).toHaveAttribute("aria-pressed", "false");
   await page.reload();
-  await expect(page.getByRole("button", { name: "Move sounds" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Move sounds" })).toHaveAttribute("aria-pressed", "false");
 });
 
 test("line strip is a single scrolling row: long lines scroll sideways, never wrap or grow", async ({ page }) => {
