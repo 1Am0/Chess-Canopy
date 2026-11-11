@@ -1,7 +1,7 @@
 import { Chess } from "chess.js";
 import { filterGames } from "./engine/filter";
 import { GameIndex, sanKey, type IndexNode } from "./engine/position-index";
-import { classifyResult, emptyStats } from "./engine/trie";
+import { classifyResult, compareCodePoints, emptyStats } from "./engine/trie";
 import type {
   Color,
   ExplorerAPI,
@@ -14,6 +14,8 @@ import type {
   Player,
   QueryResult,
   SelectionSummary,
+  TreeNode,
+  TreeOptions,
   Source,
 } from "./engine/types";
 import * as dbm from "./db";
@@ -319,6 +321,43 @@ export class ExplorerService implements ExplorerAPI {
     const next = node ? index.next(node, path.length, boardAt) : [];
     const fen = this.board.seek(path, path.length).fen();
     return { player: label, color, games: c.filtered.length, path, fen, stats, next };
+  }
+
+  async tree(path: string[], opts: TreeOptions): Promise<TreeNode> {
+    const { c } = await this.current();
+    if (c.filtered.length === 0) {
+      this.board.seek(path, path.length); // still validates the path like query()
+      return { san: null, path, stats: emptyStats(), children: [] };
+    }
+    const color = this.chooseColor(c);
+    const { index, node } = this.locate(c, color, path);
+    const depth = Math.max(0, Math.floor(opts.depth) || 0);
+    const breadth = Math.max(0, Math.floor(opts.breadth) || 0);
+    const minGames = Math.max(1, Math.floor(opts.minGames ?? 1) || 1);
+    const root: TreeNode = { san: null, path, stats: node ? GameIndex.stats(node) : emptyStats(), children: [] };
+    if (!node) return root;
+    const board = this.board;
+    const build = (n: IndexNode, out: TreeNode, left: number) => {
+      if (left <= 0) return;
+      const d = out.path.length;
+      // Children come from the index directly; the board is only moved when a node's
+      // children are built for the first time (boardAt walks this node's own line).
+      const kids = index.children(n, d, (k) => board.seek(out.path, k));
+      const sorted = [...kids].sort((a, b) => b[1].idx.length - a[1].idx.length || compareCodePoints(b[0], a[0]));
+      let other = 0;
+      for (const [san, child] of sorted) {
+        if (out.children.length >= breadth || child.idx.length < minGames) {
+          other += child.idx.length;
+          continue;
+        }
+        const t: TreeNode = { san, path: [...out.path, san], stats: GameIndex.stats(child), children: [] };
+        out.children.push(t);
+        build(child, t, left - 1);
+      }
+      if (other > 0) out.otherGames = other;
+    };
+    build(node, root, depth);
+    return root;
   }
 
   async gamesAt(path: string[], limit: number, offset = 0): Promise<GameSummary[]> {

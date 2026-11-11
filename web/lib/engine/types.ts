@@ -122,6 +122,27 @@ export interface QueryResult {
   next: NextMove[];
 }
 
+export interface TreeNode {
+  /** Move leading here; null for the root */
+  san: string | null;
+  /** Full line from the start position to this node */
+  path: string[];
+  stats: Stats;
+  /** Sorted by total desc, capped at `breadth`, those under `minGames` dropped */
+  children: TreeNode[];
+  /** Games in the siblings that were pruned from `children` */
+  otherGames?: number;
+}
+
+export interface TreeOptions {
+  /** Plies below `path` to expand */
+  depth: number;
+  /** Max children per node */
+  breadth: number;
+  /** Children with fewer games are dropped (default 1) */
+  minGames?: number;
+}
+
 export interface GameSummary {
   game_id: string;
   date: string;
@@ -196,6 +217,8 @@ export interface ExplorerAPI {
   exportPlayer(id: string): Promise<string>;
   setSelection(playerIds: string[] | "all", filters: Filters): Promise<SelectionSummary>;
   query(path: string[]): Promise<QueryResult>;
+  /** The opening tree below `path` (`opts.depth` plies, `opts.breadth` children per node). */
+  tree(path: string[], opts: TreeOptions): Promise<TreeNode>;
   /** Games that reached `path`, newest first: `limit` of them starting at `offset` (default 0). */
   gamesAt(path: string[], limit: number, offset?: number): Promise<GameSummary[]>;
   /** Drop cached games and trees (another tab changed the data). Call setSelection afterwards. */

@@ -38,6 +38,7 @@ const api: ExplorerAPI = {
   exportPlayer: (id) => svc.exportPlayer(id),
   setSelection: (ids, f) => svc.setSelection(ids, f),
   query: (p) => svc.query(p),
+  tree: (p, o) => svc.tree(p, o),
   gamesAt: (p, l, o) => svc.gamesAt(p, l, o),
   invalidate: () => svc.invalidate(),
   opponents: () => svc.opponents(),

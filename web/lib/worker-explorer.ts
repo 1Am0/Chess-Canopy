@@ -85,6 +85,7 @@ export function createWorkerExplorer(opts: WorkerExplorerOptions = {}): Explorer
     exportPlayer: (id) => call(() => remote.exportPlayer(id)),
     setSelection: (ids, f) => call(() => remote.setSelection(ids, f)),
     query: (p) => call(() => remote.query(p)),
+    tree: (p, o) => call(() => remote.tree(p, o)),
     gamesAt: (p, l, o) => call(() => remote.gamesAt(p, l, o)),
     invalidate: () => call(() => (remote as unknown as { invalidate(): Promise<void> }).invalidate()),
     opponents: () => call(() => remote.opponents()),

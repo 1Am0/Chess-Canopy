@@ -9,9 +9,10 @@ import { OpeningHeader } from "@/components/explorer/OpeningHeader";
 import { PositionSummary } from "@/components/explorer/PositionSummary";
 import { MoveTable } from "@/components/explorer/MoveTable";
 import { GamesList } from "@/components/explorer/GamesList";
+import { CanopyTree } from "@/components/explorer/CanopyTree";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type Tab = "moves" | "games";
+type Tab = "moves" | "games" | "canopy";
 
 const TRIGGER =
   "h-full flex-1 rounded-none border-0 bg-transparent px-3 text-muted-foreground shadow-none hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_-2px_0_var(--color-primary)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent lg:flex-none lg:px-4";
@@ -25,8 +26,8 @@ const PANEL = "min-h-0 flex-none overflow-hidden data-[state=inactive]:hidden lg
  *
  *   desktop (lg+, exactly the viewport height under the header, no outer scroll):
  *     SideSwitch 44 · opening 28 · filters 32 · Line strip 44 · summary 52 ·
- *     explorer region (flex 1) with tabs Moves | Games, each its own scroll region.
- *   mobile: SideSwitch · opening · filters · summary · tabs Moves | Games over a
+ *     explorer region (flex 1) with tabs Moves | Games | Canopy, each its own scroll region.
+ *   mobile: SideSwitch · opening · filters · summary · tabs Moves | Games | Canopy over a
  *     panel of fixed height max(22rem, 45vh), so tab switches never change page height.
  */
 export function ExplorerPanel() {
@@ -50,12 +51,16 @@ export function ExplorerPanel() {
         <TabsList aria-label="Explorer views" className="h-9 w-full shrink-0 justify-start gap-0 rounded-none border-b bg-transparent p-0">
           <TabsTrigger value="moves" className={TRIGGER}>Moves</TabsTrigger>
           <TabsTrigger value="games" className={TRIGGER}>Games</TabsTrigger>
+          <TabsTrigger value="canopy" className={TRIGGER}>Canopy</TabsTrigger>
         </TabsList>
         <TabsContent value="moves" forceMount tabIndex={-1} className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
           <MoveTable />
         </TabsContent>
         <TabsContent value="games" forceMount tabIndex={-1} className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
           <GamesList active={value === "games"} />
+        </TabsContent>
+        <TabsContent value="canopy" forceMount tabIndex={-1} className={`${PANEL} h-[max(22rem,45vh)] lg:h-auto`}>
+          <CanopyTree active={value === "canopy"} />
         </TabsContent>
       </Tabs>
     </div>
