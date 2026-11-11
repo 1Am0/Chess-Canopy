@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronsUpDown } from "lucide-react";
+import { CheckIcon, ChevronsUpDown } from "lucide-react";
 import type { Filters } from "@/lib/engine/types";
 import { getExplorer } from "@/lib/explorer-client";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
@@ -10,10 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { CountedOption, FieldSection } from "@/components/field";
-import { InkTick } from "@/components/field/InkTick";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Handnote, Tape } from "@/components/paper";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -87,7 +85,7 @@ function RatingRange({
         onValueChange={([lo, hi]) => onChange(lo <= R_MIN ? null : lo, hi >= R_MAX ? null : hi)}
         aria-label={label}
       />
-      <div aria-hidden className="-mt-1 flex justify-between font-mono text-[11px] text-muted-foreground tabular-nums">
+      <div aria-hidden className="-mt-1 flex justify-between font-mono text-xs text-muted-foreground tabular-nums">
         <span>{R_MIN}</span>
         <span>{R_MAX}+</span>
       </div>
@@ -129,14 +127,14 @@ function RatingRange({
   );
 }
 
-/** A "date stamp" field: native date input (keeps the picker and a11y) under a label-caps prefix. */
-function DateStamp({ label, aria, value, onChange }: { label: string; aria: string; value: string; onChange: (v: string) => void }) {
+/** A date field: native date input (keeps the picker and a11y) with a small label inside. */
+function DateField({ label, aria, value, onChange }: { label: string; aria: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="relative">
-      <span aria-hidden className="label-caps pointer-events-none absolute top-1.5 left-2.5 text-[11px]">
+      <span aria-hidden className="label-caps pointer-events-none absolute top-1 left-2.5 text-xs">
         {label}
       </span>
-      <Input type="date" aria-label={aria} value={value} onChange={(e) => onChange(e.target.value)} className="h-11 pt-4 font-mono text-sm tabular-nums" />
+      <Input type="date" aria-label={aria} value={value} onChange={(e) => onChange(e.target.value)} className="h-12 pt-5 font-mono text-sm tabular-nums" />
     </div>
   );
 }
@@ -160,7 +158,7 @@ function OpponentCombobox() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" role="combobox" aria-label="Opponent" aria-expanded={open} className="w-full justify-between font-normal">
-          <span className={opponent ? "truncate font-serif text-base italic" : "text-muted-foreground"}>{opponent || "Any opponent"}</span>
+          <span className={opponent ? "truncate" : "text-muted-foreground"}>{opponent || "Any opponent"}</span>
           <ChevronsUpDown className="size-3.5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
@@ -179,8 +177,8 @@ function OpponentCombobox() {
                     setOpen(false);
                   }}
                 >
-                  <InkTick className={`size-4 text-ink ${opponent?.toLowerCase() === n.toLowerCase() ? "opacity-100" : "opacity-0"}`} />
-                  <span className="font-serif italic">{n}</span>
+                  <CheckIcon className={`size-4 ${opponent?.toLowerCase() === n.toLowerCase() ? "opacity-100" : "opacity-0"}`} />
+                  <span>{n}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -246,15 +244,12 @@ export function FilterSheet() {
 
   return (
     <Sheet open={open} onOpenChange={(o) => setUi({ filtersOpen: o })}>
-      {/* An index card taped to the desk: card stock with a red head rule, two strips of tape across its edges. */}
       <SheetContent
         side={desktop ? "right" : "bottom"}
-        className="paper-scope sheet-paper max-h-[88dvh] gap-0 border-0 before:hidden lg:inset-y-4 lg:right-4 lg:h-auto lg:max-h-none lg:w-[26rem] lg:max-w-[26rem]"
+        className="max-h-[88dvh] gap-0 lg:inset-y-4 lg:right-4 lg:h-auto lg:max-h-none lg:w-[26rem] lg:max-w-[26rem] lg:rounded-lg lg:border"
       >
-        <Tape variant="ochre" length={104} angle={-3} seed="card-a" className="-top-2.5 left-[9%]" />
-        <Tape variant="sage" length={92} angle={2.5} seed="card-b" className="-bottom-2.5 left-[58%]" />
-        <SheetHeader kicker="Sampling criteria" className="border-b-[1.5px] border-solid border-margin">
-          <SheetTitle className="font-serif text-xl font-semibold tracking-tight">Filters</SheetTitle>
+        <SheetHeader kicker="Sampling criteria">
+          <SheetTitle>Filters</SheetTitle>
           <SheetDescription>
             Results update as you change filters.<span className="sr-only"> Win / Draw / Loss is from your point of view.</span>
           </SheetDescription>
@@ -274,10 +269,7 @@ export function FilterSheet() {
               <ToggleGroupItem value="1/2-1/2" className="flex-1">Draw</ToggleGroupItem>
               <ToggleGroupItem value="0-1" className="flex-1">Loss</ToggleGroupItem>
             </ToggleGroup>
-            {/* a pencilled margin note (the same words are in the sheet's description for screen readers) */}
-            <Handnote seed="wdl" rotate={-1.5} underline={false} className="-mt-0.5 ml-1 block w-fit text-[17px]">
-              win / draw / loss: from your side of the board
-            </Handnote>
+            <p className="text-sm text-muted-foreground">Win / draw / loss: from your side of the board</p>
           </FieldSection>
 
           <FieldSection
@@ -298,7 +290,7 @@ export function FilterSheet() {
                     className="capitalize"
                     onClick={() => patch({ time_control: on ? null : tc })}
                   >
-                    {on && <InkTick className="size-3.5 text-ink" />}
+                    {on && <CheckIcon className="size-3.5" />}
                     <CountedOption label={tc} />
                   </Button>
                 );
@@ -344,8 +336,8 @@ export function FilterSheet() {
               ))}
             </ToggleGroup>
             <div className="grid grid-cols-2 gap-2">
-              <DateStamp label="From" aria="From date" value={filters.date_from ?? ""} onChange={(v) => patchDates(v || null, filters.date_to ?? null)} />
-              <DateStamp label="To" aria="To date" value={filters.date_to ?? ""} onChange={(v) => patchDates(filters.date_from ?? null, v || null)} />
+              <DateField label="From" aria="From date" value={filters.date_from ?? ""} onChange={(v) => patchDates(v || null, filters.date_to ?? null)} />
+              <DateField label="To" aria="To date" value={filters.date_to ?? ""} onChange={(v) => patchDates(filters.date_from ?? null, v || null)} />
             </div>
           </FieldSection>
 
@@ -355,7 +347,7 @@ export function FilterSheet() {
         </div>
 
         <SheetFooter className="flex-row items-center">
-          <Button variant="tag" size="sm" onClick={clearFilters} disabled={count === 0}>
+          <Button variant="outline" size="sm" onClick={clearFilters} disabled={count === 0}>
             Clear all{count ? ` (${count})` : ""}
           </Button>
           <Button className="flex-1" onClick={() => setUi({ filtersOpen: false })}>Done</Button>

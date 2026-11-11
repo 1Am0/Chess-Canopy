@@ -11,7 +11,7 @@ export function SoundToggle({ className }: { className?: string }) {
   const setOn = useExplorerStore((s) => s.setSoundEnabled);
   return (
     <Button
-      variant="chit"
+      variant="outline"
       size="icon"
       className={className}
       aria-label="Move sounds"

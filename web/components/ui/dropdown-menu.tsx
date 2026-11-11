@@ -1,22 +1,17 @@
 "use client";
 import * as React from "react";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
-import { InkTick } from "@/components/field/InkTick";
-import { CardTape } from "@/components/ui/paper-chrome";
+import { CheckIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { keepNavKeysLocal } from "@/components/ui/keys";
 
-/*
- * Menus are index cards: a cream card over an offset second card, a strip of tape across the top, printed rows. The
- * highlighted row gets a marker wash (see `.paper-row`); checked items carry an ink tick that draws itself.
- */
 const DropdownMenu = DropdownMenuPrimitive.Root;
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 
 const ROW =
-  "paper-row relative flex min-h-8 cursor-default items-center gap-2 rounded-none px-2 py-1 text-sm outline-hidden select-none focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50";
+  "relative flex min-h-8 cursor-default items-center gap-2 rounded-sm px-2 py-1 text-sm outline-hidden select-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50";
 
 function DropdownMenuContent({
   className,
@@ -34,10 +29,9 @@ function DropdownMenuContent({
           onKeyDown?.(e);
           keepNavKeysLocal(e);
         }}
-        className={cn("paper-card relative z-50 min-w-[8rem] p-1 text-popover-foreground data-[state=open]:paper-settle", className)}
+        className={cn("z-50 min-w-[8rem] rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-pop", className)}
         {...props}
       >
-        <CardTape seed="menu" />
         <div className="max-h-[calc(var(--radix-dropdown-menu-content-available-height)-1.5rem)] overflow-x-hidden overflow-y-auto">{children}</div>
       </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>
@@ -56,7 +50,7 @@ function DropdownMenuItem({
       data-variant={variant}
       className={cn(
         ROW,
-        "data-[inset]:pl-8 data-[variant=destructive]:text-loss-text data-[variant=destructive]:[--hilite:var(--hilite-pink)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "data-[inset]:pl-8 data-[variant=destructive]:text-loss-text [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}
@@ -70,12 +64,11 @@ function DropdownMenuCheckboxItem({
   checked,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem>) {
-  const seed = React.useId();
   return (
     <DropdownMenuPrimitive.CheckboxItem checked={checked} className={cn(ROW, "pr-2 pl-8", className)} {...props}>
       <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
         <DropdownMenuPrimitive.ItemIndicator>
-          <InkTick seed={seed} draw className="size-4 text-ink" />
+          <CheckIcon className="size-4" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}
@@ -88,7 +81,6 @@ function DropdownMenuRadioItem({
   children,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
-  const seed = React.useId();
   return (
     <DropdownMenuPrimitive.RadioItem
       className={cn(ROW, "pr-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4", className)}
@@ -97,7 +89,7 @@ function DropdownMenuRadioItem({
       {children}
       <span className="pointer-events-none absolute right-2 flex size-3.5 items-center justify-center">
         <DropdownMenuPrimitive.ItemIndicator>
-          <InkTick seed={seed} draw className="size-4 text-ink" />
+          <CheckIcon className="size-4" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
     </DropdownMenuPrimitive.RadioItem>
@@ -112,18 +104,18 @@ function DropdownMenuLabel({
   return (
     <DropdownMenuPrimitive.Label
       data-inset={inset}
-      className={cn("kicker mb-0 px-2 pt-2 pb-1 data-[inset]:pl-8", className)}
+      className={cn("px-2 py-1.5 text-xs font-medium text-muted-foreground data-[inset]:pl-8", className)}
       {...props}
     />
   );
 }
 
 function DropdownMenuSeparator({ className, ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Separator>) {
-  return <DropdownMenuPrimitive.Separator className={cn("pencil-rule -mx-1 my-0.5", className)} {...props} />;
+  return <DropdownMenuPrimitive.Separator className={cn("-mx-1 my-1 h-px bg-border", className)} {...props} />;
 }
 
 function DropdownMenuShortcut({ className, ...props }: React.ComponentProps<"span">) {
-  return <span className={cn("ml-auto font-mono text-[11px] tracking-wide text-muted-foreground", className)} {...props} />;
+  return <span className={cn("ml-auto font-mono text-xs text-muted-foreground", className)} {...props} />;
 }
 
 export {

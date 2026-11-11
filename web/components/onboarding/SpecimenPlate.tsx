@@ -76,16 +76,16 @@ const X_ROOT = 0;
 const LEAVES = SAMPLE.reduce((s, b) => s + b.kids.length, 0);
 const TOTAL = SAMPLE.reduce((s, b) => s + b.n, 0);
 
-/** Score → bar/ribbon colour, interpolating low → mid → high in oklch. */
+/** Score → bar/ribbon colour, interpolating low → mid → high in oklab. */
 function scoreColour(score: number, alpha = 100) {
   const s = Math.min(1, Math.max(0, score));
   const base =
     s < 0.5
-      ? `color-mix(in oklch, var(--tree-mid) ${Math.round(s * 200)}%, var(--tree-low))`
-      : `color-mix(in oklch, var(--tree-high) ${Math.round((s - 0.5) * 200)}%, var(--tree-mid))`;
+      ? `color-mix(in oklab, var(--tree-mid) ${Math.round(s * 200)}%, var(--tree-low))`
+      : `color-mix(in oklab, var(--tree-high) ${Math.round((s - 0.5) * 200)}%, var(--tree-mid))`;
   return alpha >= 100
     ? base
-    : `color-mix(in oklch, ${base} ${alpha}%, transparent)`;
+    : `color-mix(in oklab, ${base} ${alpha}%, transparent)`;
 }
 
 /** Filled band between two vertical extents, joined by an S-curve. */
@@ -286,23 +286,22 @@ function Tree({ d, className }: { d: Dims; className?: string }) {
 }
 
 /**
- * The specimen plate: a static, decorative print of an opening tree. It is a flat printed card (the data-ish part stays
- * on plain paper); the scrapbook mount (mat, photo corners, tape) is drawn by the caller.
+ * The specimen plate: a static, decorative print of an opening tree. A flat bordered panel.
  */
 export function SpecimenPlate({ className }: { className?: string }) {
   return (
     <figure
       className={cn(
-        "flex flex-col border border-rule-strong/50 bg-[var(--sheet-flat)] p-4 sm:p-5",
+        "flex flex-col rounded-lg border border-border bg-card p-4 sm:p-5",
         className,
       )}
       aria-hidden="true"
     >
-      <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-rule pb-2">
+      <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-border pb-2">
         <span className="label-caps text-xs sm:text-sm">
           Plate I — 1. e4, {TOTAL} games
         </span>
-        <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+        <span className="shrink-0 font-mono text-xs text-muted-foreground">
           No. 001
         </span>
       </div>
@@ -310,8 +309,8 @@ export function SpecimenPlate({ className }: { className?: string }) {
         <Tree d={NARROW} className="sm:hidden" />
         <Tree d={WIDE} className="hidden sm:block" />
       </div>
-      <figcaption className="mt-3 flex items-center justify-between gap-3 border-t border-rule pt-2 text-xs text-muted-foreground">
-        <span className="font-serif italic">
+      <figcaption className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
+        <span>
           Sample data. Yours is built from your own games.
         </span>
         <span className="label-caps hidden shrink-0 sm:inline">Sample</span>
