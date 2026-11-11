@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { useExplorerStore } from "@/lib/store";
-import { InkCircle } from "@/components/paper";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +72,6 @@ export function LinePanel({ className }: { className?: string }) {
     const san = path[i];
     if (san === undefined) return null;
     const current = i === cursor - 1;
-    const text = <span className="relative inline-block">{san}</span>;
     return (
       <button
         type="button"
@@ -86,19 +84,13 @@ export function LinePanel({ className }: { className?: string }) {
           !current && i >= cursor && "font-normal text-pencil/70 italic",
         )}
       >
-        {current ? (
-          <InkCircle seed={`ply-${i}`} padX={5} padY={2} strokeWidth={1.6}>
-            {text}
-          </InkCircle>
-        ) : (
-          text
-        )}
+        {san}
       </button>
     );
   };
 
   return (
-    // A plain ruled strip: moves typed in mono, the current move circled in ink.
+    // A plain ruled strip: moves typed in mono, the moves after the current one greyed out.
     <div role="region" aria-label="Line" className={cn("flex h-11 shrink-0 items-center gap-1 border-y border-rule pr-1 pl-1", className)}>
       <div
         ref={scroller}
