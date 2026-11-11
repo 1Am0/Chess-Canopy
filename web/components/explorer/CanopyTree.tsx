@@ -6,6 +6,7 @@ import { getExplorer, isExplorerRestart } from "@/lib/explorer-client";
 import { compact, pct, score } from "@/lib/format";
 import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
+import { EmptySpecimen, Kicker } from "@/components/field";
 import { cn } from "@/lib/utils";
 
 const DEPTHS = [2, 3, 4] as const;
@@ -339,13 +340,17 @@ export function CanopyTree({ active }: { active: boolean }) {
         )}
       </svg>
       {empty && (
-        <p className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-muted-foreground">
-          {hasPlayers ? "No games continue from this position." : "Add games to see your opening tree."}
-        </p>
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+          <EmptySpecimen
+            className="py-2"
+            title="No specimens collected here"
+            hint={hasPlayers ? "No games continue from this position." : "Add games to see your opening tree."}
+          />
+        </div>
       )}
       <div className="pointer-events-none absolute inset-x-2 top-1.5 flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 pt-0.5 text-[11px]">
-          <span className="label-caps">width = games · colour = your score</span>
+          <Kicker as="span" className="mb-0">width = games · colour = your score</Kicker>
           <span className="flex items-center gap-1.5 text-muted-foreground tabular-nums" aria-hidden="true">
             <span>{`≤${pct(0.5 - SPREAD)}`}</span>
             <span
@@ -356,10 +361,10 @@ export function CanopyTree({ active }: { active: boolean }) {
           </span>
         </div>
         <div role="group" aria-label="Tree depth" className="pointer-events-auto flex shrink-0 items-center gap-1.5 text-[11px]">
-          <span className="label-caps" aria-hidden="true">
+          <Kicker as="span" className="mb-0" aria-hidden="true">
             Plies
-          </span>
-          <div className="flex items-center gap-px rounded-sm border border-rule-strong bg-card/90">
+          </Kicker>
+          <div className="flex items-center gap-px border border-rule-strong bg-rule-strong">
             {DEPTHS.map((d) => (
               <button
                 key={d}
@@ -369,7 +374,7 @@ export function CanopyTree({ active }: { active: boolean }) {
                 onClick={() => setDepth(d)}
                 className={cn(
                   "h-6 min-w-6 px-1.5 font-mono tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-                  depth === d ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground",
+                  depth === d ? "bg-card text-ink shadow-[inset_0_2px_0_var(--color-primary)]" : "bg-specimen text-muted-foreground hover:text-foreground",
                 )}
               >
                 {d}

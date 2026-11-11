@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, ArrowDown, ArrowUp, ChevronDown, FilterX, RotateCcw, Undo2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, RotateCcw, Undo2 } from "lucide-react";
 import type { NextMove } from "@/lib/engine/types";
 import { activeFilterCount, isResultFresh, loadFailed, useExplorerStore } from "@/lib/store";
 import { compact, pct, score } from "@/lib/format";
@@ -11,6 +11,7 @@ import { COL, MoveRow } from "@/components/explorer/MoveRow";
 import { splitRare } from "@/components/explorer/rare";
 import { WdbBar } from "@/components/explorer/WdbBar";
 import { scoreTextClass } from "@/components/explorer/wdb";
+import { EmptySpecimen } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -247,58 +248,60 @@ export function MoveTable({ className }: { className?: string }) {
       </table>
 
       {failed && (
-        <div className="absolute inset-x-0 top-7 bottom-0 flex flex-col items-center justify-center gap-3 px-4 text-center" role="alert">
-          <AlertTriangle className="size-6 text-muted-foreground" />
-          <div>
-            <p className="font-medium">Couldn&apos;t load your games</p>
-            <p className="text-sm text-muted-foreground">Something went wrong while reading the saved games. Try again.</p>
-          </div>
-          <Button size="sm" variant="outline" onClick={retryLoad}>
-            <RotateCcw /> Retry
-          </Button>
+        <div className="absolute inset-x-0 top-7 bottom-0 flex items-center justify-center overflow-hidden" role="alert">
+          <EmptySpecimen
+            className="py-2"
+            title="Couldn't load your games"
+            hint="Something went wrong while reading the saved games. Try again."
+            action={
+              <Button size="sm" variant="outline" onClick={retryLoad}>
+                <RotateCcw /> Retry
+              </Button>
+            }
+          />
         </div>
       )}
 
       {empty && (
-        <div className="absolute inset-x-0 top-7 bottom-0 flex flex-col items-center justify-center gap-3 px-4 text-center">
+        <div className="absolute inset-x-0 top-7 bottom-0 flex items-center justify-center overflow-hidden">
           {noGames && filterCount === 0 && otherCount > 0 ? (
-            <>
-              <div>
-                <p className="font-medium">No games as {side === "white" ? "White" : "Black"}</p>
-                <p className="text-sm text-muted-foreground">This selection only has games with the other color.</p>
-              </div>
-              <Button size="sm" variant="outline" onClick={() => setSide(other)}>
-                View as {other === "white" ? "White" : "Black"} ({otherCount.toLocaleString()} {otherCount === 1 ? "game" : "games"})
-              </Button>
-            </>
+            <EmptySpecimen
+              className="py-2"
+              title={`No games as ${side === "white" ? "White" : "Black"}`}
+              hint="This selection only has games with the other color."
+              action={
+                <Button size="sm" variant="outline" onClick={() => setSide(other)}>
+                  View as {other === "white" ? "White" : "Black"} ({otherCount.toLocaleString()} {otherCount === 1 ? "game" : "games"})
+                </Button>
+              }
+            />
           ) : noGames ? (
-            <>
-              <FilterX className="size-6 text-muted-foreground" />
-              <div>
-                <p className="font-medium">No games match these filters</p>
-                <p className="text-sm text-muted-foreground">Loosen or clear the filters to see your moves.</p>
-              </div>
-              <Button size="sm" variant="outline" onClick={clearFilters}>Clear filters</Button>
-            </>
+            <EmptySpecimen
+              className="py-2"
+              title="No games match these filters"
+              hint="Loosen or clear the filters to see your moves."
+              action={<Button size="sm" variant="outline" onClick={clearFilters}>Clear filters</Button>}
+            />
           ) : (
-            <>
-              <div>
-                <p className="font-medium">{outOfBook ? "No games here" : "No moves found"}</p>
-                <p className="text-sm text-muted-foreground">
-                  {outOfBook
-                    ? total > 0
-                      ? "Your games end here. No further moves were played from this position."
-                      : "None of your games reached this position."
-                    : "There are no games for the current selection."}
-                </p>
-              </div>
-              {outOfBook && (
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={undo}><Undo2 /> Step back</Button>
-                  <Button size="sm" variant="outline" onClick={toStart}><RotateCcw /> Start</Button>
-                </div>
-              )}
-            </>
+            <EmptySpecimen
+              className="py-2"
+              title={outOfBook ? "No specimens collected here" : "No moves found"}
+              hint={
+                outOfBook
+                  ? total > 0
+                    ? "Your games end here. No further moves were played from this position."
+                    : "None of your games reached this position."
+                  : "There are no games for the current selection."
+              }
+              action={
+                outOfBook ? (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={undo}><Undo2 /> Step back</Button>
+                    <Button size="sm" variant="outline" onClick={toStart}><RotateCcw /> Start</Button>
+                  </div>
+                ) : undefined
+              }
+            />
           )}
         </div>
       )}

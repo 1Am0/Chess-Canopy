@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, ExternalLink, FilterX, RotateCcw } from "lucide-react";
+import { ExternalLink, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import type { GameSummary } from "@/lib/engine/types";
 import { getExplorer } from "@/lib/explorer-client";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
 import { formatDate, resultLabel, sourceLabel } from "@/lib/format";
+import { EmptySpecimen } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -121,40 +122,44 @@ export function GamesList({ className, active = true }: { className?: string; ac
             </li>
           ))}
         {failed && (
-          <li role="alert" className="flex flex-col items-center gap-3 px-4 py-8 text-center">
-            <AlertTriangle className="size-6 text-muted-foreground" />
-            <div>
-              <p className="font-medium">Couldn&apos;t load the games</p>
-              <p className="text-sm text-muted-foreground">Something went wrong while reading the saved games.</p>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => setAttempt((n) => n + 1)}>
-              <RotateCcw /> Retry
-            </Button>
+          <li role="alert">
+            <EmptySpecimen
+              title="Couldn't load the games"
+              hint="Something went wrong while reading the saved games."
+              action={
+                <Button size="sm" variant="outline" onClick={() => setAttempt((n) => n + 1)}>
+                  <RotateCcw /> Retry
+                </Button>
+              }
+            />
           </li>
         )}
         {!failed && games?.length === 0 && noGames && filterCount === 0 && otherCount > 0 && (
-          <li className="flex flex-col items-center gap-3 px-4 py-8 text-center">
-            <div>
-              <p className="font-medium">No games as {side === "white" ? "White" : "Black"}</p>
-              <p className="text-sm text-muted-foreground">This selection only has games with the other color.</p>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => setSide(other)}>
-              View as {other === "white" ? "White" : "Black"} ({otherCount.toLocaleString()} {otherCount === 1 ? "game" : "games"})
-            </Button>
+          <li>
+            <EmptySpecimen
+              title={`No games as ${side === "white" ? "White" : "Black"}`}
+              hint="This selection only has games with the other color."
+              action={
+                <Button size="sm" variant="outline" onClick={() => setSide(other)}>
+                  View as {other === "white" ? "White" : "Black"} ({otherCount.toLocaleString()} {otherCount === 1 ? "game" : "games"})
+                </Button>
+              }
+            />
           </li>
         )}
         {!failed && games?.length === 0 && noGames && filterCount > 0 && (
-          <li className="flex flex-col items-center gap-3 px-4 py-8 text-center">
-            <FilterX className="size-6 text-muted-foreground" />
-            <div>
-              <p className="font-medium">No games match these filters</p>
-              <p className="text-sm text-muted-foreground">Loosen or clear the filters to see your games.</p>
-            </div>
-            <Button size="sm" variant="outline" onClick={clearFilters}>Clear filters</Button>
+          <li>
+            <EmptySpecimen
+              title="No games match these filters"
+              hint="Loosen or clear the filters to see your games."
+              action={<Button size="sm" variant="outline" onClick={clearFilters}>Clear filters</Button>}
+            />
           </li>
         )}
         {!failed && games?.length === 0 && !(noGames && (filterCount > 0 || otherCount > 0)) && (
-          <li className="flex h-8 items-center px-3 text-sm text-muted-foreground">No games reach this position.</li>
+          <li>
+            <EmptySpecimen title="No specimens collected here" hint="No games reach this position." />
+          </li>
         )}
         {!failed && games?.map((g) => {
           const r = resultLabel(g.result);
@@ -176,7 +181,7 @@ export function GamesList({ className, active = true }: { className?: string; ac
                 className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-left outline-none transition-colors hover:bg-specimen/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
               >
                 <span className="sr-only">Load game: </span>
-                <span className={cn("w-11 shrink-0 rounded-sm border px-1 py-0.5 text-center text-xs font-semibold", RESULT_STYLE[r])}>{r}</span>
+                <span className={cn("w-11 shrink-0 rounded-[2px] border px-1 py-0.5 text-center font-mono text-[11px] leading-4 font-semibold tracking-[0.08em] uppercase", RESULT_STYLE[r])}>{r}</span>
                 <span
                   className={cn("size-3 shrink-0 rounded-full ring-1 ring-foreground/40", g.color === "white" ? "bg-white" : "bg-neutral-900")}
                   title={`Played ${g.color}`}
@@ -188,7 +193,7 @@ export function GamesList({ className, active = true }: { className?: string; ac
                   {g.opponent_rating != null && <span className="ml-1 text-muted-foreground tabular-nums">({g.opponent_rating})</span>}
                 </span>
                 <span className="label-caps hidden w-16 shrink-0 truncate text-right text-[13px] sm:block">{g.time_control}</span>
-                <span className="label-caps hidden w-[6.5rem] shrink-0 text-right text-[13px] tabular-nums sm:block">{formatDate(g.date)}</span>
+                <span className="hidden w-[6.5rem] shrink-0 text-right font-mono text-xs text-muted-foreground tabular-nums sm:block">{formatDate(g.date)}</span>
                 <span className="label-caps hidden w-16 shrink-0 text-right text-[13px] sm:block">
                   {g.source === "chess.com" || g.source === "lichess" ? sourceLabel(g.source) : ""}
                 </span>

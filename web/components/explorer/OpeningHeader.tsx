@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { ChevronRight } from "lucide-react";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { splitOpeningName } from "@/lib/format";
 import { usePosition } from "@/hooks/use-position";
@@ -25,13 +24,20 @@ export function OpeningHeader({ className }: { className?: string }) {
             {opening.eco}
           </span>
           <nav aria-label="Opening" className="min-w-0 flex-1">
-            <ol key={opening.name} className="animate-in fade-in truncate font-serif text-base leading-7 text-ink italic duration-200 motion-reduce:animate-none">
-              {crumbs.map((c, i) => (
-                <li key={i} className="inline">
-                  {i > 0 && <ChevronRight className="mx-0.5 inline size-3.5 align-[-2px] text-muted-foreground" aria-hidden />}
-                  <span className={i === crumbs.length - 1 ? "font-medium" : "text-muted-foreground"}>{c}</span>
-                </li>
-              ))}
+            <ol key={opening.name} className="animate-in fade-in truncate text-base leading-7 text-ink duration-200 motion-reduce:animate-none">
+              {crumbs.map((c, i) => {
+                const last = i === crumbs.length - 1;
+                return (
+                  <li key={i} className="inline">
+                    {i > 0 && (
+                      <span aria-hidden className="mx-1.5 font-sans text-sm text-muted-foreground/70">
+                        /
+                      </span>
+                    )}
+                    <span className={last ? "font-serif font-medium italic" : "font-sans text-sm text-muted-foreground"}>{c}</span>
+                  </li>
+                );
+              })}
             </ol>
           </nav>
         </>

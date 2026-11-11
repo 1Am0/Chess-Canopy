@@ -44,7 +44,7 @@ function Tip({ label, keys, children }: { label: string; keys?: string; children
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent>
         {label}
-        {keys && <kbd className="ml-1.5 rounded bg-primary-foreground/20 px-1 font-mono text-[10px]">{keys}</kbd>}
+        {keys && <kbd className="ml-1.5 rounded-[2px] bg-background/20 px-1 font-mono text-[10px]">{keys}</kbd>}
       </TooltipContent>
     </Tooltip>
   );
