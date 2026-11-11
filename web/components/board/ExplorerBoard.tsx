@@ -172,7 +172,10 @@ export function ExplorerBoard() {
   useEffect(() => {
     const el = box.current;
     if (!el || reduceMotion) return;
-    const root = document.documentElement;
+    // The held piece is the board's drag clone; its transform reads --drag-rot, so the var is set on that one element
+    // (setting it on <html> re-styled the whole page every frame, which is what made dragging laggy).
+    let clone: HTMLElement | null = null;
+    const findClone = () => el.querySelector<HTMLElement>('[data-piece][style*="drag-rot"]') ?? document.querySelector<HTMLElement>('[data-piece][style*="drag-rot"]');
     let down = false;
     let lastX = 0;
     let vx = 0;
@@ -180,13 +183,14 @@ export function ExplorerBoard() {
     let vel = 0;
     let raf = 0;
     const tick = () => {
-      const target = Math.max(-30, Math.min(30, vx * 1.4));
+      const target = Math.max(-24, Math.min(24, vx * 1.2));
       vel = (vel + (target - ang) * 0.16) * 0.8;
       ang += vel;
       vx *= 0.85;
-      root.style.setProperty("--drag-rot", `${ang.toFixed(2)}deg`);
+      if (!clone || !clone.isConnected) clone = findClone();
+      clone?.style.setProperty("--drag-rot", `${ang.toFixed(2)}deg`);
       if (down || Math.abs(ang) > 0.05 || Math.abs(vel) > 0.05) raf = requestAnimationFrame(tick);
-      else root.style.removeProperty("--drag-rot");
+      else clone = null;
     };
     const onDown = (e: PointerEvent) => {
       if (!(e.target as Element | null)?.closest("[data-piece]")) return;
@@ -210,7 +214,6 @@ export function ExplorerBoard() {
     window.addEventListener("pointercancel", onUp);
     return () => {
       cancelAnimationFrame(raf);
-      root.style.removeProperty("--drag-rot");
       el.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
@@ -258,7 +261,7 @@ export function ExplorerBoard() {
           showNotation: false,
           allowDrawingArrows: true,
           clearArrowsOnPositionChange: true,
-          animationDurationInMs: reduceMotion ? 0 : 240,
+          animationDurationInMs: reduceMotion ? 0 : 160,
           onArrowsChange: ({ arrows: drawn }) =>
             setUserArrows((prev) => {
               const next = drawn.map((a) => ({ from: a.startSquare, to: a.endSquare, ink: USER_INKS[a.color] ?? "green" }));

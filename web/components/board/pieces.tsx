@@ -231,6 +231,7 @@ export const PLATE_PIECES: PieceRenderObject = Object.fromEntries(
 export const PLATE_DRAGGING_STYLE: CSSProperties = {
   // --drag-rot is driven per frame by the board (a spring on the pointer's sideways speed): the piece hangs from where you grabbed it and trails behind the drag like air resistance.
   transform: "scale(1.14) rotate(var(--drag-rot, 0deg))",
-  transformOrigin: "50% 18%",
+  transformOrigin: "50% 50%",
+  willChange: "transform",
   filter: "drop-shadow(2px 6px 3px rgba(36, 29, 16, 0.4))",
 };
