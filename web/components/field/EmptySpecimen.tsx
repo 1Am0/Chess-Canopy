@@ -8,20 +8,18 @@ type EmptySpecimenProps = Omit<React.ComponentProps<"div">, "title"> & {
   action?: React.ReactNode;
 };
 
-/** Empty-state block: a dashed specimen-tag outline, serif italic title, muted hint, optional action. */
+/**
+ * Empty-state block: a blank index card held by a bit of tape with a few pencilled rules and nothing written on them,
+ * a serif italic title, a muted hint, an optional action. The card is decorative (aria-hidden); the text carries the meaning.
+ */
 export function EmptySpecimen({ title, hint, action, className, ...props }: EmptySpecimenProps) {
   return (
     <div className={cn("flex flex-col items-center gap-1.5 px-4 py-8 text-center", className)} {...props}>
-      <svg width="40" height="52" viewBox="0 0 40 52" fill="none" aria-hidden="true" className="mb-1 text-rule-strong">
-        <path
-          d="M6 1.5h28a4.5 4.5 0 0 1 4.5 4.5v40a4.5 4.5 0 0 1-4.5 4.5H6A4.5 4.5 0 0 1 1.5 46V6A4.5 4.5 0 0 1 6 1.5Z"
-          stroke="currentColor"
-          strokeWidth="1.25"
-          strokeDasharray="3 3"
-        />
-        <circle cx="20" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.25" />
-        <path d="M10 24h20M10 31h20M10 38h12" stroke="currentColor" strokeWidth="1" strokeOpacity="0.6" />
-      </svg>
+      <span aria-hidden className="paper-label mb-2 block h-[58px] w-[46px] px-1.5 pt-3.5" data-taped="true" style={{ transform: "rotate(-1.5deg)" }}>
+        <span className="pencil-rule block" />
+        <span className="pencil-rule block" />
+        <span className="pencil-rule block w-2/3" />
+      </span>
       <p className="font-serif text-lg leading-snug text-foreground italic">{title}</p>
       {hint && <p className="max-w-[28ch] text-sm text-muted-foreground">{hint}</p>}
       {action && <div className="mt-2">{action}</div>}

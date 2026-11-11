@@ -428,6 +428,13 @@ any measured rect (overflow-visible wrappers or box-shadow, never padding).
   - StringTag redrawn: 22px manila tag, washer, string with knot loop and a frayed hanging strand; screenshots after 1.e4 e5 2.Nf3 in `shots/r3-final-moves-*.png`.
   - Checks: typecheck, lint, vitest and e2e 34/34 re-run after the pass.
 
+- **Workstream K (Paper kit v2): done.**
+  - Files: `components/ui/*` (every primitive; new `paper-chrome.tsx`), `components/paper/*` (new HighlighterWash, InkCircle, InkStroke, RubberStamp, PaperLabel, TicketEdge, Envelope, PaperClip, PencilHatch, HangTag), `components/field/{InkTick,SpecimenTag,EmptySpecimen}`, `lib/paper.ts` (+9 generators, 11 new tests in `tests/paper.test.ts`), `app/globals.css` (tokens, `.paper-btn/.paper-card/.paper-row/.paper-label/.paper-note`, `pencil-rule`, `ink-draw`, `paper-settle`, folder-tab also for toggles), `scripts/gen-paper-textures.mts` -> `app/paper-textures.css` (pencil rule tile, tape masks, stamp speck mask), `docs/palette.md` (tokens + 26 contrast pairs x2 modes, all pass), reference section above.
+  - Built and reviewed in light and dark over three screenshot rounds (toast, error toast, tooltip, header, appearance menu with hover wash, players popover, filters sheet with focused slider, import dialog, shortcuts, plus a temporary gallery page of every primitive, deleted afterwards). Fixes found by looking: toast skin lost to Sonner's unlayered CSS (moved out of `@layer`), dark highlighter dimmed the text (wash now sits behind text, darker band), envelope folds crossed the label, tickets' notches too faint.
+  - Deliberate choices: buttons/rows/cards are in `@layer components` so caller utilities win; menus use a hard offset shadow for the "second card" (rotation would be clipped by menu scroll areas); `DropdownMenuContent` gained an inner scroller (className now targets the card); `DialogContent` gained `bodyClassName` (CommandDialog uses it); no corner-cut on toasts (a mask/clip would cut the tape).
+  - Risks: `ToggleGroupItem` and `TabsTrigger` overrides in SideSwitch / ImportForm / ExplorerPanel were not touched (they still render, F/H should drop the fake styling); `ghost` icon buttons are bare until hovered (toolbar strips are E's); sound toggle looks pushed-in while on (`aria-pressed`); TicketEdge/HighlighterWash/InkCircle render a plain box until first measurement; forced-colors fallbacks written but not visually tested.
+  - Checks: typecheck, lint, vitest, e2e 34/34. Requests: none.
+
 ---
 
 # Round 3, step 2: full rollout (owner approved the prototype)
@@ -500,3 +507,63 @@ Field Kit. Data still stays legible on flat paper (R3.1), but the things that
 Same hard constraints (section 5 and R3.4). Every agent screenshots its work
 in light and dark (scripts in the scratchpad; coordinator rebuilds between
 merges), self-reviews at least twice, and logs to the Status log.
+
+---
+
+# Paper kit v2 reference (Workstream K)
+
+Import primitives from `@/components/paper`, shared bits from `@/components/field`, controls from `@/components/ui`.
+Everything is deterministic (seeded by the `seed` prop, never `Math.random`), decorative parts are `aria-hidden` and
+hidden in forced-colors mode. **Never restyle a primitive locally; pass layout classes only.** Heights and sizes of
+`Button` (h-9 / h-8 / size-9 / h-6), `Input`, `ToggleGroupItem` (h-9), `Slider` (h-6) are unchanged.
+
+## Design tokens and CSS classes (globals.css)
+
+| Name | What it is |
+| --- | --- |
+| `.paper-btn` (+ `-primary`, `-quiet`, `-ghost`, `-tag`, `-chit`) | Cut-card button skin. States: hover lifts, `:active` / `aria-pressed` / `aria-expanded` / `data-state=open|on` = pushed in (1px down, inset shadow). Variants only set `--pb-*` variables. In `@layer components`, so utilities still override. |
+| `.paper-card` | Index card with an offset second card under it (hard offset shadow + hairline) and the soft paper shadow. Sets `--card/--background/--popover/--specimen` for what is inside. Used by menus, popovers, dialogs. |
+| `.paper-row` | Printed row; the highlighted row (`:focus`, `[data-highlighted]`, `[data-selected=true]`) gets a marker wash **behind** the text with uneven chisel ends. Parents up to the card must not paint a background. |
+| `.paper-label` (`data-tone=cream|manila|sage`, `data-taped=true`) | Small pasted label: fibre, hairline edge, tiny shadow, optional tape bit. Badges and `SpecimenTag` use it. |
+| `.paper-note` | Toast skin (sticky note + tape), unlayered because Sonner's CSS is. |
+| `pencil-rule` (utility) | A 5px pencilled wobbly rule strip (separators in menus). |
+| `ink-draw`, `paper-settle` (utilities) | Pen-draw-on for strokes (`pathLength=1`), 140ms open settle (opacity + 4px). Both off under reduced motion. |
+| `skeleton-lines`, `stamp` | Now use the pencil tile / a speckled ink mask. |
+| tokens | `--btn-*`, `--pop-shadow`, `--hilite*`, `--note*`, `--envelope*`, `--clip-*`, `--ink-wash`; Tailwind colours `btn-face`, `btn-edge`, `note`, `note-ink`, `hilite`, `envelope`, shadow `shadow-pop`. See palette.md. |
+
+## components/ui (same exports, names, props, aria)
+
+- **Button**: variants `default` (forest-green printed card, cream ink), `destructive` (same, red), `outline` (paper card), `secondary` (quiet slip), `ghost` (bare until hover, then a card lifts; stays pushed while `aria-pressed`/`open`), `tag` (small mono slip: Clear/Reset; use `size="xs"`), `link`, **new `chit`** (always-visible paper card; with `size="icon"` it is a round token with a printed ring, for header controls). Sizes unchanged. `<Button variant="chit" size="icon" aria-label="Help"><HelpCircle /></Button>`.
+- **Input**: pressed-in field typed on a printed rule; mono tabular for numeric. **Checkbox**: printed box with an ink check (seeded pen stroke, draws on; indeterminate = dash).
+- **Slider**: ruler card with 20 printed ticks, thick primary range, one **paper clip** per thumb (clip pokes ~3px above the strip). Same Radix props. **ToggleGroup**: index tabs on a shared baseline (the group draws it). **Tabs**: folder tabs (the `folder-tab` utility is now in `TabsTrigger` by default; ExplorerPanel's overrides keep working).
+- **DropdownMenu / Popover / Select / Command**: `paper-card` + a strip of tape (ochre on menus, sage on popover/select; `<PopoverContent tape={false}>` to omit). `DropdownMenuContent` is now `card (overflow visible) > scroller div`, so `className` (width/padding) lands on the card. Items use `paper-row`; checks are `InkTick` that draw themselves; separators are `pencil-rule`. `Command` is transparent so the card shows through.
+- **Tooltip**: `TooltipContent` renders a manila `HangTag` on string. Plain text/`<kbd>` children. **Toaster**: yellow sticky note with tape and a pencilled word (Noted / Note / Caution / Problem from the toast type), error = pink note, inked icons. `toast.success("Copied", { description })` unchanged.
+- **Dialog**: `DialogContent` = positioned wrapper (`className`: width, e.g. `sm:max-w-md`) > `UnderSheet` + `paper-card` body (`bodyClassName`: padding/overflow, e.g. `p-0`) + a tape strip + a square paper close chit. Header/Title/Footer unchanged (`kicker` prop kept). **Sheet**: keeps the index-card look, close button is a paper chit.
+- **Badge**: default/secondary/destructive/outline = `paper-label`; `stamp` = inked stamp. **Skeleton**: pencilled ruled lines. **Separator**: `variant="single|double|pencil"`. **ScrollArea**: paper-slip thumb on a groove. **Card**: cut card with fibre.
+- **field/**: `SpecimenTag` is a paper label; `EmptySpecimen` is a blank taped index card with pencil rules; `InkTick` takes `seed` and `draw`; `Stamp` gets the speckled ink.
+
+## components/paper (new)
+
+| Component | Props | Usage |
+| --- | --- | --- |
+| `HighlighterWash` | `tone` yellow\|green\|pink\|blue, `seed`, `fill`, `amp`, `className` | `<HighlighterWash seed="nf3">Nf3</HighlighterWash>` (inline, behind text) or `<li className="relative isolate"><HighlighterWash fill seed={san} />...</li>` for a row. Measured to exact size (rectangle until then). Meaning must also be in aria (`aria-current`). |
+| `InkCircle` | `seed`, `tone` ink\|pencil\|green\|red, `strokeWidth`, `padX`, `padY`, `draw` | `<InkCircle seed="move-3" aria-hidden={false}>Nf3</InkCircle>` circles the content without changing layout; ring is outside the box. |
+| `InkStroke` | `from`, `to` ([x,y] px in the positioned parent), `seed`, `arrow`, `tone`, `opacity`, `width`, `taper`, `wobble`, `head`, `headWidth` | `<div className="relative"><InkStroke from={[8,40]} to={[120,12]} arrow width={5} seed="e2e4" /></div>` |
+| `inkArrowPath` / `inkStrokePath` (lib/paper) | `(seed, x1, y1, x2, y2, { width, taper, wobble, samples, head, headWidth })` | Pure, ~22 points whatever the length (4000 calls < 400ms in tests). Returns a **filled outline**: `<path d={inkArrowPath(`${from}${to}`, x1, y1, x2, y2, { width: 3 + 8 * freq })} fill="var(--ink)" opacity={...} />`. Tip lands exactly on (x2, y2). Use for board arrows (keep thickness/opacity = frequency). |
+| `RubberStamp` | `tone` primary\|muted\|destructive\|win\|draw\|loss, `variant` double\|single, `size` md\|sm, `rotate` (clamped ±2°), `seed` | `<RubberStamp tone="win" variant="single" size="sm" seed={game.id}>W</RubberStamp>`. Real text; seed shifts the speck mask so stamps differ. |
+| `PaperLabel` | `tone` cream\|manila\|sage, `taped`, `rotate` (±1.5°), `as` | `<PaperLabel tone="manila" taped>You</PaperLabel>` mono 11px, one line. Player names on the mat, filter chips. |
+| `TicketEdge` | `ends` perforated\|torn, `seed`, `notch`, `as` (div\|ol\|ul\|nav), `className` (the strip: give it height + padding), `wrapperClassName` | `<TicketEdge ends="perforated" className="flex h-11 items-center px-4">…moves…</TicketEdge>`. Clip-path from `ticketPath`; shadow on the wrapper. |
+| `Envelope` | `open`, `as` (div\|label\|section), `className` | `<Envelope as="label" open={dragging} className="min-h-28 p-4">Drop a PGN here</Envelope>`. Manila body, V flap (lifts when `open`), pocket cut along the bottom; content sits in the clear middle band. |
+| `PaperClip` | `size`, `angle` (±12°) | Steel gem clip, 11×28 at size 1 (slider thumbs). |
+| `PencilHatch` | `gap`, `dir` 1\|-1, `seed`, `opacity`, `color` | `<div className="relative h-full w-3"><PencilHatch gap={4} /></div>` graphite hatching fill (eval bar with no eval). |
+| `HangTag` | children | Auto-height manila tag on string (tooltips). `StringTag` stays the fixed 22px ECO tag. |
+| `CardTape` (`@/components/ui/paper-chrome`) | `variant`, `length`, `height`, `angle`, `seed`, `align` | Tape across the top edge of a floating card (needs `relative`, no clipping). |
+
+Generators in `lib/paper.ts` (all tested in `tests/paper.test.ts`): `inkStrokePath`, `inkArrowPath`, `inkEllipsePath`, `washPath`, `speckPath`, `speckleMaskSvg`, `ticketPath`, `pencilHatchSvg`, `inkCheckPath`. The generator script `scripts/gen-paper-textures.mts` also emits `--pencil-rule`, `--tape-mask-*`, `--stamp-mask`.
+
+## Notes for E / F / H
+
+- Existing local overrides keep working (twMerge), but delete any that fake paper (borders, bg tints) on `Button`/`Input` and let the kit draw them. `ExplorerPanel` tabs and `SideSwitch` still carry their own overrides on `TabsTrigger` / `ToggleGroupItem`.
+- Toggle/pressed look is built into `.paper-btn` (`aria-pressed`, `aria-expanded`, `data-state=open|on`), so toolbar toggles need no extra classes.
+- Dark mode: highlight washes are dark bands behind text, tapes are low-alpha without multiply, notes are olive; do not hard-code light-only colours in new objects, use the tokens.
+- `PaperSheet`/`paper-scope` inside menus is not needed: `.paper-card` already redefines `--card/--background/--specimen`.

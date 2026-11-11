@@ -1,19 +1,23 @@
+import { inkCheckPath } from "@/lib/paper";
 import { cn } from "@/lib/utils";
 
-/** Hand-ruled check stroke used by checkbox, radio and select indicators. Decorative. */
-export function InkTick({ className }: { className?: string }) {
+/**
+ * A hand-ruled check stroke (round caps, a little seeded unsteadiness) for checkbox, radio and menu indicators.
+ * Decorative. `seed` varies the hand; `draw` animates the pen drawing it on when it mounts (off under reduced motion).
+ */
+export function InkTick({ className, seed = "tick", draw = false }: { className?: string; seed?: number | string; draw?: boolean }) {
   return (
     <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className={cn("size-4 shrink-0", className)}>
-      <path d="M3 8.6 6.4 12 13 4.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" strokeLinejoin="miter" />
+      <path d={inkCheckPath(seed)} stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" pathLength={1} className={draw ? "ink-draw" : undefined} />
     </svg>
   );
 }
 
 /** Short ink dash for the indeterminate state. Decorative. */
-export function InkDash({ className }: { className?: string }) {
+export function InkDash({ className, draw = false }: { className?: string; draw?: boolean }) {
   return (
     <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className={cn("size-4 shrink-0", className)}>
-      <path d="M4 8h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
+      <path d="M4 8.2Q8 7.6 12 8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" pathLength={1} className={draw ? "ink-draw" : undefined} />
     </svg>
   );
 }

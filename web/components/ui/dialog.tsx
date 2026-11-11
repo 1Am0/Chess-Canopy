@@ -2,6 +2,8 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { XIcon } from "lucide-react";
+import { UnderSheet } from "@/components/paper/UnderSheet";
+import { CardTape } from "@/components/ui/paper-chrome";
 import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
@@ -13,7 +15,7 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
   return (
     <DialogPrimitive.Overlay
       className={cn(
-        "fixed inset-0 z-50 bg-ink/50 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+        "fixed inset-0 z-50 bg-[var(--scrim)] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 motion-reduce:animate-none",
         className,
       )}
       {...props}
@@ -21,29 +23,40 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
   );
 }
 
+/**
+ * A card taped onto the page with a second sheet under it. `className` styles the positioned wrapper (width: `sm:max-w-md`);
+ * `bodyClassName` styles the card itself (padding, overflow). The close button is a small square paper chit.
+ */
 function DialogContent({
   className,
+  bodyClassName,
   children,
   showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & { showCloseButton?: boolean }) {
+}: React.ComponentProps<typeof DialogPrimitive.Content> & { showCloseButton?: boolean; bodyClassName?: string }) {
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-md border border-rule-strong bg-card p-6 text-card-foreground shadow-paper duration-200 before:pointer-events-none before:absolute before:inset-1 before:rounded-sm before:border before:border-rule before:content-[''] forced-colors:before:border-[GrayText] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 sm:max-w-lg",
+          "fixed top-[50%] left-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] text-card-foreground outline-none duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-1 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 motion-reduce:animate-none sm:max-w-lg",
           className,
         )}
         {...props}
       >
-        {children}
-        {showCloseButton && (
-          <DialogPrimitive.Close className="absolute top-3 right-3 z-10 grid size-6 place-items-center rounded-sm border border-rule-strong bg-specimen text-foreground transition-colors hover:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden [&_svg]:size-3.5">
-            <XIcon />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
-        )}
+        <div className="relative isolate">
+          <UnderSheet seed="dialog" dx={5} dy={6} rotate={0.8} />
+          <div className={cn("paper-card relative grid max-h-[calc(100dvh-2rem)] gap-4 overflow-y-auto p-6 shadow-pop", bodyClassName)}>
+            {children}
+          </div>
+          <CardTape seed="dialog-tape" length={92} height={19} angle={-2.5} align="left" />
+          {showCloseButton && (
+            <DialogPrimitive.Close className="paper-btn absolute top-3 right-3 z-20 grid size-6 place-items-center rounded-[2px] text-foreground outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&_svg]:size-3.5">
+              <XIcon />
+              <span className="sr-only">Close</span>
+            </DialogPrimitive.Close>
+          )}
+        </div>
       </DialogPrimitive.Content>
     </DialogPortal>
   );

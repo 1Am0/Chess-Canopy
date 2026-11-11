@@ -107,6 +107,34 @@
   --sheet-shadow: inset 0 0 22px -4px var(--sheet-vignette), inset 0 0 0 0.5px oklch(0.4 0.04 80 / 0.14), 0.5px 1px 1px oklch(0.25 0.04 65 / 0.38), 2px 3px 4px -1px oklch(0.25 0.04 65 / 0.2), 7px 12px 24px -8px oklch(0.25 0.05 65 / 0.34);
   --print-shadow: 0 0 0 1px oklch(0.25 0.03 70 / 0.55), 0.5px 1px 1px 1px oklch(0.25 0.04 65 / 0.3), 2px 4px 7px -1px oklch(0.25 0.04 65 / 0.34);
 
+
+  /* Paper kit v2 (round 3, step 2): cut cards, buttons, markers, notes (light) */
+  --btn-face: oklch(0.99 0.012 90);
+  --btn-face-hover: oklch(1 0.006 90);
+  --btn-face-press: oklch(0.935 0.034 88);
+  --btn-edge: oklch(0.36 0.03 100);
+  --btn-lip: oklch(0.3 0.04 70 / 0.38);
+  --btn-drop: oklch(0.3 0.04 70 / 0.26);
+  --btn-press: oklch(0.3 0.04 70 / 0.42);
+  --pop-shadow: 0.5px 1px 1px oklch(0.25 0.04 65 / 0.38), 2px 3px 4px -1px oklch(0.25 0.04 65 / 0.2), 8px 13px 22px -8px oklch(0.25 0.05 65 / 0.42);
+  --hilite: oklch(0.9 0.16 98 / 0.62);
+  --hilite-green: oklch(0.88 0.12 150 / 0.55);
+  --hilite-pink: oklch(0.86 0.1 10 / 0.5);
+  --hilite-blue: oklch(0.86 0.08 235 / 0.5);
+  --hilite-blend: multiply;
+  --note: oklch(0.93 0.1 98);
+  --note-ink: oklch(0.24 0.03 80);
+  --note-pencil: oklch(0.38 0.09 60);
+  --note-flap: oklch(0.86 0.1 92);
+  --note-bad: oklch(0.92 0.06 28);
+  --note-bad-pencil: oklch(0.42 0.17 27);
+  --note-bad-flap: oklch(0.85 0.075 28);
+  --envelope: oklch(0.9 0.05 82);
+  --envelope-edge: oklch(0.52 0.06 72);
+  --clip-steel: oklch(0.48 0.02 250);
+  --clip-glint: oklch(0.93 0.01 250);
+  --ink-wash: oklch(0.3 0.03 165);
+
   --chart-1: oklch(0.54 0.125 155);
   --chart-2: oklch(0.55 0.13 245);
   --chart-3: oklch(0.7 0.15 75);
@@ -218,6 +246,34 @@
   --scrim: oklch(0 0 0 / 0.55);
   --sheet-shadow: inset 0 0 22px -4px var(--sheet-vignette), inset 0 1px 0 oklch(1 0 0 / 0.17), 0.5px 1px 1px oklch(0 0 0 / 0.55), 2px 3px 4px -1px oklch(0 0 0 / 0.35), 8px 14px 26px -8px oklch(0 0 0 / 0.6);
   --print-shadow: 0 0 0 1px oklch(0 0 0 / 0.7), 0.5px 1px 1px 1px oklch(0 0 0 / 0.45), 2px 4px 7px -1px oklch(0 0 0 / 0.5);
+
+
+  /* Paper kit v2 (dark) */
+  --btn-face: oklch(0.355 0.021 88);
+  --btn-face-hover: oklch(0.395 0.023 88);
+  --btn-face-press: oklch(0.29 0.02 88);
+  --btn-edge: oklch(0.94 0.03 95 / 0.58);
+  --btn-lip: oklch(0 0 0 / 0.55);
+  --btn-drop: oklch(0 0 0 / 0.5);
+  --btn-press: oklch(0 0 0 / 0.6);
+  --pop-shadow: inset 0 1px 0 oklch(1 0 0 / 0.15), 0.5px 1px 1px oklch(0 0 0 / 0.55), 2px 3px 4px -1px oklch(0 0 0 / 0.35), 8px 14px 26px -8px oklch(0 0 0 / 0.65);
+  --hilite: oklch(0.34 0.085 95 / 0.6);
+  --hilite-green: oklch(0.34 0.08 150 / 0.6);
+  --hilite-pink: oklch(0.34 0.09 20 / 0.6);
+  --hilite-blue: oklch(0.34 0.07 235 / 0.6);
+  --hilite-blend: normal;
+  --note: oklch(0.4 0.07 92);
+  --note-ink: oklch(0.95 0.035 95);
+  --note-pencil: oklch(0.86 0.09 92);
+  --note-flap: oklch(0.34 0.06 90);
+  --note-bad: oklch(0.38 0.08 28);
+  --note-bad-pencil: oklch(0.88 0.08 28);
+  --note-bad-flap: oklch(0.32 0.07 28);
+  --envelope: oklch(0.35 0.035 75);
+  --envelope-edge: oklch(0.62 0.045 78);
+  --clip-steel: oklch(0.8 0.015 250);
+  --clip-glint: oklch(0.98 0.005 250);
+  --ink-wash: oklch(0.92 0.03 95);
 
   --chart-1: oklch(0.76 0.12 150);
   --chart-2: oklch(0.7 0.13 245);
@@ -348,6 +404,13 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-btn-face: var(--btn-face);
+  --color-btn-edge: var(--btn-edge);
+  --color-note: var(--note);
+  --color-note-ink: var(--note-ink);
+  --color-hilite: var(--hilite);
+  --color-envelope: var(--envelope);
+  --shadow-pop: var(--pop-shadow);
   --color-sheet: var(--sheet);
   --color-sheet-flat: var(--sheet-flat);
   --color-sheet-under: var(--sheet-under);
@@ -485,6 +548,15 @@
   text-transform: uppercase;
   white-space: nowrap;
   transform: rotate(-1.5deg);
+  /* ink that did not quite take everywhere: seeded specks knocked out of the print */
+  mask-image: var(--stamp-mask);
+  mask-size: 160px 64px;
+  -webkit-mask-image: var(--stamp-mask);
+  -webkit-mask-size: 160px 64px;
+  @media (forced-colors: active) {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
 }
 
 /* Dotted leader: a flex filler between a label and a value (label ...... value). */
@@ -534,11 +606,27 @@
 
 /* Skeleton: faint ruled lines (2-3 for a text-sized block) instead of a grey slab. */
 @utility skeleton-lines {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    color-mix(in oklab, var(--rule-strong) 55%, transparent) 0 1px,
-    transparent 1px 0.6rem
-  );
+  background-image: var(--pencil-rule);
+  background-size: 120px 0.6rem;
+  background-repeat: repeat;
+  background-position: 0 0.18rem;
+  @media (forced-colors: active) {
+    background-image: repeating-linear-gradient(to bottom, GrayText 0 1px, transparent 1px 0.6rem);
+  }
+}
+
+/* A rule drawn in pencil: two slightly different wobbly lines (a 5px tall strip; give it a width). */
+@utility pencil-rule {
+  height: 5px;
+  background-image: var(--pencil-rule);
+  background-size: 120px 12px;
+  background-position: 0 50%;
+  background-repeat: repeat-x;
+  @media (forced-colors: active) {
+    background-image: none;
+    height: 1px;
+    background-color: GrayText;
+  }
 }
 
 /* ---- Round 3: scrapbook paper ------------------------------------------------------------ */
@@ -605,14 +693,14 @@
     background: var(--tab-fill);
     clip-path: polygon(0 100%, 0 6.2px, 6.2px 0, calc(100% - 6.2px) 0, 100% 6.2px, 100% 100%);
   }
-  &[data-state="active"] {
+  &:is([data-state="active"], [data-state="on"]) {
     --tab-fill: var(--sheet);
     z-index: 1;
   }
-  &[data-state="active"]::after {
+  &:is([data-state="active"], [data-state="on"])::after {
     inset: 1px 1px -1px 1px;
   }
-  &:hover:not([data-state="active"]) {
+  &:hover:not([data-state="active"], [data-state="on"]) {
     --tab-fill: color-mix(in oklab, var(--sheet-under) 55%, var(--sheet));
   }
   @media (forced-colors: active) {
@@ -623,6 +711,348 @@
     }
   }
 }
+
+/* ---- Paper kit v2: crafted interiors (buttons, cards, rows, labels, notes) ---------------- */
+
+/* A short pen stroke drawn on: for checks and circles that appear when a state turns on. */
+@keyframes ink-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@utility ink-draw {
+  stroke-dasharray: 1;
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ink-draw 170ms ease-out both;
+  }
+}
+
+/* Pieces of paper put on top of the page settle in: opacity plus up to 4px. Off under reduced motion. */
+@keyframes paper-settle {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@utility paper-settle {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: paper-settle 140ms ease-out both;
+  }
+}
+
+/*
+ * Components layer, so any utility class passed by a caller (colours, sizes, padding) still wins.
+ *
+ * .paper-btn: a cut piece of card with a printed ink edge. Variants only set the --pb-* variables;
+ * the states (hover = lifts a hair, pressed/open = pushed into the page) are shared below.
+ */
+@layer components {
+  .paper-btn {
+    --pb-bg: var(--btn-face);
+    --pb-bg-hover: var(--btn-face-hover);
+    --pb-bg-press: var(--btn-face-press);
+    --pb-img: var(--sheet-tile);
+    --pb-edge: var(--btn-edge);
+    --pb-sh: 0 1px 0 var(--btn-lip), 0.5px 1.5px 2px -0.5px var(--btn-drop);
+    --pb-sh-hover: 0 1.5px 0 var(--btn-lip), 1px 2.5px 3px -0.5px var(--btn-drop);
+    --pb-sh-press: inset 0 1.5px 3px var(--btn-press), inset 0 0 0 0.5px var(--btn-lip);
+    background-color: var(--pb-bg);
+    background-image: var(--pb-img);
+    border: 1px solid var(--pb-edge);
+    border-radius: 2px;
+    box-shadow: var(--pb-sh);
+    transition:
+      background-color 90ms ease-out,
+      box-shadow 90ms ease-out,
+      transform 90ms ease-out;
+  }
+  .paper-btn:where(:hover:not(:disabled)) {
+    background-color: var(--pb-bg-hover);
+    background-image: var(--pb-img-hover, var(--pb-img));
+    border-color: var(--pb-edge-hover, var(--pb-edge));
+    box-shadow: var(--pb-sh-hover);
+  }
+  .paper-btn:where(:active, [aria-pressed="true"], [aria-expanded="true"], [data-state="open"], [data-state="on"]):where(:not(:disabled)) {
+    background-color: var(--pb-bg-press);
+    background-image: var(--pb-img-press, var(--pb-img));
+    border-color: var(--pb-edge-hover, var(--pb-edge));
+    box-shadow: var(--pb-sh-press);
+    transform: translateY(1px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .paper-btn {
+      transition: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .paper-btn {
+      background-image: none;
+      border-color: ButtonText;
+      box-shadow: none;
+    }
+  }
+
+  /* primary: a solid forest-green printed label with an inset keyline */
+  .paper-btn-primary {
+    --pb-bg: var(--primary);
+    --pb-bg-hover: color-mix(in oklab, var(--primary) 88%, white);
+    --pb-bg-press: color-mix(in oklab, var(--primary) 84%, black);
+    --pb-img: linear-gradient(to bottom, oklch(1 0 0 / 0.13), transparent 55%), var(--sheet-tile);
+    --pb-edge: color-mix(in oklab, var(--primary) 52%, black);
+    --pb-sh:
+      inset 0 0 0 1.5px var(--primary), inset 0 0 0 2.5px color-mix(in oklab, var(--primary-foreground) 34%, transparent),
+      0 1px 0 var(--btn-lip), 0.5px 1.5px 2px -0.5px var(--btn-drop);
+    --pb-sh-hover:
+      inset 0 0 0 1.5px color-mix(in oklab, var(--primary) 88%, white), inset 0 0 0 2.5px color-mix(in oklab, var(--primary-foreground) 42%, transparent),
+      0 1.5px 0 var(--btn-lip), 1px 2.5px 3px -0.5px var(--btn-drop);
+    --pb-sh-press: inset 0 2px 4px oklch(0 0 0 / 0.5), inset 0 0 0 2.5px color-mix(in oklab, var(--primary-foreground) 20%, transparent);
+    color: var(--primary-foreground);
+  }
+  /* secondary: a quieter, specimen-toned slip */
+  .paper-btn-quiet {
+    --pb-bg: color-mix(in oklab, var(--btn-face) 62%, var(--sheet-specimen));
+    --pb-bg-hover: var(--btn-face);
+    --pb-edge: color-mix(in oklab, var(--btn-edge) 60%, transparent);
+  }
+  /* ghost: bare until you reach for it, then a card lifts out of the page */
+  .paper-btn-ghost {
+    --pb-bg: transparent;
+    --pb-img: none;
+    --pb-img-hover: var(--sheet-tile);
+    --pb-img-press: var(--sheet-tile);
+    --pb-edge: transparent;
+    --pb-edge-hover: color-mix(in oklab, var(--btn-edge) 72%, transparent);
+    --pb-sh: 0 0 0 0 transparent;
+  }
+  .paper-btn-ghost:where(:not(:hover, :active, :disabled, [aria-pressed="true"], [aria-expanded="true"], [data-state="open"], [data-state="on"])) {
+    background-image: none;
+    box-shadow: none;
+  }
+  /* tag: a small typed label slip (Clear / Reset) */
+  .paper-btn-tag {
+    --pb-bg: var(--sheet-specimen);
+    --pb-bg-hover: var(--btn-face-hover);
+    --pb-sh: 0 0.5px 0 var(--btn-lip), 0.5px 1px 1.5px -0.5px var(--btn-drop);
+  }
+  /* chit: a round token with a printed keyline ring (header controls) */
+  .paper-btn-chit {
+    --pb-sh:
+      inset 0 0 0 2px var(--btn-face), inset 0 0 0 3px color-mix(in oklab, var(--btn-edge) 26%, transparent), 0 1px 0 var(--btn-lip),
+      0.5px 1.5px 2px -0.5px var(--btn-drop);
+    --pb-sh-hover:
+      inset 0 0 0 2px var(--btn-face-hover), inset 0 0 0 3px color-mix(in oklab, var(--btn-edge) 34%, transparent), 0 1.5px 0 var(--btn-lip),
+      1px 2.5px 3px -0.5px var(--btn-drop);
+  }
+
+  /*
+   * .paper-card: an index card lying on the page with a second card offset under it (a hard offset
+   * shadow plus a hairline of that card's edge, then the soft paper shadow). For menus, popovers, dialogs.
+   * It redefines --card / --background / --specimen so kit pieces inside sit on card tone.
+   */
+  .paper-card {
+    --card: var(--btn-face);
+    --background: var(--btn-face);
+    --popover: var(--btn-face);
+    --specimen: var(--sheet-specimen);
+    background-color: var(--btn-face);
+    background-image: var(--sheet-tile);
+    border: 1px solid color-mix(in oklab, var(--btn-edge) 40%, transparent);
+    border-radius: 1px;
+    box-shadow:
+      4px 5px 0 0 var(--sheet-under),
+      4px 5px 0 1px color-mix(in oklab, var(--btn-edge) 34%, transparent),
+      var(--pop-shadow);
+  }
+  @media (forced-colors: active) {
+    .paper-card {
+      background-image: none;
+      border-color: CanvasText;
+      box-shadow: none;
+    }
+  }
+
+  /*
+   * .paper-row: a printed row. The highlighted row gets a marker wash behind the text (multiply in light mode),
+   * cut with uneven chisel ends; three cuts alternate so neighbours do not match.
+   */
+  .paper-row {
+    position: relative;
+  }
+  .paper-row::before {
+    content: "";
+    position: absolute;
+    z-index: -1; /* under the text: ancestors up to the card must not paint a background of their own */
+    inset: 1px 1px;
+    pointer-events: none;
+    background: var(--hilite);
+    mix-blend-mode: var(--hilite-blend);
+    clip-path: polygon(0.6% 14%, 99.4% 3%, 100% 88%, 0.2% 97%);
+    opacity: 0;
+  }
+  .paper-row:nth-child(3n + 2)::before {
+    clip-path: polygon(0.3% 6%, 99.7% 12%, 99.2% 97%, 0.8% 90%);
+  }
+  .paper-row:nth-child(3n)::before {
+    clip-path: polygon(0.9% 10%, 99.1% 4%, 99.6% 93%, 0.4% 85%);
+  }
+  .paper-row:is(:focus, [data-highlighted], [data-selected="true"])::before {
+    opacity: 1;
+  }
+  @media (forced-colors: active) {
+    .paper-row::before {
+      display: none;
+    }
+    .paper-row:is(:focus, [data-highlighted], [data-selected="true"]) {
+      outline: 2px solid Highlight;
+    }
+  }
+
+  /* .paper-label: a small typed label pasted on, with a tiny shadow (PaperLabel component, badges). */
+  .paper-label {
+    position: relative;
+    background-color: var(--sheet-flat);
+    background-image: var(--sheet-tile);
+    border: 1px solid color-mix(in oklab, var(--btn-edge) 42%, transparent);
+    box-shadow: 0.5px 1px 1px var(--btn-drop);
+  }
+  .paper-label[data-tone="manila"] {
+    background-color: var(--tag);
+    border-color: var(--tag-edge);
+    color: var(--tag-ink);
+  }
+  .paper-label[data-tone="sage"] {
+    background-color: color-mix(in oklab, var(--sheet-flat) 66%, oklch(0.78 0.09 150));
+  }
+  .paper-label[data-taped="true"]::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: -7px;
+    width: 18px;
+    height: 10px;
+    pointer-events: none;
+    transform: rotate(-32deg);
+    background:
+      linear-gradient(to bottom, transparent 20%, oklch(1 0 0 / 0.28) 20% 45%, transparent 45%), var(--tape-ochre);
+    mix-blend-mode: var(--tape-blend);
+    mask: var(--tape-mask-sm) 0 0 / 100% 100% no-repeat;
+    -webkit-mask: var(--tape-mask-sm) 0 0 / 100% 100% no-repeat;
+  }
+  @media (forced-colors: active) {
+    .paper-label {
+      background-image: none;
+      border-color: CanvasText;
+      box-shadow: none;
+    }
+    .paper-label::before {
+      display: none;
+    }
+  }
+}
+
+/* Toasts live outside @layer: Sonner injects unlayered CSS, which would beat anything layered. */
+  /*
+   * Toasts: sticky notes held with a strip of tape, a pencilled word on top. Sonner owns the box
+   * (position, stacking, swipe), so only skin and the ::before tape are set here. The kicker word comes
+   * from the toast type. Errors are a pink note with the pencil in destructive ink.
+   */
+  .toaster .paper-note[data-styled="true"] {
+    --_note: var(--note);
+    --_pencil: var(--note-pencil);
+    --_flap: var(--note-flap);
+    align-items: flex-start;
+    padding: 21px 18px 16px 16px;
+    color: var(--note-ink);
+    background-color: var(--_note);
+    background-image: linear-gradient(to bottom right, var(--_flap) 50%, transparent 50%), var(--sheet-tile);
+    background-size:
+      14px 14px,
+      auto;
+    background-position:
+      right bottom,
+      0 0;
+    background-repeat: no-repeat, repeat;
+    border: 1px solid color-mix(in oklab, var(--_pencil) 26%, transparent);
+    border-radius: 1px;
+    box-shadow: var(--pop-shadow);
+    font-family: var(--font-sans);
+  }
+  .toaster .paper-note[data-styled="true"][data-type="error"] {
+    --_note: var(--note-bad);
+    --_pencil: var(--note-bad-pencil);
+    --_flap: var(--note-bad-flap);
+  }
+  .toaster .paper-note[data-styled="true"]::before {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    top: -9px;
+    left: 22px;
+    right: auto;
+    bottom: auto;
+    width: 62px;
+    height: 17px;
+    transform: rotate(-2deg);
+    background:
+      linear-gradient(to bottom, transparent 18%, oklch(1 0 0 / 0.3) 18% 40%, transparent 40%), var(--tape-ochre);
+    mix-blend-mode: var(--tape-blend);
+    mask: var(--tape-mask-sm) 0 0 / 100% 100% no-repeat;
+    -webkit-mask: var(--tape-mask-sm) 0 0 / 100% 100% no-repeat;
+    pointer-events: none;
+  }
+  .toaster .paper-note[data-styled="true"][data-type="error"]::before {
+    background:
+      linear-gradient(to bottom, transparent 18%, oklch(1 0 0 / 0.3) 18% 40%, transparent 40%), var(--tape-sage);
+  }
+  .toaster .paper-note [data-title] {
+    color: var(--note-ink);
+    font-weight: 500;
+  }
+  .toaster .paper-note [data-description] {
+    color: color-mix(in oklab, var(--note-ink) 84%, var(--_note));
+  }
+  .toaster .paper-note [data-icon] {
+    color: var(--_pencil);
+    margin-top: 1px;
+  }
+  .toaster .paper-note [data-content]::before {
+    content: "Note";
+    display: block;
+    font-family: var(--font-hand);
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 1px;
+    color: var(--_pencil);
+  }
+  .toaster .paper-note[data-type="success"] [data-content]::before {
+    content: "Noted";
+  }
+  .toaster .paper-note[data-type="warning"] [data-content]::before {
+    content: "Caution";
+  }
+  .toaster .paper-note[data-type="error"] [data-content]::before {
+    content: "Problem";
+  }
+  @media (forced-colors: active) {
+    .toaster .paper-note[data-styled="true"] {
+      background-image: none;
+      background-color: Canvas;
+      color: CanvasText;
+      border-color: CanvasText;
+      box-shadow: none;
+    }
+    .toaster .paper-note[data-styled="true"]::before {
+      display: none;
+    }
+  }
 
 @layer base {
   * {
@@ -652,7 +1082,7 @@
   }
   ::-webkit-scrollbar-thumb {
     background: var(--rule-strong);
-    border-radius: 999px;
+    border-radius: 3px;
     border: 3px solid transparent;
     background-clip: content-box;
   }

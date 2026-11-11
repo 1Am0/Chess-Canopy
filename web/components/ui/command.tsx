@@ -10,7 +10,7 @@ function Command({ className, ...props }: React.ComponentProps<typeof CommandPri
     <CommandPrimitive
       data-slot="command"
       className={cn(
-        "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
+        "flex h-full w-full flex-col overflow-hidden rounded-[1px] bg-transparent text-popover-foreground",
         className,
       )}
       {...props}
@@ -30,7 +30,7 @@ function CommandDialog({
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
-      <DialogContent className="overflow-hidden p-0">
+      <DialogContent bodyClassName="overflow-hidden p-0">
         <Command>{children}</Command>
       </DialogContent>
     </Dialog>
@@ -39,11 +39,11 @@ function CommandDialog({
 
 function CommandInput({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (
-    <div className="flex h-9 items-center gap-2 border-b border-rule-strong px-3">
+    <div className="flex h-9 items-center gap-2 border-b-[1.5px] border-b-foreground/60 px-3">
       <SearchIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       <CommandPrimitive.Input
         className={cn(
-          "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+          "flex h-10 w-full rounded-[2px] bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
           className,
         )}
         {...props}
@@ -75,14 +75,14 @@ function CommandGroup({ className, ...props }: React.ComponentProps<typeof Comma
 }
 
 function CommandSeparator({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Separator>) {
-  return <CommandPrimitive.Separator className={cn("-mx-1 h-px bg-rule", className)} {...props} />;
+  return <CommandPrimitive.Separator className={cn("pencil-rule -mx-1", className)} {...props} />;
 }
 
 function CommandItem({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.Item>) {
   return (
     <CommandPrimitive.Item
       className={cn(
-        "relative flex min-h-8 cursor-default items-center gap-2 rounded-none border-l-2 border-transparent px-2 py-1 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected=true]:border-l-primary data-[selected=true]:bg-specimen data-[selected=true]:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "paper-row relative flex min-h-8 cursor-default items-center gap-2 rounded-none px-2 py-1 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-[selected=true]:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}

@@ -24,14 +24,14 @@ function ScrollBar({
     <ScrollAreaPrimitive.ScrollAreaScrollbar
       orientation={orientation}
       className={cn(
-        "flex touch-none p-[3px] transition-colors select-none",
-        orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent",
-        orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent",
+        "flex touch-none bg-rule/40 p-[2px] transition-colors select-none",
+        orientation === "vertical" && "h-full w-2.5 border-l border-l-rule",
+        orientation === "horizontal" && "h-2.5 flex-col border-t border-t-rule",
         className,
       )}
       {...props}
     >
-      <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-[1px] bg-rule-strong" />
+      <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-[1px] border border-btn-edge/60 bg-btn-face shadow-[0.5px_1px_1px_var(--btn-drop)]" />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
   );
 }

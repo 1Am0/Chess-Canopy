@@ -407,3 +407,64 @@ Sheet = `--sheet`, strip = header paper `--strip`, tag = `--tag`. Generated with
 | dark | foreground | strip (header) | 12.05 | 4.5 | PASS |
 | dark | muted-foreground | sheet-under (inactive tab) | 6.63 | 4.5 | PASS |
 | dark | sheet | desk (separation, non-text) | 1.40 | 1.3 | PASS |
+
+## Paper kit v2 (round 3, step 2)
+
+New tokens: `--btn-face` (+ `-hover`, `-press`), `--btn-edge` (printed ink edge), `--btn-lip` / `--btn-drop` / `--btn-press` (button shadows), `--pop-shadow`, `--hilite` (+ `-green|-pink|-blue`, `--hilite-blend`), `--note` / `--note-ink` / `--note-pencil` / `--note-flap` (+ the `-bad` set for error toasts), `--envelope` / `--envelope-edge`, `--clip-steel` / `--clip-glint`, `--ink-wash`. Generated masks and tiles in `paper-textures.css`: `--pencil-rule`, `--tape-mask-sm|md`, `--stamp-mask`. Highlighter tones are a bright marker yellow in light and a dark olive/rose band in dark (drawn behind the text), so text on a highlighted row keeps its contrast. Checked with the contrast script (face = `--btn-face` over `--sheet`; highlight rows blend the wash with the mode it paints in).
+
+| Mode | Ratio | Min | Pair |
+|---|---|---|---|
+| light | 17.50 | 4.5 | foreground on btn-face |
+| light | 7.52 | 4.5 | muted-foreground on btn-face |
+| light | 8.57 | 4.5 | kicker (primary) on btn-face |
+| light | 10.53 | 3 | btn-edge vs btn-face (boundary) |
+| light | 10.08 | 3 | btn-edge vs sheet |
+| light | 17.95 | 4.5 | btn text on face hover |
+| light | 14.88 | 4.5 | btn text on face press |
+| light | 5.99 | 4.5 | primary-foreground on primary hover |
+| light | 9.91 | 4.5 | primary-foreground on primary press |
+| light | 13.49 | 4.5 | note-ink on note |
+| light | 8.42 | 4.5 | note-pencil on note |
+| light | 12.40 | 4.5 | note-ink on note-bad |
+| light | 6.95 | 4.5 | note-bad-pencil on note-bad |
+| light | 8.60 | 4.5 | toast description on note |
+| light | 14.58 | 4.5 | foreground on highlighted row (normal blend approx) |
+| light | 6.26 | 4.5 | muted-foreground on highlighted row |
+| light | 5.95 | 4.5 | loss-text on pink hilite row |
+| light | 11.84 | 4.5 | tag-ink on tag (hang tag) |
+| light | 13.33 | 4.5 | foreground on envelope |
+| light | 5.73 | 4.5 | muted-foreground on envelope |
+| light | 4.12 | 3 | envelope-edge vs envelope (boundary) |
+| light | 7.47 | 4.5 | win-text on btn-face (stamp) |
+| light | 7.59 | 4.5 | loss-text on btn-face (stamp) |
+| light | 7.54 | 4.5 | draw-text on btn-face (stamp) |
+| light | 6.72 | 3 | input rule foreground/70 vs sheet-flat |
+| light | 6.07 | 3 | clip-steel vs sheet (decor) |
+| dark | 9.30 | 4.5 | foreground on btn-face |
+| dark | 4.65 | 4.5 | muted-foreground on btn-face |
+| dark | 5.41 | 4.5 | kicker (primary) on btn-face |
+| dark | 4.31 | 3 | btn-edge vs btn-face (boundary) |
+| dark | 5.21 | 3 | btn-edge vs sheet |
+| dark | 7.89 | 4.5 | btn text on face hover |
+| dark | 11.84 | 4.5 | btn text on face press |
+| dark | 9.60 | 4.5 | primary-foreground on primary hover |
+| dark | 6.23 | 4.5 | primary-foreground on primary press |
+| dark | 7.98 | 4.5 | note-ink on note |
+| dark | 6.03 | 4.5 | note-pencil on note |
+| dark | 9.00 | 4.5 | note-ink on note-bad |
+| dark | 6.86 | 4.5 | note-bad-pencil on note-bad |
+| dark | 6.19 | 4.5 | toast description on note |
+| dark | 9.66 | 4.5 | foreground on highlighted row (normal blend approx) |
+| dark | 4.83 | 4.5 | muted-foreground on highlighted row |
+| dark | 5.21 | 4.5 | loss-text on pink hilite row |
+| dark | 7.56 | 4.5 | tag-ink on tag (hang tag) |
+| dark | 9.53 | 4.5 | foreground on envelope |
+| dark | 4.77 | 4.5 | muted-foreground on envelope |
+| dark | 3.11 | 3 | envelope-edge vs envelope (boundary) |
+| dark | 5.87 | 4.5 | win-text on btn-face (stamp) |
+| dark | 4.78 | 4.5 | loss-text on btn-face (stamp) |
+| dark | 5.17 | 4.5 | draw-text on btn-face (stamp) |
+| dark | 7.33 | 3 | input rule foreground/70 vs sheet-flat |
+| dark | 7.18 | 3 | clip-steel vs sheet (decor) |
+
+All pass (0 FAIL).

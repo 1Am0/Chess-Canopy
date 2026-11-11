@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { Tooltip as TooltipPrimitive } from "radix-ui";
+import { HangTag } from "@/components/paper/HangTag";
 import { cn } from "@/lib/utils";
 
 function TooltipProvider({ delayDuration = 0, ...props }: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
@@ -16,9 +17,11 @@ function Tooltip(props: React.ComponentProps<typeof TooltipPrimitive.Root>) {
 function TooltipTrigger(props: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
   return <TooltipPrimitive.Trigger {...props} />;
 }
+
+/** A manila hang tag on a loop of string (see HangTag): typed text on tag stock, with a punched, reinforced hole. */
 function TooltipContent({
   className,
-  sideOffset = 4,
+  sideOffset = 6,
   children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Content>) {
@@ -27,12 +30,12 @@ function TooltipContent({
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          "relative z-50 w-fit rounded-sm bg-foreground py-1 pr-2.5 pl-4.5 text-xs leading-5 text-balance text-background before:absolute before:top-1/2 before:left-1.5 before:size-1.5 before:-translate-y-1/2 before:rounded-full before:border before:border-background/70 before:content-[''] animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+          "relative z-50 w-fit max-w-64 text-balance data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 animate-in fade-in-0 motion-reduce:animate-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
           className,
         )}
         {...props}
       >
-        {children}
+        <HangTag>{children}</HangTag>
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );
