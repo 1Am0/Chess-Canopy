@@ -1,6 +1,7 @@
 "use client";
 
 import { Logo } from "@/components/layout/Logo";
+import { Kicker } from "@/components/field";
 import { SpecimenPlate } from "@/components/onboarding/SpecimenPlate";
 import { ImportForm } from "@/components/players/ImportForm";
 
@@ -20,7 +21,7 @@ export function Welcome() {
         <div className="min-w-0 space-y-6 lg:col-span-7">
           <div className={`flex items-center gap-2 ${enter}`}>
             <Logo className="size-5 text-primary" />
-            <p className="label-caps text-sm">A field guide to your own openings</p>
+            <Kicker className="mb-0 text-xs">A field guide to your own openings</Kicker>
           </div>
           <h1 className={`font-serif text-5xl leading-[1.02] font-semibold tracking-tight text-ink [font-variation-settings:'opsz'_72] sm:text-6xl motion-safe:delay-75 ${enter}`}>
             Your openings, <em className="font-normal">from your own games</em>
@@ -29,6 +30,7 @@ export function Welcome() {
             Chess Canopy builds an opening explorer out of the games you have played. Everything runs in your browser; your games never leave it.
           </p>
           <div className={`max-w-lg border border-rule bg-card p-4 sm:p-5 motion-safe:delay-200 ${enter}`}>
+            <Kicker className="mb-3">Accession</Kicker>
             <ImportForm idPrefix="welcome" />
           </div>
         </div>

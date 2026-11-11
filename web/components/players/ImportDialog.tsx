@@ -10,7 +10,7 @@ export function ImportDialog() {
   return (
     <Dialog open={open} onOpenChange={(o) => setUi({ importOpen: o })}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader kicker="Accession">
           <DialogTitle className="font-serif text-xl font-semibold tracking-tight">Import games</DialogTitle>
           <DialogDescription>Games are stored only in this browser. Nothing is uploaded anywhere.</DialogDescription>
         </DialogHeader>

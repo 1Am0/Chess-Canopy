@@ -74,7 +74,7 @@ export function FilterRow({ className }: { className?: string }) {
             className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto overscroll-x-contain whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {chips.map((c) => (
-              <span key={c.label} className="inline-flex h-6 shrink-0 items-center gap-1 rounded-sm border border-rule-strong bg-specimen pr-0.5 pl-2 text-xs font-medium text-ink">
+              <span key={c.label} className="inline-flex h-6 shrink-0 items-center gap-1 rounded-sm border border-rule-strong bg-specimen pr-0.5 pl-2 font-mono text-[11px] tracking-wide text-ink">
                 {c.label}
                 <button
                   type="button"

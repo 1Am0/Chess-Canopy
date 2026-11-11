@@ -3,7 +3,7 @@
 import { ChevronsUpDown, Settings2, Users } from "lucide-react";
 import { effectiveSelection, useExplorerStore } from "@/lib/store";
 import { sourceLabel } from "@/lib/format";
-import { Badge } from "@/components/ui/badge";
+import { SpecimenTag } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -44,9 +44,11 @@ export function PlayerSwitcher() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-1.5" aria-label="Choose players">
-        <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-2 text-sm hover:bg-accent">
-          <Checkbox checked={isAll} onCheckedChange={() => setSelected("all")} aria-label="All players" />
-          <span className="flex-1 font-serif text-base font-semibold">All players</span>
+        <p className="kicker mb-0 px-2 pt-1 pb-0.5">Collection</p>
+        <label className="flex cursor-pointer items-baseline gap-2.5 px-2 py-2 text-sm hover:bg-specimen">
+          <Checkbox className="self-center" checked={isAll} onCheckedChange={() => setSelected("all")} aria-label="All players" />
+          <span className="font-serif text-base font-semibold italic">All players</span>
+          <span className="leader" aria-hidden="true" />
           <span className="font-mono text-xs text-muted-foreground tabular-nums">
             {players.reduce((n, p) => n + p.gameCount, 0).toLocaleString()}
           </span>
@@ -55,10 +57,11 @@ export function PlayerSwitcher() {
         <ul>
           {players.map((p) => (
             <li key={p.id}>
-              <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-2 text-sm hover:bg-accent">
-                <Checkbox checked={isAll || eff.includes(p.id)} disabled={!isAll && eff.length === 1 && eff.includes(p.id)} onCheckedChange={() => toggle(p.id)} aria-label={p.displayName} />
-                <span className="min-w-0 flex-1 truncate font-serif text-base">{p.displayName}</span>
-                <Badge variant="outline" className="text-[10px]">{sourceLabel(p.source)}</Badge>
+              <label className="flex cursor-pointer items-baseline gap-2 px-2 py-2 text-sm hover:bg-specimen">
+                <Checkbox className="self-center" checked={isAll || eff.includes(p.id)} disabled={!isAll && eff.length === 1 && eff.includes(p.id)} onCheckedChange={() => toggle(p.id)} aria-label={p.displayName} />
+                <span className="min-w-0 truncate font-serif text-base italic">{p.displayName}</span>
+                <SpecimenTag className="self-center text-[10px] leading-4">{sourceLabel(p.source)}</SpecimenTag>
+                <span className="leader" aria-hidden="true" />
                 <span className="min-w-9 text-right font-mono text-xs text-muted-foreground tabular-nums">{p.gameCount.toLocaleString()}</span>
               </label>
             </li>

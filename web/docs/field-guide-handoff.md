@@ -252,3 +252,44 @@ marks ✅.)_
   plain list with lucide icons and coloured squares). C: player popover is close
   but should become a counted index; import dialog and player manager untouched.
   D: empty/loading states untouched. B, C and D start now, in parallel.
+- **Workstream D (Explorer states): done.**
+  - Files: `components/explorer/{MoveTable,GamesList,OpeningHeader,CanopyTree}.tsx`, `components/board/BoardControls.tsx` (kbd chip colour only).
+  - MoveTable, GamesList (failed / other-colour / filtered-out / no games) and CanopyTree empty states now use `EmptySpecimen`; out-of-book and "no games reach" use the title "No specimens collected here" with the old text as hint. Overlays use `overflow-hidden` + `py-2` so they stay inside the existing region. Alert roles and button labels kept.
+  - OpeningHeader: slash-separated sans muted family crumbs, final name serif italic; same h-7, nav "Opening", ECO tag, truncation.
+  - GamesList rows: mono tabular muted date, label-caps time class kept, result chip is now mono uppercase 11px (win/draw/loss *-text tokens kept). Row/header heights untouched.
+  - Canopy legend/depth: `Kicker` labels; depth control is now index tabs (active = card + primary top rule).
+  - Skipped: LoadingShell/PositionSummary/MoveTable skeletons already use the restyled `Skeleton` with identical slots (no change needed); BoardControls already used the kit Tooltip with labels (only the shortcut chip colour was adjusted); board PlateCaption skipped (no free slot without geometry change).
+  - Risks: result chip uses a plain border, not the 3px double `stamp` (too heavy at 20px); EmptySpecimen is ~170px tall with an action, so very short panels clip it (overflow-hidden). Not visually verified. typecheck, lint, test pass. Requests: none.
+- **Workstream C (Dialogs & players): done.**
+  - Files: `components/players/{ImportDialog,ImportForm,ImportProgress,ImportIndicator,PlayerManager,PlayerSwitcher}.tsx`,
+    `components/layout/ShortcutsDialog.tsx`, `components/onboarding/Welcome.tsx`.
+  - Import dialog: "Accession" kicker; source tabs restyled locally as index tabs (class overrides on `TabsTrigger`, `tabs.tsx` untouched);
+    drop zones are dashed trays with a `ruled` inner area; progress is a ticked measuring tape (same progressbar role/aria, Cancel unchanged);
+    header indicator has a thin primary fill along its bottom edge. Manager: "Collection register" kicker, catalogue cards (No. 00n kicker,
+    italic serif name, `SpecimenTag` source, `MetaGrid` Games / Last sync), `tag` buttons with unchanged aria-labels, destructive `Stamp`
+    on the delete confirmation. Switcher: "Collection" kicker, italic names, dotted leader to mono counts. Shortcuts: "Key to symbols", dotted leader rows with mono keycaps.
+    Welcome: `Kicker` swaps only (plus "Accession" kicker over the form).
+  - Skipped: `ImportProvider` untouched; "No. 00n" is list position (not a stable id); `onboarding/SpecimenPlate` untouched.
+  - Risks: not visually verified in the real app (no build). Index-tab overrides rely on class precedence over `TabsTrigger` defaults (`cn`/twMerge).
+    Manager list now scrolls (max-h 60vh) when long. Typecheck, lint, unit tests pass.
+  - Requests: none.
+- **Workstream B (Settings & filters): done.**
+  - Files: `components/filters/FilterSheet.tsx` (kicker "Sampling criteria" over "Filters"; six `FieldSection`s each with a
+    per-group Clear; Result and Date presets as index tabs; time control as square tag chips via `CountedOption`, no counts;
+    ratings keep slider + ledger inputs, with mono 400 / 3000+ scale labels; date range as `DateStamp` fields with a
+    label-caps From/To prefix over native date inputs; opponent trigger as a ledger field with italic serif name and
+    `InkTick` in the list; footer = tag "Clear all (n)" + primary "Done"), `components/filters/FilterRow.tsx` (chips in mono
+    tag style), `components/layout/ThemeToggle.tsx` (settings card: kicker groups, 2x2 mini-board swatches, italic serif
+    names, aria-hidden "default" Stamp on Lichen; radio roles and names unchanged).
+  - Checked: typecheck, lint, unit tests pass. Not visually verified in the real app.
+  - Skips: `Header.tsx` and `SoundToggle.tsx` untouched (already kit-consistent, 320px test safe); no time-control counts
+    (no cheap data); no custom-range preset tab.
+  - Risks: the old "Reset (n)" is now "Clear all (n)"; the separate "Clear opponent" X button is replaced by the section's
+    "Clear opponent" tag; Date presets are now radios in a radiogroup "Date presets" (were aria-pressed buttons); sheet
+    needs a look for 320px width and date field height (h-11).
+  - Requests: none.
+- **Coordinator, round 2 close:** rebuilt with A-D merged; full e2e 34/34
+  passing, unit tests 385 passing. Reviewed in light and dark: filter sheet
+  (field-notebook page, per-group Clear, index tabs, ticked rating scales),
+  appearance catalogue card (mini-board swatches, "default" stamp), import
+  index card, collection popover with leaders, perforated toast slips.

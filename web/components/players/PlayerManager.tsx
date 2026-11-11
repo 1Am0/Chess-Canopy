@@ -10,7 +10,7 @@ import { useExplorerStore } from "@/lib/store";
 import { sourceLabel } from "@/lib/format";
 import { useSharedImport } from "@/components/players/ImportProvider";
 import { ImportProgress } from "@/components/players/ImportProgress";
-import { Badge } from "@/components/ui/badge";
+import { MetaGrid, SpecimenTag, Stamp } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -56,41 +56,48 @@ export function PlayerManager() {
   return (
     <Dialog open={open} onOpenChange={(o) => setUi({ managerOpen: o })}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader kicker="Collection register">
           <DialogTitle className="font-serif text-xl font-semibold tracking-tight">Manage players</DialogTitle>
           <DialogDescription>All data stays in your browser. Export a player as schema v1 JSON for the Python CLI.</DialogDescription>
         </DialogHeader>
-        <ul className="divide-y divide-rule border-y border-rule">
-          {players.length === 0 && <li className="p-4 text-sm text-muted-foreground">No players imported yet.</li>}
-          {players.map((p) => (
-            <li key={p.id} className="flex items-center gap-2 p-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="truncate font-serif text-base font-semibold">{p.displayName}</span>
-                  <Badge variant="outline" className="text-[10px]">{sourceLabel(p.source)}</Badge>
+        <ul className="max-h-[60vh] space-y-3 overflow-y-auto pr-0.5">
+          {players.length === 0 && <li className="border border-dashed border-rule-strong p-4 text-sm text-muted-foreground">No players imported yet.</li>}
+          {players.map((p, i) => (
+            <li key={p.id} className="border border-rule-strong bg-background/60 p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="kicker mb-0 tabular-nums">No. {String(i + 1).padStart(3, "0")}</p>
+                  <span className="block truncate font-serif text-lg leading-tight font-semibold italic">{p.displayName}</span>
                 </div>
-                <p className="text-xs text-muted-foreground tabular-nums">
-                  {p.gameCount.toLocaleString()} games
-                  {p.lastSyncedAt ? ` · synced ${new Date(p.lastSyncedAt).toLocaleDateString()}` : ""}
-                </p>
+                <SpecimenTag>{sourceLabel(p.source)}</SpecimenTag>
               </div>
+              <MetaGrid
+                className="mt-2"
+                items={[
+                  { label: "Games", value: p.gameCount.toLocaleString() },
+                  { label: "Last sync", value: p.lastSyncedAt ? new Date(p.lastSyncedAt).toLocaleDateString() : "Never" },
+                ]}
+              />
               {confirming === p.id ? (
-                <div className="flex items-center gap-1">
-                  <Button size="sm" variant="destructive" disabled={running} onClick={() => remove(p)}>Delete</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Keep</Button>
+                <div className="mt-3 flex items-center gap-2">
+                  <Stamp tone="destructive">Delete {p.displayName}?</Stamp>
+                  <div className="ml-auto flex items-center gap-1">
+                    <Button size="sm" variant="destructive" disabled={running} onClick={() => remove(p)}>Delete</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Keep</Button>
+                  </div>
                 </div>
               ) : (
-                <div className="flex items-center">
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
                   {(p.source === "chess.com" || p.source === "lichess") && (
-                    <Button size="icon" variant="ghost" disabled={running} onClick={() => sync(p.id)} aria-label={`Sync ${p.displayName}`} title="Sync new games">
-                      <RefreshCw />
+                    <Button size="xs" variant="tag" disabled={running} onClick={() => sync(p.id)} aria-label={`Sync ${p.displayName}`} title="Sync new games">
+                      <RefreshCw /> Sync
                     </Button>
                   )}
-                  <Button size="icon" variant="ghost" onClick={() => exportPlayer(p)} aria-label={`Export ${p.displayName} as JSON`} title="Export JSON">
-                    <Download />
+                  <Button size="xs" variant="tag" onClick={() => exportPlayer(p)} aria-label={`Export ${p.displayName} as JSON`} title="Export JSON">
+                    <Download /> Export JSON
                   </Button>
-                  <Button size="icon" variant="ghost" disabled={running} onClick={() => setConfirming(p.id)} aria-label={`Delete ${p.displayName}`} title={running ? "Wait for the import to finish" : "Delete"}>
-                    <Trash2 />
+                  <Button size="xs" variant="tag" className="ml-auto" disabled={running} onClick={() => setConfirming(p.id)} aria-label={`Delete ${p.displayName}`} title={running ? "Wait for the import to finish" : "Delete"}>
+                    <Trash2 /> Delete
                   </Button>
                 </div>
               )}

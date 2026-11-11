@@ -11,6 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
+// Index tabs: inactive = specimen ground, active = raised card with a primary top rule.
+const tabCls =
+  "rounded-t-sm rounded-b-none border border-b-0 border-rule bg-specimen font-mono text-xs uppercase tracking-wider data-[state=active]:border-rule-strong data-[state=active]:border-t-2 data-[state=active]:border-t-primary data-[state=active]:border-b-0 data-[state=active]:bg-card";
+
 type Tab = "chess.com" | "lichess" | "pgn" | "json";
 
 /**
@@ -39,15 +43,17 @@ function FileDrop({ accept, label, file, onFile }: { accept: string; label: stri
         onFile(e.dataTransfer.files?.[0] ?? null);
       }}
       className={cn(
-        "flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-rule-strong bg-specimen/50 px-4 py-6 text-center text-sm transition-colors",
+        "relative flex flex-col items-center justify-center gap-2 rounded-sm border-2 border-dashed border-rule-strong bg-specimen/40 p-1.5 text-center text-sm transition-colors forced-colors:border-[GrayText]",
         over && "border-primary bg-accent",
       )}
     >
-      <FileUp className="size-6 text-muted-foreground" />
-      <p className={file ? "max-w-full truncate" : "label-caps text-sm"}>{file ? <span className="font-mono text-xs text-foreground">{file.name}</span> : label}</p>
-      <Button type="button" size="sm" variant="outline" onClick={() => input.current?.click()}>
-        Choose file
-      </Button>
+      <div className="ruled flex w-full flex-col items-center justify-center gap-2 rounded-[1px] px-4 py-5 [--rule-gap:1.25rem]">
+        <FileUp className="size-6 text-muted-foreground" aria-hidden="true" />
+        <p className={file ? "max-w-full truncate" : "label-caps text-xs"}>{file ? <span className="font-mono text-xs text-foreground">{file.name}</span> : label}</p>
+        <Button type="button" size="sm" variant="outline" onClick={() => input.current?.click()}>
+          Choose file
+        </Button>
+      </div>
       <input ref={input} type="file" accept={accept} className="sr-only" aria-label={label} onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
     </div>
   );
@@ -84,11 +90,11 @@ export function ImportForm({ initialTab = "chess.com", onDone, idPrefix = "imp" 
   return (
     <form onSubmit={submit} className="space-y-4">
       <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setFile(null); }}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="chess.com" disabled={running}>Chess.com</TabsTrigger>
-          <TabsTrigger value="lichess" disabled={running}>Lichess</TabsTrigger>
-          <TabsTrigger value="pgn" disabled={running}>PGN</TabsTrigger>
-          <TabsTrigger value="json" disabled={running}>JSON</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 gap-1 bg-transparent">
+          <TabsTrigger value="chess.com" disabled={running} className={tabCls}>Chess.com</TabsTrigger>
+          <TabsTrigger value="lichess" disabled={running} className={tabCls}>Lichess</TabsTrigger>
+          <TabsTrigger value="pgn" disabled={running} className={tabCls}>PGN</TabsTrigger>
+          <TabsTrigger value="json" disabled={running} className={tabCls}>JSON</TabsTrigger>
         </TabsList>
         <TabsContent value="chess.com" className="text-sm text-muted-foreground">
           Fetches your public games straight from chess.com in your browser.
@@ -105,7 +111,7 @@ export function ImportForm({ initialTab = "chess.com", onDone, idPrefix = "imp" 
       </Tabs>
 
       <div className="space-y-1.5">
-        <Label htmlFor={userId}>
+        <Label htmlFor={userId} className="label-caps">
           {tab === "pgn" ? "Your username in these games" : tab === "json" ? "Player label (optional)" : "Username"}
         </Label>
         <Input

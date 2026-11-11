@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import type { Filters } from "@/lib/engine/types";
 import { getExplorer } from "@/lib/explorer-client";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
@@ -9,7 +9,8 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { CountedOption, FieldSection } from "@/components/field";
+import { InkTick } from "@/components/field/InkTick";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
@@ -18,17 +19,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 const TIME_CONTROLS = ["bullet", "blitz", "rapid", "classical", "daily"] as const;
 const R_MIN = 400;
 const R_MAX = 3000;
-
-function Field({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={htmlFor} className="label-caps text-sm">
-        {label}
-      </Label>
-      {children}
-    </div>
-  );
-}
 
 function numOrNull(v: string): number | null {
   if (v.trim() === "") return null;
@@ -80,7 +70,14 @@ function RatingRange({
   const clamp = (n: number | null | undefined, fallback: number) => Math.min(R_MAX, Math.max(R_MIN, n ?? fallback));
 
   return (
-    <Field label={label}>
+    <FieldSection
+      title={label}
+      clearDisabled={min == null && max == null}
+      onClear={() => {
+        setDraft({ min: "", max: "" });
+        onChange(null, null);
+      }}
+    >
       <Slider
         min={R_MIN}
         max={R_MAX}
@@ -89,6 +86,10 @@ function RatingRange({
         onValueChange={([lo, hi]) => onChange(lo <= R_MIN ? null : lo, hi >= R_MAX ? null : hi)}
         aria-label={label}
       />
+      <div aria-hidden className="-mt-1 flex justify-between font-mono text-[11px] text-muted-foreground tabular-nums">
+        <span>{R_MIN}</span>
+        <span>{R_MAX}+</span>
+      </div>
       <div className="flex items-center gap-2">
         <Input
           id={`${idBase}-min`}
@@ -123,7 +124,19 @@ function RatingRange({
           Min is above max. The two values will be swapped.
         </p>
       )}
-    </Field>
+    </FieldSection>
+  );
+}
+
+/** A "date stamp" field: native date input (keeps the picker and a11y) under a label-caps prefix. */
+function DateStamp({ label, aria, value, onChange }: { label: string; aria: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="relative">
+      <span aria-hidden className="label-caps pointer-events-none absolute top-1.5 left-2.5 text-[10px]">
+        {label}
+      </span>
+      <Input type="date" aria-label={aria} value={value} onChange={(e) => onChange(e.target.value)} className="h-11 pt-4 font-mono text-sm tabular-nums" />
+    </div>
   );
 }
 
@@ -145,8 +158,8 @@ function OpponentCombobox() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-label="Opponent" aria-expanded={open} className="w-full justify-between font-normal">
-          <span className={opponent ? "" : "text-muted-foreground"}>{opponent || "Any opponent"}</span>
+        <Button variant="outline" role="combobox" aria-label="Opponent" aria-expanded={open} className="h-9 w-full justify-between rounded-none border-b-2 border-b-rule-strong bg-card font-normal">
+          <span className={opponent ? "truncate font-serif text-base italic" : "text-muted-foreground"}>{opponent || "Any opponent"}</span>
           <ChevronsUpDown className="size-3.5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
@@ -165,8 +178,8 @@ function OpponentCombobox() {
                     setOpen(false);
                   }}
                 >
-                  <Check className={`size-4 ${opponent?.toLowerCase() === n.toLowerCase() ? "opacity-100" : "opacity-0"}`} />
-                  {n}
+                  <InkTick className={`size-4 text-ink ${opponent?.toLowerCase() === n.toLowerCase() ? "opacity-100" : "opacity-0"}`} />
+                  <span className="font-serif italic">{n}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -233,13 +246,13 @@ export function FilterSheet() {
   return (
     <Sheet open={open} onOpenChange={(o) => setUi({ filtersOpen: o })}>
       <SheetContent side={desktop ? "right" : "bottom"} className="max-h-[88dvh] gap-0 lg:max-h-none lg:w-[26rem] lg:max-w-[26rem]">
-        <SheetHeader className="border-b border-rule">
+        <SheetHeader kicker="Sampling criteria">
           <SheetTitle className="font-serif text-xl font-semibold tracking-tight">Filters</SheetTitle>
           <SheetDescription>Results update as you change filters. Win / Draw / Loss is from your point of view.</SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-5 overflow-y-auto p-4">
-          <Field label="Result">
+        <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
+          <FieldSection title="Result" clearDisabled={!filters.result} onClear={() => patch({ result: null })}>
             <ToggleGroup
               type="single"
               value={filters.result ?? "any"}
@@ -252,29 +265,32 @@ export function FilterSheet() {
               <ToggleGroupItem value="1/2-1/2" className="flex-1">Draw</ToggleGroupItem>
               <ToggleGroupItem value="0-1" className="flex-1">Loss</ToggleGroupItem>
             </ToggleGroup>
-          </Field>
+          </FieldSection>
 
-          <Field label="Time control">
+          <FieldSection
+            title="Time control"
+            clearDisabled={!filters.time_control && !filters.time_control_raw}
+            onClear={() => patch({ time_control: null, time_control_raw: null })}
+          >
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="Time control">
               {TIME_CONTROLS.map((tc) => {
                 const on = filters.time_control === tc;
                 return (
-                  <Button
+                  <button
                     key={tc}
                     type="button"
-                    size="sm"
-                    variant={on ? "default" : "outline"}
                     aria-pressed={on}
-                    className="rounded-full capitalize"
+                    className="inline-flex h-8 items-center gap-1 rounded-sm border border-rule-strong bg-specimen px-2.5 text-sm text-muted-foreground capitalize outline-none hover:bg-card hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-pressed:border-primary aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-[inset_0_2px_0_0_var(--primary)]"
                     onClick={() => patch({ time_control: on ? null : tc })}
                   >
-                    {tc}
-                  </Button>
+                    {on && <InkTick className="size-3.5 text-ink" />}
+                    <CountedOption label={tc} />
+                  </button>
                 );
               })}
             </div>
             <RawTimeControl value={filters.time_control_raw ?? ""} onCommit={(v) => patch({ time_control_raw: v || null })} />
-          </Field>
+          </FieldSection>
 
           <RatingRange
             label="My rating"
@@ -291,43 +307,41 @@ export function FilterSheet() {
             onChange={(a, b) => patch({ min_opponent_rating: a, max_opponent_rating: b })}
           />
 
-          <Field label="Date">
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Date presets">
+          <FieldSection
+            title="Date"
+            clearDisabled={preset === "all"}
+            onClear={() => patch({ date_preset: null, date_from: null, date_to: null })}
+          >
+            <ToggleGroup
+              type="single"
+              value={String(preset)}
+              onValueChange={(v) => {
+                if (!v) return;
+                patch(v === "all" ? { date_preset: null, date_from: null, date_to: null } : v === "custom" ? {} : { date_preset: Number(v) as Filters["date_preset"], date_from: null, date_to: null });
+              }}
+              aria-label="Date presets"
+              className="w-full"
+            >
               {([...PRESETS, ["all", "All time"]] as const).map(([v, label]) => (
-                <Button
-                  key={label}
-                  type="button"
-                  size="sm"
-                  variant={preset === v ? "default" : "outline"}
-                  aria-pressed={preset === v}
-                  className="rounded-full"
-                  onClick={() => patch(v === "all" ? { date_preset: null, date_from: null, date_to: null } : { date_preset: v, date_from: null, date_to: null })}
-                >
+                <ToggleGroupItem key={v} value={String(v)} className="flex-1 px-1.5">
                   {label}
-                </Button>
+                </ToggleGroupItem>
               ))}
-            </div>
+            </ToggleGroup>
             <div className="grid grid-cols-2 gap-2">
-              <Input type="date" aria-label="From date" value={filters.date_from ?? ""} onChange={(e) => patchDates(e.target.value || null, filters.date_to ?? null)} />
-              <Input type="date" aria-label="To date" value={filters.date_to ?? ""} onChange={(e) => patchDates(filters.date_from ?? null, e.target.value || null)} />
+              <DateStamp label="From" aria="From date" value={filters.date_from ?? ""} onChange={(v) => patchDates(v || null, filters.date_to ?? null)} />
+              <DateStamp label="To" aria="To date" value={filters.date_to ?? ""} onChange={(v) => patchDates(filters.date_from ?? null, v || null)} />
             </div>
-          </Field>
+          </FieldSection>
 
-          <Field label="Opponent">
-            <div className="flex gap-1.5">
-              <div className="min-w-0 flex-1"><OpponentCombobox /></div>
-              {filters.opponent && (
-                <Button variant="ghost" size="icon" aria-label="Clear opponent" onClick={() => patch({ opponent: null })}>
-                  <X />
-                </Button>
-              )}
-            </div>
-          </Field>
+          <FieldSection title="Opponent" clearDisabled={!filters.opponent} onClear={() => patch({ opponent: null })}>
+            <OpponentCombobox />
+          </FieldSection>
         </div>
 
-        <SheetFooter className="flex-row border-t border-rule">
-          <Button variant="outline" className="flex-1" onClick={clearFilters} disabled={count === 0}>
-            Reset{count ? ` (${count})` : ""}
+        <SheetFooter className="flex-row items-center">
+          <Button variant="tag" size="sm" onClick={clearFilters} disabled={count === 0}>
+            Clear all{count ? ` (${count})` : ""}
           </Button>
           <Button className="flex-1" onClick={() => setUi({ filtersOpen: false })}>Done</Button>
         </SheetFooter>

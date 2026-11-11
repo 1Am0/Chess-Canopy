@@ -18,18 +18,21 @@ export function ImportIndicator() {
   if (!running || importOpen || managerOpen) return null;
   const { label, pct } = progressSummary(progress);
   return (
-    <div role="status" aria-live="polite" data-testid="import-indicator" className="flex h-8 items-center rounded-md border border-rule bg-card text-xs">
+    <div role="status" aria-live="polite" data-testid="import-indicator" className="flex h-8 items-center rounded-sm border border-rule-strong bg-specimen font-mono text-xs">
       <button
         type="button"
         onClick={() => setUi({ importOpen: true })}
         aria-label={`Importing: ${label}. Show details`}
-        className="flex h-full items-center gap-1.5 rounded-l-md px-2 outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60"
+        className="flex h-full items-center gap-1.5 relative rounded-l-sm px-2 outline-none hover:bg-card focus-visible:ring-2 focus-visible:ring-ring/60"
       >
-        <Loader2 className="size-3.5 animate-spin" />
+        <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
         <span className="tabular-nums">{pct != null ? `${pct}%` : <span className="hidden sm:inline">Importing</span>}</span>
-        {pct != null && <span className="hidden sm:inline">Importing</span>}
+        {pct != null && <span className="hidden uppercase tracking-wider sm:inline">Importing</span>}
+        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-rule">
+          <span className={`block h-full bg-primary ${pct == null ? "w-1/3 animate-pulse motion-reduce:animate-none" : ""}`} style={pct != null ? { width: `${pct}%` } : undefined} />
+        </span>
       </button>
-      <Button type="button" variant="ghost" size="icon" className="size-8 min-w-6 rounded-l-none" onClick={cancel} aria-label="Cancel import">
+      <Button type="button" variant="ghost" size="icon" className="size-8 min-w-6 rounded-l-none border-l border-rule" onClick={cancel} aria-label="Cancel import">
         <X className="size-3.5" />
       </Button>
     </div>

@@ -20,16 +20,17 @@ export function ShortcutsDialog() {
   return (
     <Dialog open={open} onOpenChange={(o) => setUi({ shortcutsOpen: o })}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader kicker="Key to symbols">
           <DialogTitle className="font-serif text-xl font-semibold tracking-tight">Keyboard shortcuts</DialogTitle>
           <DialogDescription>Shortcuts are paused while typing or when a dialog is open.</DialogDescription>
         </DialogHeader>
-        <dl className="divide-y divide-rule border-y border-rule text-sm">
+        <dl className="border-t border-rule-strong text-sm">
           {SHORTCUTS.map(([k, d]) => (
-            <div key={k} className="flex items-center justify-between gap-4 py-2">
-              <dd className="order-2 text-right text-muted-foreground">{d}</dd>
-              <dt className="order-1">
-                <kbd className="inline-flex min-w-6 items-center justify-center rounded-sm border border-b-2 border-rule-strong bg-specimen px-1.5 py-0.5 font-mono text-xs">{k}</kbd>
+            <div key={k} className="flex items-baseline gap-2 border-b border-rule py-2">
+              <dd className="order-1 min-w-0">{d}</dd>
+              <span className="leader order-2" aria-hidden="true" />
+              <dt className="order-3 max-w-[45%] text-right">
+                <kbd className="inline-flex min-w-6 items-center justify-center rounded-sm border border-b-2 border-rule-strong bg-specimen px-1.5 py-0.5 text-center font-mono text-xs">{k}</kbd>
               </dt>
             </div>
           ))}
