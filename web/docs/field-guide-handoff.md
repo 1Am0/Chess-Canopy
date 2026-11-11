@@ -739,3 +739,80 @@ screenshots per draft: start position with the 3 candidate arrows; a hovered
 table row (preview + candidates); a middlegame with a knight candidate; a
 user-drawn arrow; desktop (~80px squares) and mobile (~40px squares). After the
 owner picks, the switch and losing drafts are removed.
+
+---
+
+# Round 6: UI audit and fixes
+
+Owner: "Do a major UI audit to make sure everything matches, spacing is right
+and everything is legible; fix spacing and white-space issues on the welcome
+page; fix the clutter of the buttons on mobile and the clutter in the info
+area when analysing a position."
+
+Audit inputs: coordinator screenshot review (1440 / 390) + an automated
+Playwright audit over 8 states × 4 viewports (1440, 1280, 390, 320): text
+size, contrast, clipping, tap targets, overlap, spacing. Raw data:
+`scratchpad/audit/results.json`, screenshots `scratchpad/shots/audit-*.png`.
+Contrast passed everywhere; no page-level horizontal scroll.
+
+## R6.1 Findings
+
+**Welcome page**
+- W1. Desktop: the right column (plate) ends ~400px above the steps, leaving a
+  large dead area of desk under it; the plate's top doesn't align with the
+  headline sheet; the footer label floats far below the steps.
+- W2. The entrance animation hides content for too long (steps were still
+  faded ~1.5 s after load; on a 390px phone the import form and plate were
+  invisible in a full-page screenshot). Content must never be hidden waiting
+  for an animation.
+- W3. Plate labels are ~8px ("50% · 14"), "No. 001" 10px, captions 10.5px:
+  illegible.
+- W4. The disabled "Import games" button is a muddy grey-green with weak text.
+
+**Mobile buttons (390 / 320)**
+- M1. Header has 6 controls in 390px (logo, player switcher, filters, import,
+  sound, help); at 320 the "All players" label is truncated to ~10px (its only
+  visible name) and Filters/Players boxes overlap the side switch by 8-10px.
+- M2. The board mat's tape strips overlap the header controls on mobile.
+- M3. Board toolbar buttons overlap each other by 1px (Copy FEN/PGN/link,
+  start/previous).
+- M4. The import toast never auto-dismisses and covers the moves table, the
+  filter sheet footer (Clear all / Done) and games rows.
+
+**Info area while analysing (explorer column)**
+- I1. Too many competing decorative devices stacked in a few lines: string
+  tag, pencil "+ add filter", perforated ticket + START rubber stamp + inked
+  circle, tiny caps legend, cut-paper bar, handnote. Each is fine alone;
+  together they're noisy.
+- I2. The summary legend (WHITE 40% · DRAW 13% · BLACK 47%) is 10px caps and
+  duplicates information.
+- I3. Mobile: the line-strip hint "Play a move on the board or pick one from
+  the table" is clipped mid-word; at 320 the "MOVE" header clips to "MOVI";
+  the Canopy depth buttons 3/4 run off-screen.
+- I4. Small text: bar segment labels 10px, Games-tab W/D/L stamps 10px, eval
+  label 9px.
+- I5. Spacing rhythm in the explorer column is inconsistent (8px gaps with
+  one 0px gap).
+
+## R6.2 Rules for the fixes
+
+- **Minimum sizes:** no visible text under 11px (12px preferred for data
+  labels); handwriting ≥ 15px; tap targets ≥ 32px on mobile with ≥ 4px gaps.
+- **One rhythm:** explorer column and welcome page use an 8px base (8 / 12 /
+  16 / 24 / 32); no ad-hoc 0px or 5px gaps.
+- **Decoration budget for the info area:** at most two decorative devices
+  visible at once above the tabs (keep the ECO string tag and the inked circle
+  on the current move; everything else plain, quiet print). The handnote is
+  the one optional extra and only when it says something useful.
+- **Never hide content behind animation;** entrance motion ≤ 250ms total,
+  opacity starts ≥ 0.6 or none at all.
+- Layout-stability geometry and e2e names still apply.
+
+## R6.3 Workstreams
+
+| WS | Files | Fixes |
+| --- | --- | --- |
+| **WL. Welcome** | `components/onboarding/*` | W1-W3: rebalance the spread (desktop: fill/align the right column, e.g. plate + steps in the right column, or plate height matched to the left stack; consistent 24/32px gaps; footer close to content); mobile order headline → form → steps → plate with even spacing; fix the entrance animation; plate text ≥ 11px. |
+| **MB. Mobile header & global** | `components/layout/Header.tsx`, `components/layout/SoundToggle.tsx`, `components/players/PlayerSwitcher.tsx`, `components/players/ImportIndicator.tsx`, `components/ui/sonner.tsx`, `components/ui/button.tsx`, `components/layout/ShortcutsDialog.tsx` | M1, M4, W4: declutter the mobile header (e.g. below `sm`: logo, player switcher, Filters, Import as clear 36px controls, and sound + help moved into one small paper "more" menu; keep accessible names reachable and update e2e that click them); player switcher label never truncates to nothing (icon + count at 320); toasts auto-dismiss (~4 s) and sit where they don't cover the filter footer (e.g. top-centre on mobile); readable disabled primary button. |
+| **IA. Info area** | `components/explorer/*`, `components/filters/FilterRow.tsx`, `components/layout/SideSwitch.tsx` | I1-I5: apply the decoration budget (e.g. plain "Start" text button instead of the rubber stamp, quieter ticket edges, plain-print "Add filter" link), remove the separate legend by labelling the summary bar segments (as the table bars do), fix the clipped hint on mobile (shorter copy or wrap within the fixed height), "MOVE" header and Canopy depth controls at 320px, label sizes ≥ 11px, 8px rhythm. |
+| **BC. Board column** (after the arrow drafts land) | `components/board/*` | M2, M3, I4 eval label: tape not over the header on mobile, toolbar overlaps, eval label ≥ 11px, spacing. |
