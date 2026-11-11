@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compact, formatDate, isoDaysAgo, pct, resultLabel, score, sourceLabel, splitOpeningName } from "@/lib/format";
+import { compact, isoDaysAgo, pct, score, sourceLabel, splitOpeningName } from "@/lib/format";
 
 describe("format helpers", () => {
   it("pct", () => {
@@ -22,25 +22,11 @@ describe("format helpers", () => {
     expect(score({ wins: 0, draws: 0, losses: 0, total: 0, winRate: 0, drawRate: 0, lossRate: 0 })).toBe(0);
   });
 
-  it("resultLabel agrees with the engine's result tokens", () => {
-    expect(resultLabel("1-0")).toBe("Win");
-    expect(resultLabel("0-1")).toBe("Loss");
-    expect(resultLabel("1/2-1/2")).toBe("Draw");
-    expect(resultLabel("win")).toBe("Win");
-    expect(resultLabel("loss")).toBe("Loss");
-  });
-
   it("isoDaysAgo is UTC", () => {
     const now = Date.UTC(2025, 2, 1, 23, 59, 59);
     expect(isoDaysAgo(0, now)).toBe("2025-03-01");
     expect(isoDaysAgo(1, now)).toBe("2025-02-28");
     expect(isoDaysAgo(30, now)).toBe("2025-01-30");
-  });
-
-  it("formatDate keeps invalid input and blanks empty input", () => {
-    expect(formatDate("")).toBe("");
-    expect(formatDate("not-a-date")).toBe("not-a-date");
-    expect(formatDate("2024-05-06")).toMatch(/2024/);
   });
 
   it("sourceLabel and splitOpeningName", () => {

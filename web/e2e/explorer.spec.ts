@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importJsonFile, importSampleJson, MANY_GAMES_JSON, mockApis, moveRow, STABILITY_GAMES_JSON, trackCspViolations } from "./helpers";
+import { importJsonFile, importSampleJson, MANY_GAMES_JSON, mockApis, moveRow, STABILITY_GAMES_JSON, totalGames, trackCspViolations } from "./helpers";
 import path from "node:path";
 
 const PGN_SAMPLE = path.join(process.cwd(), "tests/fixtures/golden/sample.pgn");
@@ -12,7 +12,7 @@ test("onboarding -> JSON import shows move table and game count", async ({ page 
   const csp = await trackCspViolations(page);
   await importSampleJson(page);
   await expect(page.getByRole("button", { name: /Players:/ })).toContainText("3");
-  await expect(page.getByRole("region", { name: "Position summary" })).toContainText("2");
+  await expect(totalGames(page)).toHaveText("2");
   await expect(moveRow(page, "e4")).toBeVisible();
   await expect(moveRow(page, "d4")).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Explorer" }).getByText("Starting position", { exact: true })).toBeVisible();
@@ -29,7 +29,7 @@ test("PGN import (username Hero) shows move rows in the explorer", async ({ page
   await expect(page.getByRole("grid")).toBeVisible();
   // Explorer trees are per color: at the start (White to move) only Hero's White game counts.
   await expect(moveRow(page, "e4")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Position summary" })).toContainText(/\b1\s*game\b/);
+  await expect(totalGames(page)).toHaveText("1");
   await expect(page.getByRole("complementary", { name: "Explorer" }).getByText("Starting position", { exact: true })).toBeVisible();
 });
 
@@ -62,18 +62,17 @@ test("move click updates line, line panel, opening; keyboard nav; reload persist
 
 test("result filter adds chip, changes counts, removable", async ({ page }) => {
   await importSampleJson(page);
-  const summary = page.getByRole("region", { name: "Position summary" });
-  await expect(summary).toContainText(/\b2\s*games\b/);
+  await expect(totalGames(page)).toHaveText("2");
   await page.getByRole("button", { name: /^Filters/ }).click();
   await page.getByRole("radiogroup", { name: "Result" }).getByRole("radio", { name: "Win" }).click();
   await page.getByRole("button", { name: "Done" }).click();
   const chips = page.getByLabel("Active filters");
   await expect(chips.getByText("Result: Win")).toBeVisible();
-  await expect(summary).toContainText(/\b1\s*game\b/);
+  await expect(totalGames(page)).toHaveText("1");
   await expect(moveRow(page, "d4")).toHaveCount(0);
   await page.getByRole("button", { name: "Remove filter Result: Win" }).click();
   await expect(chips).toHaveCount(0);
-  await expect(summary).toContainText(/\b2\s*games\b/);
+  await expect(totalGames(page)).toHaveText("2");
   await expect(moveRow(page, "d4")).toBeVisible();
 });
 
@@ -125,7 +124,7 @@ test("deleting the last player returns to Welcome", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
 });
 
-test("mobile viewport: no horizontal scroll, board visible, tabs switch", async ({ page }) => {
+test("mobile viewport: no horizontal scroll, board visible", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
@@ -133,10 +132,6 @@ test("mobile viewport: no horizontal scroll, board visible, tabs switch", async 
   await importSampleJson(page);
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
   await expect(page.getByLabel("Chess board")).toBeVisible();
-  await page.getByRole("tab", { name: "Games" }).click();
-  await expect(page.getByText("Recent games here")).toBeVisible();
-  await expect(page.getByRole("grid")).toBeHidden();
-  await page.getByRole("tab", { name: "Moves" }).click();
   await expect(page.getByRole("grid")).toBeVisible();
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
 });
@@ -252,7 +247,7 @@ test("copy share link shows a Copied toast", async ({ page, context }) => {
   expect(copied.searchParams.get("side")).toBe("white");
 });
 
-test("mobile: the line strip stays visible and the Moves / Games tabs switch content without horizontal scroll", async ({ page }) => {
+test("mobile: the line strip stays visible next to the move table without horizontal scroll", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await importSampleJson(page);
   const noHScroll = () => page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth);
@@ -264,40 +259,6 @@ test("mobile: the line strip stays visible and the Moves / Games tabs switch con
   await expect(page.getByRole("grid")).toBeVisible();
   await expect(page.getByRole("tab", { name: "Line" })).toHaveCount(0);
   expect(await noHScroll()).toBe(true);
-
-  await page.getByRole("tab", { name: "Games" }).click();
-  await expect(page.getByText("Recent games here")).toBeVisible();
-  await expect(page.getByRole("grid")).toBeHidden();
-  await expect(line).toBeVisible();
-  expect(await noHScroll()).toBe(true);
-});
-
-test("clicking a game in the Games tab loads it into the line; → steps through it", async ({ page }) => {
-  await importJsonFile(page, STABILITY_GAMES_JSON, "tester");
-  const white = page.getByRole("radio", { name: "View games as White" });
-  await white.click();
-  await expect(white).toBeChecked();
-  await moveRow(page, "e4").click();
-  await expect(page).toHaveURL(/line=e4$/);
-
-  await page.getByRole("tab", { name: "Games" }).click();
-  const first = page.getByRole("list", { name: "Recent games" }).getByRole("button", { name: /^Load game:/ }).first();
-  await expect(first).toBeVisible();
-  await first.click();
-  await expect(first).toHaveAttribute("aria-pressed", "true");
-
-  // The whole game is in the strip, the board stays where it was (after 1.e4) and the rest is the redo branch.
-  const plies = page.getByRole("region", { name: "Line" }).locator("ol button");
-  await expect.poll(() => plies.count()).toBeGreaterThan(4);
-  await expect(page).toHaveURL(/line=e4$/);
-  await expect(page.getByRole("region", { name: "Line" }).getByRole("button", { name: "e4", exact: true })).toHaveAttribute("aria-current", "step");
-
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-  await page.keyboard.press("ArrowRight");
-  await expect.poll(() => new URL(page.url()).searchParams.get("line")?.split(",").length).toBe(2);
-  await page.keyboard.press("ArrowRight");
-  await expect.poll(() => new URL(page.url()).searchParams.get("line")?.split(",").length).toBe(3);
-  await expect(first).toHaveAttribute("aria-pressed", "true");
 });
 
 /** Count the audio nodes the page creates, so tests can tell whether (and what) something played. */

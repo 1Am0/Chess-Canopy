@@ -7,21 +7,10 @@ test.beforeEach(async ({ context }) => {
 
 const lineParam = (page: Page) => new URL(page.url()).searchParams.get("line");
 
-test("arrow keys on the tabs and the side switch move focus, not the line (H1)", async ({ page }) => {
+test("arrow keys on the side switch move focus, not the line (H1)", async ({ page }) => {
   await importSampleJson(page);
   await moveRow(page, "e4").click();
   await expect(page).toHaveURL(/line=e4$/);
-
-  const games = page.getByRole("tab", { name: "Games" });
-  const moves = page.getByRole("tab", { name: "Moves" });
-  await games.focus();
-  await page.keyboard.press("ArrowLeft");
-  await expect(moves).toBeFocused();
-  expect(lineParam(page)).toBe("e4");
-  await page.keyboard.press("ArrowRight");
-  await expect(games).toBeFocused();
-  expect(lineParam(page)).toBe("e4");
-  await moves.click();
 
   const white = page.getByRole("radio", { name: "View games as White" });
   await white.focus();
@@ -85,7 +74,7 @@ test("popovers and the opponent picker have names (L2, M8)", async ({ page }) =>
   await expect(page.getByRole("dialog", { name: "Opponents" })).toBeVisible();
 });
 
-test("320px: header controls do not overlap and the summary is not clipped (H3)", async ({ page }) => {
+test("320px: header controls do not overlap (H3)", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });
   await importSampleJson(page);
   const boxes = await page.evaluate(() =>
@@ -105,17 +94,6 @@ test("320px: header controls do not overlap and the summary is not clipped (H3)"
       expect(overlap, `${boxes[i].name} overlaps ${boxes[j].name}`).toBeLessThanOrEqual(0.5);
     }
   }
-  // Summary: the text line fits its row (the bar strips carry their own labels; no separate legend).
-  const summary = page.getByRole("region", { name: "Position summary" });
-  await expect(summary).toHaveAttribute("aria-busy", "false");
-  const rects = await summary.locator("p").evaluateAll((ps) =>
-    ps.map((p) => {
-      const r = p.getBoundingClientRect();
-      return { l: r.left, r: r.right, scrollW: p.scrollWidth, clientW: p.clientWidth };
-    }),
-  );
-  expect(rects).toHaveLength(1);
-  expect(rects[0].scrollW).toBeLessThanOrEqual(rects[0].clientW + 1);
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
 });
 

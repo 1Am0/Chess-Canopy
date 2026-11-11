@@ -31,8 +31,6 @@ function targets(page: Page): Record<string, Locator> {
     openingHeader: aside.locator("[data-slot=opening-header]"),
     filterRow: page.locator("[data-slot=filter-row]"),
     linePanel: page.getByRole("region", { name: "Line" }),
-    summary: page.getByRole("region", { name: "Position summary" }),
-    tabBar: page.getByRole("tablist", { name: "Explorer views" }),
     explorerRegion: page.getByTestId("explorer-region"),
     tableScroller: table,
     tableHeader: table.locator("thead"),
@@ -59,11 +57,10 @@ function assertStable(label: string, base: Snapshot, now: Snapshot) {
 
 const lineLength = (page: Page) => new URL(page.url()).searchParams.get("line")?.split(",").filter(Boolean).length ?? 0;
 
-/** Wait until no result is pending (tables and summary are not aria-busy), then let transitions end. */
+/** Wait until no result is pending (the move table is not aria-busy), then let transitions end. */
 async function settle(page: Page) {
   const t = targets(page);
-  await expect(t.summary).toHaveAttribute("aria-busy", "false");
-  if (await t.tableScroller.isVisible()) await expect(t.tableScroller.getByRole("grid")).toHaveAttribute("aria-busy", "false");
+  await expect(t.tableScroller.getByRole("grid")).toHaveAttribute("aria-busy", "false");
   await page.waitForTimeout(250);
 }
 
@@ -84,7 +81,7 @@ for (const vp of [
       await mockApis(context);
     });
 
-    test("workspace slots keep their rects across moves, undo, side, filters and tabs", async ({ page }) => {
+    test("workspace slots keep their rects across moves, undo, side and filters", async ({ page }) => {
       test.setTimeout(90_000);
       await importJsonFile(page, STABILITY_GAMES_JSON, "tester");
       await viewAsWhite(page);
@@ -92,7 +89,7 @@ for (const vp of [
 
       const base = await snapshot(page);
       // Sanity: the elements we guard really exist on desktop.
-      for (const k of ["board", "stripTop", "stripBottom", "toolbar", "sideSwitch", "openingHeader", "filterRow", "linePanel", "summary", "tabBar", "tableScroller", "tableHeader"]) {
+      for (const k of ["board", "stripTop", "stripBottom", "toolbar", "sideSwitch", "openingHeader", "filterRow", "linePanel", "explorerRegion", "tableScroller", "tableHeader"]) {
         expect(base[k], `baseline ${k} missing`).not.toBeNull();
       }
       const check = async (label: string, keys?: string[]) => {
@@ -139,13 +136,6 @@ for (const vp of [
       await page.getByRole("button", { name: "Remove filter Result: Win" }).click();
       await expect(page.getByLabel("Active filters")).toHaveCount(0);
       await check("filter cleared");
-
-      // 5. Moves <-> Games tabs. The table slots only exist on the Moves tab.
-      const noTable = Object.keys(base).filter((k) => k !== "tableScroller" && k !== "tableHeader");
-      await page.getByRole("tab", { name: "Games" }).click();
-      await check("tab Games", noTable);
-      await page.getByRole("tab", { name: "Moves" }).click();
-      await check("tab Moves");
     });
   });
 }
@@ -156,24 +146,16 @@ test.describe("layout stability: mobile 390x844", () => {
     await mockApis(context);
   });
 
-  test("board, toolbar, side switch and tab bar stay put; tab switches keep the page height", async ({ page }) => {
+  test("board, toolbar and side switch stay put; the page height stays constant", async ({ page }) => {
     await importJsonFile(page, STABILITY_GAMES_JSON, "tester");
     await viewAsWhite(page);
     await page.evaluate(() => window.scrollTo(0, 0));
 
-    const keys = ["board", "toolbar", "sideSwitch", "tabBar"];
+    const keys = ["board", "toolbar", "sideSwitch"];
     const base = await snapshot(page, keys);
     for (const k of keys) expect(base[k], `baseline ${k} missing`).not.toBeNull();
     const docHeight = () => page.evaluate(() => document.documentElement.scrollHeight);
     const h0 = await docHeight();
-
-    // Switching tabs: the page height must not change at all.
-    for (const tab of ["Games", "Moves", "Games", "Moves"]) {
-      await page.getByRole("tab", { name: tab }).click();
-      await settle(page);
-      assertStable(`tab ${tab}`, base, await snapshot(page, keys));
-      expect(Math.abs((await docHeight()) - h0), `tab ${tab} changed the document height`).toBeLessThanOrEqual(TOLERANCE);
-    }
 
     // Playing moves keeps the board and bars in place (document coordinates; the page may scroll).
     const table = targets(page).tableScroller;
@@ -184,11 +166,15 @@ test.describe("layout stability: mobile 390x844", () => {
       assertStable(`ply ${ply}`, base, await snapshot(page, keys));
     }
     const h1 = await docHeight();
-    for (const tab of ["Games", "Moves"]) {
-      await page.getByRole("tab", { name: tab }).click();
+    expect(Math.abs(h1 - h0), "playing moves changed the document height").toBeLessThanOrEqual(TOLERANCE);
+
+    // Switching sides keeps the page height as well.
+    for (const side of ["Black", "White"]) {
+      await page.getByRole("radio", { name: `View games as ${side}` }).click();
+      await expect(page.getByRole("radio", { name: `View games as ${side}` })).toBeChecked();
       await settle(page);
-      assertStable(`tab ${tab} after moves`, base, await snapshot(page, keys));
-      expect(Math.abs((await docHeight()) - h1), `tab ${tab} changed the document height after moves`).toBeLessThanOrEqual(TOLERANCE);
+      assertStable(`side ${side}`, base, await snapshot(page, keys));
+      expect(Math.abs((await docHeight()) - h1), `side ${side} changed the document height`).toBeLessThanOrEqual(TOLERANCE);
     }
   });
 });

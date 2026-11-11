@@ -51,33 +51,6 @@ describe("playMove (C7)", () => {
   });
 });
 
-describe("loadGame", () => {
-  const game = ["e4", "e5", "Nf3", "Nc6", "Bb5", "a6"];
-
-  it("puts the whole game into the line and keeps the current position", () => {
-    st().playMove("e4");
-    st().playMove("e5");
-    st().loadGame(game, "lichess:abc");
-    expect(st().path).toEqual(game);
-    expect(st().cursor).toBe(2);
-    expect(st().loadedGame).toEqual({ key: "lichess:abc", line: game.join(" ") });
-  });
-
-  it("from the start position the cursor stays at 0 and redo walks the game", () => {
-    st().loadGame(game, "g");
-    expect(st().cursor).toBe(0);
-    st().redo();
-    st().redo();
-    expect(st().cursor).toBe(2);
-    expect(st().path).toEqual(game);
-  });
-
-  it("keeps only the legal prefix of a corrupt game", () => {
-    st().loadGame(["e4", "e5", "Ke7", "Nc6"], "bad");
-    expect(st().path).toEqual(["e4", "e5"]);
-  });
-});
-
 describe("persist migration v5 (one look only)", () => {
   it("drops stored board colours and sound sets from older versions", () => {
     const m = migratePersisted({ boardTheme: "green", soundTheme: "piano", soundEnabled: false }, 4);
