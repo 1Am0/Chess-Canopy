@@ -1,5 +1,5 @@
 /**
- * Seeded path generators still used by the board (arrows, ellipses, plate squares, pieces). Pure and deterministic:
+ * Seeded path generators for the board overlay (arrows and capture rings). Pure and deterministic:
  * the same seed and size always give the same SVG path data. Nothing calls Math.random.
  */
 
@@ -66,39 +66,6 @@ function smoothAt(knots: number[], spacing: number, x: number): number {
   return knots[i] * (1 - u) + knots[i + 1] * u;
 }
 
-/** Short wavy strands used as paper fibre: returns open path data for each. */
-export function fibreStrands(
-  seed: number | string,
-  width: number,
-  height: number,
-  count: number,
-  opts: { min?: number; max?: number; margin?: number; angle?: number; spread?: number } = {},
-): string[] {
-  const rng = createRng(seed);
-  const min = opts.min ?? 8;
-  const max = opts.max ?? 34;
-  const margin = opts.margin ?? 0;
-  const out: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const len = rng.range(min, max);
-    const ang = (opts.angle ?? 0) + rng.range(-1, 1) * (opts.spread ?? Math.PI);
-    const x = rng.range(margin + max, width - margin - max);
-    const y = rng.range(margin + max, height - margin - max);
-    const ex = x + Math.cos(ang) * len;
-    const ey = y + Math.sin(ang) * len;
-    const bend = rng.range(-0.25, 0.25) * len;
-    const cx = (x + ex) / 2 - Math.sin(ang) * bend;
-    const cy = (y + ey) / 2 + Math.cos(ang) * bend;
-    out.push(`M${n2(x)} ${n2(y)}Q${n2(cx)} ${n2(cy)} ${n2(ex)} ${n2(ey)}`);
-  }
-  return out;
-}
-
-/** Wrap an SVG document as a data URI usable in url(...) (CSS background / mask). */
-export function svgDataUri(svg: string): string {
-  return `data:image/svg+xml,${encodeURIComponent(svg).replace(/%20/g, " ").replace(/'/g, "%27")}`;
-}
-
 /**
  * Loose structural check for generated path data: only M L H V Q C Z commands with
  * numeric arguments, starting with M. Used by the tests.
@@ -137,7 +104,7 @@ export function pathPoints(d: string): Pt[] {
   return pts;
 }
 
-/* ---- Paper kit v2: ink, marker, stamp, ticket and pencil generators -------------------------- */
+/* ---- Hand-drawn stroke generators used by the board overlay ---- */
 
 const smoothstep = (a: number, b: number, v: number) => {
   const t = clamp((v - a) / (b - a), 0, 1);
@@ -301,31 +268,4 @@ export function inkEllipsePath(seed: number | string, w: number, h: number, opts
     d += `Q${fmt(pts[i])} ${n2(mx)} ${n2(my)}`;
   }
   return `${d}L${fmt(pts[pts.length - 1])}`;
-}
-
-/**
- * A highlighter wash over a w x h box: top and bottom edges drift by up to `amp` px, and each end is a
- * slightly slanted, uneven chisel cut instead of a straight edge. Closed, within [0,w] x [0,h].
- */
-export function washPath(seed: number | string, w: number, h: number, amp = 1.6): string {
-  const rng = createRng(seed);
-  const endAmp = Math.min(w * 0.12, 3.6);
-  const n = Math.max(2, Math.round(w / 18));
-  const topN = noise1d(rng, n + 1);
-  const botN = noise1d(rng, n + 1);
-  const edge = (f: (t: number) => number, y0: number, dir: 1 | -1): Pt[] => {
-    const out: Pt[] = [];
-    for (let i = 0; i <= n; i++) {
-      const t = i / n;
-      out.push({ x: t * w, y: clamp(y0 + dir * f(t) * amp, 0, h) });
-    }
-    return out;
-  };
-  const top = edge(topN, 0, 1);
-  const bottom = edge(botN, h, -1).reverse();
-  const lean = rng.range(-1, 1) * endAmp;
-  const leftEnd: Pt[] = [0.25, 0.5, 0.75].map((f) => ({ x: clamp(endAmp * 0.5 + lean * (0.5 - f) + rng.range(0, endAmp * 0.5), 0, w), y: h * f }));
-  const rightEnd: Pt[] = [0.75, 0.5, 0.25].map((f) => ({ x: clamp(w - endAmp * 0.5 + lean * (f - 0.5) - rng.range(0, endAmp * 0.5), 0, w), y: h * f }));
-  const pts = [...top, ...rightEnd, ...bottom, ...leftEnd];
-  return `M${fmt(pts[0])}${pts.slice(1).map((p) => `L${fmt(p)}`).join("")}Z`;
 }

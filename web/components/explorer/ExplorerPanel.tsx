@@ -37,7 +37,7 @@ export function ExplorerPanel() {
   const fresh = useExplorerStore((s) => !s.resultLoading && s.result != null);
   // A short hint, only when it is a real comparison (see best-move.ts).
   const best = fresh && result ? bestCandidate(result.next, result.stats.total) : null;
-  const note = best ? `best for you: ${best.move} · ${pct(best.score)}` : null;
+  const note = best ? `Best for you: ${best.move} (${pct(best.score)})` : null;
 
   return (
     <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-border bg-card p-[11px] pt-[15px] lg:h-full lg:min-h-0">

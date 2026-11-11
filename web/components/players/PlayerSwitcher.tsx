@@ -44,7 +44,6 @@ export function PlayerSwitcher() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-2" aria-label="Choose players">
-        <p className="kicker mb-0 px-2 pt-1 pb-0.5">Players</p>
         <label className="flex cursor-pointer items-center gap-2.5 rounded-sm px-2 py-2 text-sm hover:bg-accent has-[:focus-visible]:bg-accent">
           <Checkbox checked={isAll} onCheckedChange={() => setSelected("all")} aria-label="All players" />
           <span className="min-w-0 flex-1 font-semibold">All players</span>

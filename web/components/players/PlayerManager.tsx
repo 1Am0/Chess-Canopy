@@ -10,7 +10,7 @@ import { useExplorerStore } from "@/lib/store";
 import { sourceLabel } from "@/lib/format";
 import { useSharedImport } from "@/components/players/ImportProvider";
 import { ImportProgress } from "@/components/players/ImportProgress";
-import { EmptySpecimen, MetaGrid } from "@/components/field";
+import { EmptyState, MetaGrid } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -45,7 +45,7 @@ export function PlayerManager() {
       const st = useExplorerStore.getState();
       if (st.selected !== "all") st.setSelected(st.selected.filter((id) => id !== p.id));
       await refreshPlayers();
-      toast.success(`Deleted ${p.displayName}`);
+      toast.success(`${p.displayName} deleted`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Delete failed");
     } finally {
@@ -56,14 +56,14 @@ export function PlayerManager() {
   return (
     <Dialog open={open} onOpenChange={(o) => setUi({ managerOpen: o })}>
       <DialogContent>
-        <DialogHeader kicker="Collection register">
+        <DialogHeader>
           <DialogTitle>Manage players</DialogTitle>
-          <DialogDescription>All data stays in your browser. Export a player as schema v1 JSON for the Python CLI.</DialogDescription>
+          <DialogDescription>Export a player as schema v1 JSON for the Python CLI.</DialogDescription>
         </DialogHeader>
         <ul className="-mx-1 max-h-[60vh] space-y-4 overflow-y-auto px-1 pt-1 pb-2">
           {players.length === 0 && (
             <li>
-              <EmptySpecimen title="No players yet" hint="No players imported yet." />
+              <EmptyState title="No players yet" hint="Import games to add one." />
             </li>
           )}
           {players.map((p) => (
@@ -84,10 +84,10 @@ export function PlayerManager() {
               />
               {confirming === p.id ? (
                 <div className="mt-3 flex items-center gap-2">
-                  <p className="min-w-0 truncate text-sm font-medium text-loss-text">Delete {p.displayName}?</p>
-                  <div className="ml-auto flex items-center gap-1">
+                  <p className="min-w-0 text-sm">Delete {p.displayName} and all their games?</p>
+                  <div className="ml-auto flex shrink-0 items-center gap-1">
+                    <Button size="sm" variant="outline" onClick={() => setConfirming(null)}>Cancel</Button>
                     <Button size="sm" variant="destructive" disabled={running} onClick={() => remove(p)}>Delete</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Cancel</Button>
                   </div>
                 </div>
               ) : (

@@ -1,15 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   createRng,
-  fibreStrands,
   hashSeed,
   inkArrowPath,
   inkEllipsePath,
   inkStrokePath,
   isWellFormedPath,
   pathPoints,
-  svgDataUri,
-  washPath,
 } from "@/lib/paper";
 
 describe("seeded rng", () => {
@@ -39,23 +36,7 @@ describe("seeded rng", () => {
   });
 });
 
-describe("hand-drawn lines", () => {
-  it("fibreStrands returns the requested count of valid strands inside the box", () => {
-    const strands = fibreStrands(3, 300, 300, 24, { margin: 6 });
-    expect(strands).toHaveLength(24);
-    for (const s of strands) {
-      expect(isWellFormedPath(s)).toBe(true);
-      for (const p of pathPoints(s)) {
-        expect(p.x).toBeGreaterThanOrEqual(0);
-        expect(p.x).toBeLessThanOrEqual(300);
-        expect(p.y).toBeGreaterThanOrEqual(0);
-        expect(p.y).toBeLessThanOrEqual(300);
-      }
-    }
-  });
-});
-
-describe("path validator and data uri", () => {
+describe("path validator", () => {
   it("rejects malformed path data", () => {
     expect(isWellFormedPath("L1 2")).toBe(false);
     expect(isWellFormedPath("M1")).toBe(false);
@@ -63,15 +44,9 @@ describe("path validator and data uri", () => {
     expect(isWellFormedPath("M1 2 foo")).toBe(false);
     expect(isWellFormedPath("M1 2L3 4Z")).toBe(true);
   });
-
-  it("svgDataUri produces an encoded svg uri", () => {
-    const u = svgDataUri("<svg xmlns='http://www.w3.org/2000/svg'><path d='M0 0'/></svg>");
-    expect(u.startsWith("data:image/svg+xml,")).toBe(true);
-    expect(u).not.toMatch(/[<>'"]/);
-  });
 });
 
-describe("paper kit v2 generators", () => {
+describe("stroke generators", () => {
   const bbox = (d: string) => {
     const pts = pathPoints(d);
     return {
@@ -139,19 +114,4 @@ describe("paper kit v2 generators", () => {
     expect(b.minY).toBeGreaterThanOrEqual(-3);
     expect(b.maxY).toBeLessThanOrEqual(27);
   });
-
-  it("washPath is closed and stays inside its box, with uneven ends", () => {
-    const d = washPath(4, 120, 18);
-    expect(isWellFormedPath(d)).toBe(true);
-    expect(d.endsWith("Z")).toBe(true);
-    const b = bbox(d);
-    expect(b.minX).toBeGreaterThanOrEqual(0);
-    expect(b.maxX).toBeLessThanOrEqual(120);
-    expect(b.minY).toBeGreaterThanOrEqual(0);
-    expect(b.maxY).toBeLessThanOrEqual(18);
-    const leftXs = pathPoints(d).filter((p) => p.x < 8).map((p) => p.x);
-    expect(new Set(leftXs.map((x) => Math.round(x * 10))).size).toBeGreaterThan(1);
-    expect(washPath(4, 120, 18)).toBe(d);
-  });
-
 });

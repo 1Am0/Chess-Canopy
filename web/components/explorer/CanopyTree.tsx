@@ -6,7 +6,7 @@ import { getExplorer, isExplorerRestart } from "@/lib/explorer-client";
 import { compact, pct, score } from "@/lib/format";
 import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
-import { EmptySpecimen, Kicker } from "@/components/field";
+import { EmptyState } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ const H_TWO = 28;
 /** Rough advance of one 12px tabular digit/glyph in the stats line, used to check it fits its slot. */
 const STAT_CH = 7;
 
-/** Diverging OKLCH colour for a score in [0, 1]; the tokens are defined in the theme. */
+/** Diverging OKLCH color for a score in [0, 1]; the tokens are defined in the theme. */
 export function scoreColor(sc: number): string {
   const d = Math.max(-1, Math.min(1, (sc - 0.5) / SPREAD));
   const mid = "var(--tree-mid, #cfc6ad)";
@@ -218,7 +218,7 @@ export function CanopyTree({ active }: { active: boolean }) {
         height={size.h}
         viewBox={`0 0 ${Math.max(size.w, 1)} ${Math.max(size.h, 1)}`}
         role="group"
-        aria-label="Opening tree: branch width is games, colour is your score"
+        aria-label="Opening tree: branch width is games, color is your score"
         className={cn("absolute inset-0 transition-opacity duration-150 motion-reduce:transition-none", loading ? "opacity-50" : "opacity-100")}
       >
         {lay && !empty && (
@@ -351,20 +351,20 @@ export function CanopyTree({ active }: { active: boolean }) {
       </svg>
       {empty && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-          <EmptySpecimen
-            className="py-2"
-            title="No specimens collected here"
-            hint={hasPlayers ? "No games continue from this position." : "Add games to see your opening tree."}
-          />
+          {hasPlayers ? (
+            <EmptyState className="py-2" title="No games reach this position." />
+          ) : (
+            <EmptyState className="py-2" title="No games yet" hint="Import games to see your opening tree." />
+          )}
         </div>
       )}
       <div className="pointer-events-none absolute inset-x-2 top-1.5 flex items-start justify-between gap-2">
-        {/* the key: colour chips cut from the same scale as the ribbons */}
+        {/* legend: color chips from the same scale as the branches */}
         <div className="flex h-auto min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 rounded-sm border border-border bg-card px-1.5 py-1">
-          <Kicker as="span" className="mb-0">
-            <span className="min-[430px]:hidden">games · score</span>
-            <span className="hidden min-[430px]:inline">width = games · colour = your score</span>
-          </Kicker>
+          <span className="text-xs text-muted-foreground">
+            <span className="min-[430px]:hidden">Games · score</span>
+            <span className="hidden min-[430px]:inline">Width: games. Color: your score.</span>
+          </span>
           <span className="hidden items-center gap-1.5 text-xs text-muted-foreground tabular-nums min-[430px]:flex" aria-hidden="true">
             <span className="font-mono">{`≤${pct(0.5 - SPREAD)}`}</span>
             <span className="flex">
@@ -376,9 +376,9 @@ export function CanopyTree({ active }: { active: boolean }) {
           </span>
         </div>
         <div role="group" aria-label="Tree depth" className="pointer-events-auto flex shrink-0 items-center gap-1.5 text-xs">
-          <Kicker as="span" className="mb-0 hidden min-[430px]:inline" aria-hidden="true">
+          <span className="hidden text-xs text-muted-foreground min-[430px]:inline" aria-hidden="true">
             Plies
-          </Kicker>
+          </span>
           <div className="flex items-center gap-1">
             {DEPTHS.map((d) => (
               <Button

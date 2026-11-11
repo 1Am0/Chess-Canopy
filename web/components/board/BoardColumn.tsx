@@ -23,9 +23,9 @@ export function BoardColumn() {
   const bottomIsYou = orientation === side;
 
   return (
-    // The board panel: a bordered panel (10px around everything, 8px on phones, border included) so the board keeps the size the layout asks for.
+    // A bordered panel (10px around everything, 8px on phones, border included) so the board keeps the size the layout asks for.
     <div className="relative z-10 mx-auto w-[var(--board-size)] max-w-full lg:mx-0 lg:w-[calc(var(--board-size)+1.25rem)]">
-    <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-[7px] lg:p-[9px]" data-testid="board-mat">
+    <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-[7px] lg:p-[9px]" data-testid="board-panel">
       <div data-testid="strip-top" className="pl-10">
         <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} />
       </div>

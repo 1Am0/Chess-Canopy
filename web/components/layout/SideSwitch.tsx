@@ -5,13 +5,13 @@ import { useExplorerStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-const SIDES: { id: Color; label: string; glyph: string }[] = [
-  { id: "white", label: "White", glyph: "♔" },
-  { id: "black", label: "Black", glyph: "♚" },
+const SIDES: { id: Color; label: string }[] = [
+  { id: "white", label: "White" },
+  { id: "black", label: "Black" },
 ];
 
 /**
- * Two underline tabs (kit ToggleGroup), counts in mono.
+ * Two underline tabs (kit ToggleGroup) with the game count after each name.
  * Prominent White | Black switch: which side's repertoire is being explored.
  * Fixed 44px; counts are tabular with a reserved width, so new counts never resize it.
  * Switching keeps the current line and only flips the side and the board.
@@ -43,17 +43,8 @@ export function SideSwitch({ className }: { className?: string }) {
             aria-label={`View games as ${s.label}`}
             className="group/side -mb-px h-full min-w-0 flex-1 justify-center gap-2 rounded-none border-0 border-b-2 border-transparent bg-transparent px-2 first:rounded-none last:rounded-none hover:bg-accent data-[state=on]:border-primary data-[state=on]:bg-transparent data-[state=on]:text-ink [&:not(:first-child)]:ml-0"
           >
-            <span
-              aria-hidden
-              className={cn(
-                "text-xl leading-none",
-                s.id === "white" ? "text-foreground [text-shadow:0_0_1px_currentColor]" : "text-foreground",
-              )}
-            >
-              {s.glyph}
-            </span>
             <span className="font-semibold">{s.label}</span>
-            <span className="min-w-[5ch] text-left font-mono text-xs font-normal text-muted-foreground tabular-nums">
+            <span className="min-w-[5ch] text-left text-sm font-normal text-muted-foreground tabular-nums">
               {n == null ? "–" : n.toLocaleString("en-US")}
             </span>
           </ToggleGroupItem>
