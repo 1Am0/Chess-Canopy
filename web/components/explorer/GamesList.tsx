@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ExternalLink, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import type { GameSummary } from "@/lib/engine/types";
 import { getExplorer } from "@/lib/explorer-client";
@@ -9,16 +9,17 @@ import { activeFilterCount, useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
 import { formatDate, resultLabel, sourceLabel } from "@/lib/format";
 import { EmptySpecimen } from "@/components/field";
+import { HighlighterWash, RubberStamp } from "@/components/paper";
+import { hashSeed } from "@/lib/paper";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-/** Player-perspective chips: this list is about *your* results, so win/loss colors apply. */
-const RESULT_STYLE = {
-  Win: "border-win-text/50 bg-win/10 text-win-text",
-  Draw: "border-draw-text/50 bg-draw/10 text-draw-text",
-  Loss: "border-loss-text/50 bg-loss/10 text-loss-text",
-} as const;
+/** Player-perspective stamps: this list is about *your* results, so win/loss inks apply. */
+const RESULT_TONE = { Win: "win", Draw: "draw", Loss: "loss" } as const;
+
+/** A stamp never lands twice at the same angle: a seeded tilt in [-1.8, 1.8] degrees. */
+const tilt = (seed: string) => ((hashSeed(seed) % 7) - 3) * 0.6;
 
 const LIMIT = 25;
 
@@ -109,7 +110,7 @@ export function GamesList({ className, active = true }: { className?: string; ac
       aria-busy={active && (loading || games === null)}
       className={cn("relative h-full min-h-0 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin]", className)}
     >
-      <h3 className="label-caps sticky top-0 z-10 flex h-7 items-center gap-1.5 border-b border-rule-strong bg-card px-3 text-[13px]">
+      <h3 className="label-caps sticky top-0 z-10 flex h-7 items-center gap-1.5 border-b border-rule-strong bg-card px-3 text-[13px] text-pencil">
         <span className="text-ink">Recent games here</span>
         {count && <span className="tabular-nums">· {count}</span>}
       </h3>
@@ -168,8 +169,9 @@ export function GamesList({ className, active = true }: { className?: string; ac
           return (
             <li
               key={gameKey}
-              className={cn("flex h-8 items-center border-b border-rule whitespace-nowrap text-sm", loaded && "bg-specimen shadow-[inset_2px_0_0_var(--color-primary)]")}
+              className="relative isolate flex h-8 items-center border-b border-rule text-sm whitespace-nowrap"
             >
+              {loaded && <HighlighterWash fill tone="green" seed={`loaded-${gameKey}`} />}
               <button
                 type="button"
                 onClick={() => {
@@ -178,36 +180,40 @@ export function GamesList({ className, active = true }: { className?: string; ac
                 }}
                 aria-pressed={loaded}
                 title="Load this game into the line"
-                className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-left outline-none transition-colors hover:bg-specimen/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
+                className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-left outline-none transition-colors hover:bg-specimen/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
               >
-                <span className="sr-only">Load game: </span>
-                <span className={cn("w-11 shrink-0 rounded-[2px] border px-1 py-0.5 text-center font-mono text-[11px] leading-4 font-semibold tracking-[0.08em] uppercase", RESULT_STYLE[r])}>{r}</span>
+                <span className="sr-only">Load game: {r} </span>
+                <span aria-hidden className="flex w-9 shrink-0 justify-center">
+                  <RubberStamp tone={RESULT_TONE[r]} variant="single" size="sm" rotate={tilt(gameKey)} seed={gameKey} className="min-w-[1.5rem] justify-center text-center">
+                    {r[0]}
+                  </RubberStamp>
+                </span>
                 <span
                   className={cn("size-3 shrink-0 rounded-full ring-1 ring-foreground/40", g.color === "white" ? "bg-white" : "bg-neutral-900")}
                   title={`Played ${g.color}`}
                   aria-label={`Played ${g.color}`}
                   role="img"
                 />
-                <span className="min-w-0 flex-1 truncate font-sans font-medium text-ink">
+                <span className="min-w-0 flex-1 truncate font-sans font-medium text-ink underline decoration-ink/35 decoration-1 underline-offset-[3px]">
                   {g.opponent}
                   {g.opponent_rating != null && <span className="ml-1 text-muted-foreground tabular-nums">({g.opponent_rating})</span>}
                 </span>
                 <span className="label-caps hidden w-16 shrink-0 truncate text-right text-[13px] sm:block">{g.time_control}</span>
-                <span className="hidden w-[6.5rem] shrink-0 text-right font-mono text-xs text-muted-foreground tabular-nums sm:block">{formatDate(g.date)}</span>
+                <span className="hidden w-[6.5rem] shrink-0 text-right font-mono text-xs text-pencil tabular-nums sm:block">{formatDate(g.date)}</span>
                 <span className="label-caps hidden w-16 shrink-0 text-right text-[13px] sm:block">
                   {g.source === "chess.com" || g.source === "lichess" ? sourceLabel(g.source) : ""}
                 </span>
               </button>
-              <span className="flex w-9 shrink-0 items-center justify-center">
+              <span className="flex w-11 shrink-0 items-center justify-center">
                 {g.url?.startsWith("http") && (
                   <a
                     href={g.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Open game vs ${g.opponent} on ${sourceLabel(g.source)}`}
-                    className="rounded p-1 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60"
+                    className="px-1 py-1.5 font-mono text-[11px] text-pencil underline decoration-ink/40 underline-offset-[3px] outline-none hover:text-ink hover:decoration-ink focus-visible:outline-2 focus-visible:outline-ring"
                   >
-                    <ExternalLink className="size-3.5" />
+                    <span aria-hidden>open</span>
                   </a>
                 )}
               </span>

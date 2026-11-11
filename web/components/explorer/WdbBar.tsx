@@ -1,43 +1,64 @@
+import { useMemo } from "react";
 import type { Color, Stats } from "@/lib/engine/types";
 import { segmentLabel, toWdb, wdbLabel, wdbPercents } from "@/components/explorer/wdb";
+import { createRng, n2 } from "@/lib/paper";
 import { cn } from "@/lib/utils";
 
 const SEGMENTS = [
-  { key: "white", name: "White wins", cls: "bg-bar-white text-bar-white-fg [box-shadow:var(--bar-gloss-white)]" },
-  { key: "draw", name: "Draws", cls: "bg-bar-draw text-bar-draw-fg [box-shadow:inset_1px_0_0_var(--card)]" },
-  { key: "black", name: "Black wins", cls: "bg-bar-black text-bar-black-fg [box-shadow:inset_1px_0_0_var(--card)]" },
+  { key: "white", name: "White wins", cls: "bg-bar-white text-bar-white-fg" },
+  { key: "draw", name: "Draws", cls: "bg-bar-draw text-bar-draw-fg" },
+  { key: "black", name: "Black wins", cls: "bg-bar-black text-bar-black-fg" },
 ] as const;
 
 /**
- * Stacked White | Draw | Black result bar (chess convention, independent of the viewed
- * side). Always renders the same three nodes, so a position change only animates widths.
- * With no games it shows a neutral striped bar of the same size.
+ * The cut of each strip: a left and a right edge with four slightly different x offsets (0 to 2.2px), so the
+ * strips look hand-cut with scissors and a hair of the sheet shows between neighbours. Seeded, so identical
+ * on every render. Offsets only ever move inward: an empty (0%) strip clips to nothing.
+ */
+function cutPolygon(seed: string, key: string): string {
+  const rng = createRng(`${seed}-${key}`);
+  const ys = [0, 34, 68, 100];
+  const left = ys.map((y) => `${n2(rng.range(0, 2.2))}px ${y}%`);
+  const right = ys.map((y) => `calc(100% - ${n2(rng.range(0, 2.2))}px) ${y}%`).reverse();
+  return `polygon(${[...left, ...right].join(",")})`;
+}
+
+/**
+ * Stacked White | Draw | Black result bar (chess convention, independent of the viewed side), drawn as three strips
+ * of cut paper laid side by side: cream paper, a graphite card and an ink card, each with a slightly irregular cut
+ * end and a paper fibre. Always renders the same three nodes, so a position change only animates widths.
+ * With no games it shows a pencil-hatched blank strip of the same size.
  */
 export function WdbBar({
   stats,
   side,
   labels = true,
+  seed = "wdb",
   className,
 }: {
   /** Player-perspective stats; null or total 0 renders the empty bar. */
   stats: Stats | null | undefined;
   side: Color;
   labels?: boolean;
+  /** Varies the cut ends between bars (the move table passes the move). */
+  seed?: string;
   className?: string;
 }) {
   const w = stats && stats.total > 0 ? toWdb(stats, side) : null;
   const p = w ? wdbPercents(w) : null;
+  const cuts = useMemo(() => SEGMENTS.map((s) => cutPolygon(seed, s.key)), [seed]);
   return (
     <div
       role="img"
       aria-label={w ? wdbLabel(w) : "No games"}
       className={cn(
-        "relative flex h-4 w-full overflow-hidden rounded-[1px] bg-card text-[11px] leading-none font-medium tabular-nums",
-        !w && "bar-empty",
+        "relative flex h-4 w-full text-[10px] leading-none font-medium tabular-nums",
+        !w && "bar-empty border border-dashed border-rule-strong",
         className,
       )}
+      style={w ? { filter: "drop-shadow(0.6px 0 0 var(--bar-border)) drop-shadow(-0.6px 0 0 var(--bar-border)) drop-shadow(0 0.6px 0 var(--bar-border)) drop-shadow(0 -0.6px 0 var(--bar-border)) drop-shadow(0.4px 0.9px 0.7px color-mix(in oklab, var(--shadow-ink) 30%, transparent))" } : undefined}
     >
-      {SEGMENTS.map((s) => {
+      {SEGMENTS.map((s, i) => {
         const n = w ? w[s.key] : 0;
         const pc = p ? p[s.key] : 0;
         return (
@@ -45,27 +66,26 @@ export function WdbBar({
             key={s.key}
             title={w && n ? `${s.name}: ${n.toLocaleString()} (${Math.round(pc)}%)` : undefined}
             className={cn(
-              "flex h-full min-w-0 items-center justify-center overflow-hidden whitespace-nowrap transition-[width] duration-300 ease-out motion-reduce:transition-none",
+              "flex h-full min-w-0 items-center justify-center overflow-hidden font-mono whitespace-nowrap transition-[width] duration-300 ease-out [background-image:var(--sheet-tile)] motion-reduce:transition-none forced-colors:border forced-colors:border-[CanvasText]",
               s.cls,
             )}
-            style={{ width: `${pc}%` }}
+            style={{ width: `${pc}%`, clipPath: cuts[i] }}
           >
             {labels ? segmentLabel(pc) : null}
           </span>
         );
       })}
-      <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit] shadow-[inset_0_0_0_1px_var(--bar-border)]" />
     </div>
   );
 }
 
-/** Tiny swatch matching a bar segment, for legends. */
+/** Tiny paper swatch matching a bar strip, for legends: a snip of the same stock with a hair of shadow. */
 export function WdbSwatch({ kind, className }: { kind: "white" | "draw" | "black"; className?: string }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "inline-block size-2.5 shrink-0 rounded-none shadow-[inset_0_0_0_1px_var(--bar-border)]",
+        "inline-block h-2.5 w-3 shrink-0 [background-image:var(--sheet-tile)] shadow-[inset_0_0_0_1px_var(--bar-border),0.5px_1px_1px_var(--btn-drop)]",
         kind === "white" ? "bg-bar-white" : kind === "draw" ? "bg-bar-draw" : "bg-bar-black",
         className,
       )}

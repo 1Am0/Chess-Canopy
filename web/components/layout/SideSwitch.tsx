@@ -3,6 +3,7 @@
 import type { Color } from "@/lib/engine/types";
 import { useExplorerStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { PencilUnderline } from "@/components/explorer/ink";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const SIDES: { id: Color; label: string; glyph: string }[] = [
@@ -11,6 +12,8 @@ const SIDES: { id: Color; label: string; glyph: string }[] = [
 ];
 
 /**
+ * Two index-card tabs (kit ToggleGroup): the active card sits forward with a pencil underline under its name,
+ * the other is a shade darker and a hair lower. Counts are mono.
  * Prominent White | Black switch: which side's repertoire is being explored.
  * Fixed 44px; counts are tabular with a reserved width, so new counts never resize it.
  * Switching keeps the current line and only flips the side and the board.
@@ -31,7 +34,7 @@ export function SideSwitch({ className }: { className?: string }) {
         else setSide(side);
       }}
       aria-label="Side to view"
-      className={cn("grid h-11 w-full shrink-0 grid-cols-2 gap-0 rounded-none border border-rule-strong bg-specimen/50 p-0", className)}
+      className={cn("grid h-11 w-full shrink-0 grid-cols-2 items-end gap-1.5", className)}
     >
       {SIDES.map((s) => {
         const n = counts?.[s.id];
@@ -40,7 +43,7 @@ export function SideSwitch({ className }: { className?: string }) {
             key={s.id}
             value={s.id}
             aria-label={`View games as ${s.label}`}
-            className="h-full min-w-0 flex-1 justify-center gap-2 rounded-none border-0 bg-transparent px-2 text-muted-foreground [&:not(:first-child)]:ml-0 [&:not(:first-child)]:border-l [&:not(:first-child)]:border-l-rule-strong data-[state=on]:bg-card data-[state=on]:text-ink data-[state=on]:shadow-[inset_0_2px_0_var(--color-primary)]"
+            className="group/side folder-tab h-[calc(100%-4px)] min-w-0 flex-1 justify-center gap-2 rounded-none border-0 bg-transparent px-2 shadow-none hover:bg-transparent data-[state=on]:h-full data-[state=on]:bg-transparent data-[state=on]:text-ink data-[state=on]:shadow-none [&:not(:first-child)]:ml-0"
           >
             <span
               aria-hidden
@@ -51,8 +54,11 @@ export function SideSwitch({ className }: { className?: string }) {
             >
               {s.glyph}
             </span>
-            <span className="font-semibold">{s.label}</span>
-            <span className="min-w-[5ch] text-left text-xs font-normal text-muted-foreground tabular-nums">
+            <span className="relative font-semibold">
+              {s.label}
+              <PencilUnderline seed={s.id} tone="ink" className="-bottom-[3px] hidden group-data-[state=on]/side:block" />
+            </span>
+            <span className="min-w-[5ch] text-left font-mono text-xs font-normal text-pencil tabular-nums">
               {n == null ? "–" : n.toLocaleString("en-US")}
             </span>
           </ToggleGroupItem>

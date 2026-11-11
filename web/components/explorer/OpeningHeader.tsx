@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { splitOpeningName } from "@/lib/format";
 import { usePosition } from "@/hooks/use-position";
+import { PencilSlash } from "@/components/explorer/ink";
 import { StringTag } from "@/components/paper";
 import { cn } from "@/lib/utils";
 
@@ -29,11 +30,11 @@ export function OpeningHeader({ className }: { className?: string }) {
                 return (
                   <li key={i} className="inline">
                     {i > 0 && (
-                      <span aria-hidden className="mx-1.5 font-sans text-sm text-muted-foreground/70">
-                        /
+                      <span aria-hidden className="mx-1.5">
+                        <PencilSlash seed={`${opening.eco}-${i}`} />
                       </span>
                     )}
-                    <span className={last ? "font-serif font-medium italic" : "font-sans text-sm text-muted-foreground"}>{c}</span>
+                    <span className={last ? "font-serif font-medium italic" : "font-sans text-sm text-pencil/75"}>{c}</span>
                   </li>
                 );
               })}
@@ -41,7 +42,7 @@ export function OpeningHeader({ className }: { className?: string }) {
           </nav>
         </>
       ) : (
-        <span className="truncate font-serif text-base leading-7 text-muted-foreground italic">{visible.length === 0 ? "Starting position" : "Out of book"}</span>
+        <span className="truncate font-serif text-base leading-7 text-pencil/80 italic">{visible.length === 0 ? "Starting position" : "Out of book"}</span>
       )}
     </div>
   );

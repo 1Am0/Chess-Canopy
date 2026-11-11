@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, RotateCcw, Undo2 } from "lucide-react";
+import { RotateCcw, Undo2 } from "lucide-react";
 import type { NextMove } from "@/lib/engine/types";
 import { activeFilterCount, isResultFresh, loadFailed, useExplorerStore } from "@/lib/store";
 import { compact, pct, score } from "@/lib/format";
@@ -12,6 +12,7 @@ import { splitRare } from "@/components/explorer/rare";
 import { WdbBar } from "@/components/explorer/WdbBar";
 import { scoreTextClass } from "@/components/explorer/wdb";
 import { EmptySpecimen } from "@/components/field";
+import { InkArrow } from "@/components/explorer/ink";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -137,12 +138,12 @@ export function MoveTable({ className }: { className?: string }) {
         type="button"
         onClick={() => toggle(k)}
         className={cn(
-          "-mx-1 inline-flex min-h-6 min-w-6 items-center gap-0.5 whitespace-nowrap rounded-sm px-1 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60",
+          "-mx-1 inline-flex min-h-6 min-w-6 items-center gap-1 whitespace-nowrap px-1 outline-none hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
           sort.key === k && "text-ink",
         )}
       >
         {label}
-        {sort.key === k && (sort.dir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />)}
+        {sort.key === k && <InkArrow dir={sort.dir === "asc" ? "up" : "down"} />}
       </button>
     </th>
   );
@@ -187,7 +188,7 @@ export function MoveTable({ className }: { className?: string }) {
         className="w-full table-fixed border-separate border-spacing-0 text-left text-sm outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring/60"
       >
         <thead className="sticky top-0 z-10">
-          <tr className="label-caps h-7 bg-card text-[13px] [&>th]:border-b [&>th]:border-rule-strong">
+          <tr className="label-caps h-7 bg-card text-[13px] text-pencil [&>th]:border-b [&>th]:border-rule-strong">
             <Th k="move" label="Move" className={COL.move} />
             <Th k="games" label="Games" className={COL.games} />
             <th scope="col" className={cn(COL.share, "font-medium")}>Share</th>
@@ -219,10 +220,10 @@ export function MoveTable({ className }: { className?: string }) {
                     type="button"
                     aria-expanded={showRare}
                     onClick={() => setShowRare((v) => !v)}
-                    className="flex h-8 w-full items-center justify-center gap-1 px-3 text-xs text-muted-foreground outline-none hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
+                    className="flex h-8 w-full items-center justify-center gap-1.5 px-3 font-hand text-[17px] leading-none text-pencil outline-none hover:bg-specimen/60 hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
                   >
                     {showRare ? "Hide" : "Show"} {rare.length} rare {rare.length === 1 ? "move" : "moves"}
-                    <ChevronDown className={cn("size-3.5 transition-transform", showRare && "rotate-180")} />
+                    <InkArrow dir={showRare ? "up" : "down"} />
                   </button>
                 </td>
               ))}
@@ -239,7 +240,7 @@ export function MoveTable({ className }: { className?: string }) {
               <td className={cn(COL.games, "text-[13px]")}>{compact(total)}</td>
               <td className={cn(COL.share, "text-xs font-normal text-muted-foreground")}>100%</td>
               <td className={COL.bar}>
-                <WdbBar stats={result.stats} side={side} />
+                <WdbBar stats={result.stats} side={side} seed="total" />
               </td>
               <td className={cn(COL.score, "text-[13px]", scoreTextClass(sc, total))}>{total ? pct(sc) : "–"}</td>
             </tr>

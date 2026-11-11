@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { useExplorerStore } from "@/lib/store";
+import { InkCircle, RubberStamp, TicketEdge } from "@/components/paper";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -72,6 +73,7 @@ export function LinePanel({ className }: { className?: string }) {
     const san = path[i];
     if (san === undefined) return null;
     const current = i === cursor - 1;
+    const text = <span className="relative inline-block">{san}</span>;
     return (
       <button
         type="button"
@@ -79,18 +81,32 @@ export function LinePanel({ className }: { className?: string }) {
         aria-current={current ? "step" : undefined}
         data-current={current || undefined}
         className={cn(
-          "h-7 shrink-0 rounded-sm px-1.5 font-mono text-sm font-medium text-ink outline-none transition-colors hover:bg-specimen focus-visible:ring-2 focus-visible:ring-ring/60",
-          current && "bg-specimen font-bold shadow-[inset_0_-2px_0_var(--color-primary)]",
-          !current && i >= cursor && "font-normal text-muted-foreground italic",
+          "h-7 shrink-0 px-2 font-mono text-sm font-medium text-ink outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
+          current && "font-bold",
+          !current && i >= cursor && "font-normal text-pencil/70 italic",
         )}
       >
-        {san}
+        {current ? (
+          <InkCircle seed={`ply-${i}`} padX={5} padY={2} strokeWidth={1.6}>
+            {text}
+          </InkCircle>
+        ) : (
+          text
+        )}
       </button>
     );
   };
 
   return (
-    <section aria-label="Line" className={cn("flex h-11 shrink-0 items-center gap-1 rounded-none border border-rule-strong bg-card pr-1.5 pl-1.5", className)}>
+    // A paper ticket: perforated ends, moves typed in mono, the current move circled in ink.
+    <TicketEdge
+      role="region"
+      aria-label="Line"
+      ends="perforated"
+      seed="line"
+      wrapperClassName="h-11 shrink-0"
+      className={cn("flex h-11 items-center gap-1 pr-2 pl-3.5", className)}
+    >
       <div
         ref={scroller}
         onWheel={onWheel}
@@ -102,12 +118,11 @@ export function LinePanel({ className }: { className?: string }) {
           type="button"
           onClick={() => goTo(0)}
           aria-current={cursor === 0 ? "step" : undefined}
-          className={cn(
-            "label-caps h-6 shrink-0 rounded-sm border border-rule-strong bg-specimen px-2 text-[13px] outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-ring/60",
-            cursor === 0 && "text-ink shadow-[inset_0_-2px_0_var(--color-primary)]",
-          )}
+          className="h-7 shrink-0 px-1 outline-none focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring"
         >
-          Start
+          <RubberStamp variant="single" size="sm" rotate={-1.6} seed="start" tone={cursor === 0 ? "primary" : "muted"} className="pointer-events-none">
+            Start
+          </RubberStamp>
         </button>
         {path.length === 0 ? (
           <p className="shrink-0 px-2 text-sm whitespace-nowrap text-muted-foreground">Play a move on the board or pick one from the table</p>
@@ -115,7 +130,7 @@ export function LinePanel({ className }: { className?: string }) {
           <ol ref={listRef} className="flex items-center">
             {Array.from({ length: pairs }).map((_, r) => (
               <li key={r} className="flex shrink-0 items-center whitespace-nowrap">
-                <span className="pr-0.5 pl-1.5 text-xs text-muted-foreground tabular-nums">{r + 1}.</span>
+                <span className="pr-0.5 pl-2 font-mono text-xs text-pencil/80 tabular-nums">{r + 1}.</span>
                 {cell(r * 2)}
                 {cell(r * 2 + 1)}
               </li>
@@ -126,6 +141,6 @@ export function LinePanel({ className }: { className?: string }) {
       <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={toStart} disabled={cursor === 0} aria-label="Reset to start" title="Reset to start">
         <RotateCcw className="size-3.5" />
       </Button>
-    </section>
+    </TicketEdge>
   );
 }

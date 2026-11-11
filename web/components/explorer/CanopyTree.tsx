@@ -7,6 +7,9 @@ import { compact, pct, score } from "@/lib/format";
 import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
 import { EmptySpecimen, Kicker } from "@/components/field";
+import { PaperLabel } from "@/components/paper";
+import { Button } from "@/components/ui/button";
+import { inkStrokePath } from "@/lib/paper";
 import { cn } from "@/lib/utils";
 
 const DEPTHS = [2, 3, 4] as const;
@@ -220,7 +223,9 @@ export function CanopyTree({ active }: { active: boolean }) {
       >
         {lay && !empty && (
           <>
-            <g fill="none">
+            {/* Ribbons are watercolour washes: a soft, wider halo under a core wash, multiplied into the paper
+                (a plain overlay in dark mode), so they pool and overlap like pigment. */}
+            <g fill="none" style={{ mixBlendMode: "var(--hilite-blend)" as React.CSSProperties["mixBlendMode"] }}>
               {lay.nodes.map((p) => {
                 if (!p.parent) return null;
                 const x1 = p.parent.x + NODE_W + (p.parent.level === 0 ? 0 : lay.labelW);
@@ -228,14 +233,14 @@ export function CanopyTree({ active }: { active: boolean }) {
                 const xm = (x1 + x2) / 2;
                 const y2 = p.y + p.h / 2;
                 const on = hover === null || (hover + " ").startsWith(p.id + " ");
+                const d = `M${x1},${p.srcY} C${xm},${p.srcY} ${xm},${y2} ${x2},${y2}`;
+                const o = hover === null ? 1 : on ? 1.6 : 0.4;
                 return (
-                  <path
-                    key={p.id}
-                    d={`M${x1},${p.srcY} C${xm},${p.srcY} ${xm},${y2} ${x2},${y2}`}
-                    strokeWidth={p.w}
-                    style={{ stroke: scoreColor(p.sc), opacity: hover === null ? 0.5 : on ? 1 : 0.2 }}
-                    className="transition-opacity duration-150 motion-reduce:transition-none"
-                  />
+                  <g key={p.id} className="transition-opacity duration-150 motion-reduce:transition-none" style={{ stroke: scoreColor(p.sc) }}>
+                    <path d={d} strokeWidth={p.w + 3.5} style={{ opacity: 0.16 * o }} />
+                    <path d={d} strokeWidth={p.w + 1.2} style={{ opacity: 0.22 * o }} />
+                    <path d={d} strokeWidth={Math.max(1, p.w - 1)} style={{ opacity: 0.42 * o }} />
+                  </g>
                 );
               })}
             </g>
@@ -283,7 +288,10 @@ export function CanopyTree({ active }: { active: boolean }) {
                       />
                     </>
                   )}
-                  <rect x={p.x} y={p.y} width={NODE_W} height={p.h} rx={1} style={{ fill: root ? "var(--ink)" : scoreColor(p.sc) }} />
+                  <path
+                    d={inkStrokePath(p.id || "root", p.x + NODE_W / 2, p.y, p.x + NODE_W / 2, p.y + p.h, { width: NODE_W + 0.6, taper: 0.85, wobble: 0.5, samples: 6 })}
+                    style={{ fill: root ? "var(--ink)" : `color-mix(in oklch, ${scoreColor(p.sc)} 72%, var(--ink))` }}
+                  />
                   {root && lay.padL >= PAD_L && (
                     <text x={p.x - 7} textAnchor="end" y={cy - 1} className="font-serif" style={{ fontSize: 13, fontStyle: "italic", fill: "var(--ink)" }}>
                       {label}
@@ -349,36 +357,37 @@ export function CanopyTree({ active }: { active: boolean }) {
         </div>
       )}
       <div className="pointer-events-none absolute inset-x-2 top-1.5 flex items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 pt-0.5 text-[11px]">
+        {/* the key: a little paper card, colour chips cut from the same scale as the ribbons */}
+        <PaperLabel tone="cream" rotate={-0.5} className="h-auto min-w-0 flex-wrap gap-x-3 gap-y-0.5 py-1 font-sans tracking-normal">
           <Kicker as="span" className="mb-0">width = games · colour = your score</Kicker>
-          <span className="flex items-center gap-1.5 text-muted-foreground tabular-nums" aria-hidden="true">
-            <span>{`≤${pct(0.5 - SPREAD)}`}</span>
-            <span
-              className="h-1.5 w-14 rounded-[1px] border border-rule"
-              style={{ background: "linear-gradient(to right, var(--tree-low), var(--tree-mid), var(--tree-high))" }}
-            />
-            <span>{`≥${pct(0.5 + SPREAD)}`}</span>
+          <span className="hidden items-center gap-1.5 text-pencil tabular-nums min-[430px]:flex" aria-hidden="true">
+            <span className="font-mono">{`≤${pct(0.5 - SPREAD)}`}</span>
+            <span className="flex">
+              {[0, 0.25, 0.5, 0.75, 1].map((t) => (
+                <span key={t} className="h-2 w-3 shadow-[inset_0_0_0_0.5px_var(--bar-border)]" style={{ background: scoreColor(0.5 - SPREAD + t * 2 * SPREAD) }} />
+              ))}
+            </span>
+            <span className="font-mono">{`≥${pct(0.5 + SPREAD)}`}</span>
           </span>
-        </div>
+        </PaperLabel>
         <div role="group" aria-label="Tree depth" className="pointer-events-auto flex shrink-0 items-center gap-1.5 text-[11px]">
           <Kicker as="span" className="mb-0" aria-hidden="true">
             Plies
           </Kicker>
-          <div className="flex items-center gap-px border border-rule-strong bg-rule-strong">
+          <div className="flex items-center gap-1">
             {DEPTHS.map((d) => (
-              <button
+              <Button
                 key={d}
                 type="button"
+                variant="outline"
+                size="xs"
                 aria-pressed={depth === d}
                 aria-label={`Show ${d} plies`}
                 onClick={() => setDepth(d)}
-                className={cn(
-                  "h-6 min-w-6 px-1.5 font-mono tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring/60",
-                  depth === d ? "bg-card text-ink shadow-[inset_0_2px_0_var(--color-primary)]" : "bg-specimen text-muted-foreground hover:text-foreground",
-                )}
+                className="min-w-6 px-1.5 font-mono text-[11px] tabular-nums"
               >
                 {d}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
