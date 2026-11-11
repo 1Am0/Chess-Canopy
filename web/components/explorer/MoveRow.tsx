@@ -51,7 +51,7 @@ export function MoveRow({
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
       aria-selected={active}
-      className={cn("relative isolate h-8 cursor-pointer transition-colors hover:bg-specimen [&>td]:border-b [&>td]:border-border", active && "bg-accent hover:bg-accent [&>td:first-child]:shadow-[inset_2px_0_0_var(--primary)]")}
+      className={cn("relative isolate h-8 cursor-pointer transition-colors hover:bg-secondary [&>td]:border-b [&>td]:border-border", active && "bg-accent hover:bg-accent [&>td:first-child]:shadow-[inset_2px_0_0_var(--primary)]")}
     >
       <td className={COL.move} title={openingName ?? undefined}>
         <div className={cn("flex min-w-0 items-baseline gap-2 text-ink", dim && "text-muted-foreground")}>
