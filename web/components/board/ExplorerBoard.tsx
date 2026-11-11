@@ -8,7 +8,10 @@ import { usePosition } from "@/hooks/use-position";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { splitRare } from "@/components/explorer/rare";
 import { describePosition } from "@/components/board/describe-position";
-import { BoardOverlay, type OverlayArrow, type UserArrow, type UserColor } from "@/components/board/BoardOverlay";
+import { BoardOverlay, type OverlayArrow, type UserArrow, type UserInk } from "@/components/board/BoardOverlay";
+import { svgDataUri, washPath } from "@/lib/paper";
+import { PlateDefs, PLATE_DRAGGING_STYLE, PLATE_PIECES } from "@/components/board/pieces";
+import { PLATE_DARK, PLATE_FRAME, PLATE_LIGHT, PLATE_VARS, squareTile } from "@/components/board/plate-squares";
 
 const MAX_ARROWS = 3;
 const MIN_ARROW_SHARE = 0.1;
@@ -17,21 +20,30 @@ const MAX_WIDTH = 23.4; // 15/64 of a square
 const HOVER_WIDTH = 20;
 
 /**
- * Muted colors for arrows the user draws (right-drag, plus Shift / Ctrl / Alt / Cmd). The strings only matter while the
- * stroke is being dragged (the library paints that preview); once committed, BoardOverlay redraws the arrow.
+ * Muted inks for arrows the user draws (right-drag, plus Shift / Ctrl / Alt / Cmd). The strings only matter while the
+ * stroke is being dragged (the library paints that preview); once committed, BoardOverlay redraws the arrow as ink.
  */
-const USER_COLORS: Record<string, UserColor> = {
+const USER_INKS: Record<string, UserInk> = {
   "#4d7a55": "green",
   "#a8503f": "red",
-  "#b88a2e": "amber",
+  "#b88a2e": "ochre",
   "#4a77a0": "blue",
-  "#5b574d": "gray",
+  "#5b574d": "graphite",
 };
-const COLOR_STRINGS = { default: "#4d7a55", shift: "#a8503f", ctrl: "#b88a2e", alt: "#4a77a0", meta: "#5b574d" };
+const INK_STRINGS = { default: "#4d7a55", shift: "#a8503f", ctrl: "#b88a2e", alt: "#4a77a0", meta: "#5b574d" };
 
-/** Flat translucent highlights, layered over the square color. */
-const tint = (c: string): React.CSSProperties => ({ backgroundImage: `linear-gradient(${c}, ${c})` });
-const HIGHLIGHT = { last: tint("rgba(0, 93, 89, 0.25)"), sel: tint("rgba(20, 110, 190, 0.4)") } as const;
+/**
+ * A highlighter wash for one square: two uneven passes of a marker. It is a background image of the square (so the
+ * piece stays crisp on top); in light mode it multiplies with the square colour like ink soaking into paper.
+ */
+function washImage(seed: string, color: string, alpha: number): string {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><g fill='${color}'><path transform='translate(3 3)' fill-opacity='${alpha}' d='${washPath(seed, 94, 94, 4)}'/><path transform='translate(8 2)' fill-opacity='${alpha * 0.6}' d='${washPath(`${seed}b`, 86, 96, 3)}'/></g></svg>`;
+  return `url("${svgDataUri(svg)}")`;
+}
+/** Highlighter inks; they multiply with the printed square like marker soaking into paper. */
+const WASH = { last: "#f6e98c", sel: "#b4dde4", alpha: 0.8 } as const;
+
+const ALL_SQUARES = Array.from({ length: 64 }, (_, i) => `${"abcdefgh"[i % 8]}${Math.floor(i / 8) + 1}`);
 
 export function ExplorerBoard() {
   const { fen, visible, lastMove, key, turn } = usePosition();
@@ -156,12 +168,23 @@ export function ExplorerBoard() {
   }, [result, key, fen, hoverMove]);
 
   const squareStyles = useMemo(() => {
-    const s: Record<string, React.CSSProperties> = {};
+    const washed = new Map<string, "last" | "sel">();
     if (lastMove) {
-      s[lastMove.from] = HIGHLIGHT.last;
-      s[lastMove.to] = HIGHLIGHT.last;
+      washed.set(lastMove.from, "last");
+      washed.set(lastMove.to, "last");
     }
-    if (selected) s[selected] = HIGHLIGHT.sel;
+    if (selected) washed.set(selected, "sel");
+    const s: Record<string, React.CSSProperties> = {};
+    for (const sq of ALL_SQUARES) {
+      const tone = washed.get(sq);
+      s[sq] = tone
+        ? {
+            backgroundImage: `${washImage(`${tone}${sq}`, WASH[tone], WASH.alpha)}, ${squareTile(sq)}`,
+            backgroundBlendMode: "multiply, normal",
+            backgroundSize: "100% 100%",
+          }
+        : { backgroundImage: squareTile(sq), backgroundSize: "100% 100%" };
+    }
     return s;
   }, [lastMove, selected]);
 
@@ -169,12 +192,15 @@ export function ExplorerBoard() {
     <div
       ref={box}
       data-testid="board"
-      className="@container relative aspect-square w-full overflow-hidden"
+      className="@container relative aspect-square w-full overflow-hidden rounded-[1px]"
+      style={{ "--board-light": PLATE_LIGHT, "--board-dark": PLATE_DARK, ...PLATE_VARS, boxShadow: PLATE_FRAME } as React.CSSProperties}
       role="img"
       aria-label={`Chess board. ${describePosition(visible, turn)}`}
     >
+      <PlateDefs />
       <Chessboard
         options={{
+          pieces: PLATE_PIECES,
           id: "explorer-board",
           position: fen,
           boardOrientation: orientation,
@@ -184,27 +210,28 @@ export function ExplorerBoard() {
           animationDurationInMs: reduceMotion ? 0 : 150,
           onArrowsChange: ({ arrows: drawn }) =>
             setUserArrows((prev) => {
-              const next = drawn.map((a) => ({ from: a.startSquare, to: a.endSquare, color: USER_COLORS[a.color] ?? "green" }));
+              const next = drawn.map((a) => ({ from: a.startSquare, to: a.endSquare, ink: USER_INKS[a.color] ?? "green" }));
               return prev.length === 0 && next.length === 0 ? prev : next;
             }),
           arrowOptions: {
-            colors: COLOR_STRINGS,
-            color: COLOR_STRINGS.default,
-            secondaryColor: COLOR_STRINGS.shift,
-            tertiaryColor: COLOR_STRINGS.ctrl,
+            colors: INK_STRINGS,
+            color: INK_STRINGS.default,
+            secondaryColor: INK_STRINGS.shift,
+            tertiaryColor: INK_STRINGS.ctrl,
             arrowLengthReducerDenominator: 8,
             sameTargetArrowLengthReducerDenominator: 4,
             arrowWidthDenominator: 5.5,
             activeArrowWidthMultiplier: 0.9,
-            // Committed arrows are redrawn by BoardOverlay; the library only paints the stroke being dragged.
+            // Committed arrows are redrawn as ink by BoardOverlay; the library only paints the stroke being dragged.
             opacity: 0,
             activeOpacity: 0.45,
             arrowStartOffset: 0.15,
           },
           squareStyles,
-          lightSquareStyle: { backgroundColor: "var(--board-light)" },
-          darkSquareStyle: { backgroundColor: "var(--board-dark)" },
-          dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,255,255,0.7)" },
+          lightSquareStyle: { backgroundColor: PLATE_LIGHT },
+          darkSquareStyle: { backgroundColor: PLATE_DARK },
+          dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,252,238,0.75)" },
+          draggingPieceStyle: PLATE_DRAGGING_STYLE,
           onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare ? tryMove(sourceSquare, targetSquare) : false),
           onSquareClick: ({ square }) => {
             if (selected && selected !== square && tryMove(selected, square)) return;

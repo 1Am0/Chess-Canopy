@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadOpenings, lookupOpening, openingCount, openingsVersion } from "@/lib/openings/lookup";
 
 // Own file: the dataset must not have been loaded by another test in this module instance.
-describe("lazy loading", () => {
+describe("lazy loading (M11)", () => {
   it("names nothing until the dataset chunk has loaded, then bumps the version", async () => {
     const before = openingsVersion();
     expect(openingCount()).toBe(0);

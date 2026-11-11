@@ -3,6 +3,7 @@
 import { ChevronsUpDown, Settings2, Users } from "lucide-react";
 import { effectiveSelection, useExplorerStore } from "@/lib/store";
 import { sourceLabel } from "@/lib/format";
+import { PaperLabel } from "@/components/paper";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -41,31 +42,38 @@ export function PlayerSwitcher() {
           {/* narrow phones: icon + game count, the full name stays in the accessible name */}
           <span className="min-w-[2ch] text-right text-xs text-muted-foreground tabular-nums min-[380px]:hidden sm:inline sm:min-w-[5ch]">{total.toLocaleString()}</span>
           <ChevronsUpDown className="size-3.5 text-muted-foreground" />
+          {/* the label's folded corner: a dog-ear with a darker underside and a soft shadow */}
+          <span aria-hidden className="paper-deco pointer-events-none absolute -top-px -right-px size-3.5">
+            <span className="absolute inset-0 bg-[var(--strip)] [clip-path:polygon(0_0,100%_0,100%_100%)]" style={{ backgroundImage: "var(--sheet-tile)" }} />
+            <span className="absolute inset-0 [clip-path:polygon(0_0,100%_100%,0_100%)] [background:linear-gradient(135deg,var(--sheet-under),var(--sheet-flat))] drop-shadow-[-1px_1px_1px_var(--btn-drop)]" />
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-2" aria-label="Choose players">
-        <label className="flex cursor-pointer items-center gap-2.5 rounded-sm px-2 py-2 text-sm hover:bg-accent has-[:focus-visible]:bg-accent">
-          <Checkbox checked={isAll} onCheckedChange={() => setSelected("all")} aria-label="All players" />
-          <span className="min-w-0 flex-1 font-semibold">All players</span>
-          <span className="text-xs text-muted-foreground tabular-nums">
+        <p className="kicker mb-0 px-2 pt-1 pb-0.5">Collection</p>
+        <label className="paper-row flex cursor-pointer items-baseline gap-2.5 px-2 py-2 text-sm hover:before:opacity-100 has-[:focus-visible]:before:opacity-100">
+          <Checkbox className="self-center" checked={isAll} onCheckedChange={() => setSelected("all")} aria-label="All players" />
+          <span className="font-serif text-base font-semibold italic">All players</span>
+          <span className="leader" aria-hidden="true" />
+          <span className="font-mono text-xs text-muted-foreground tabular-nums">
             {players.reduce((n, p) => n + p.gameCount, 0).toLocaleString()}
           </span>
         </label>
-        <Separator className="my-1" />
+        <Separator variant="pencil" className="my-1" />
         <ul>
           {players.map((p) => (
             <li key={p.id}>
-              <label className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-2 text-sm hover:bg-accent has-[:focus-visible]:bg-accent">
-                <Checkbox checked={isAll || eff.includes(p.id)} disabled={!isAll && eff.length === 1 && eff.includes(p.id)} onCheckedChange={() => toggle(p.id)} aria-label={p.displayName} />
-                <span className="min-w-0 truncate">{p.displayName}</span>
-                <span className="shrink-0 rounded-sm border border-border bg-secondary px-1.5 text-xs leading-5 text-muted-foreground">{sourceLabel(p.source)}</span>
-                <span className="flex-1" aria-hidden="true" />
-                <span className="min-w-9 text-right text-xs text-muted-foreground tabular-nums">{p.gameCount.toLocaleString()}</span>
+              <label className="paper-row flex cursor-pointer items-baseline gap-2 px-2 py-2 text-sm hover:before:opacity-100 has-[:focus-visible]:before:opacity-100">
+                <Checkbox className="self-center" checked={isAll || eff.includes(p.id)} disabled={!isAll && eff.length === 1 && eff.includes(p.id)} onCheckedChange={() => toggle(p.id)} aria-label={p.displayName} />
+                <span className="min-w-0 truncate font-serif text-base italic">{p.displayName}</span>
+                <PaperLabel tone="manila" className="self-center text-[10px] leading-4">{sourceLabel(p.source)}</PaperLabel>
+                <span className="leader" aria-hidden="true" />
+                <span className="min-w-9 text-right font-mono text-xs text-muted-foreground tabular-nums">{p.gameCount.toLocaleString()}</span>
               </label>
             </li>
           ))}
         </ul>
-        <Separator className="my-1" />
+        <Separator variant="pencil" className="my-1" />
         <Button variant="secondary" size="sm" className="w-full justify-start" onClick={() => setUi({ managerOpen: true })}>
           <Settings2 /> Manage players…
         </Button>

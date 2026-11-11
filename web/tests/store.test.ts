@@ -20,7 +20,7 @@ beforeEach(() => {
   useExplorerStore.setState({ path: [], cursor: 0, hoverMove: null, filters: { color: "white" }, result: null });
 });
 
-describe("playMove", () => {
+describe("playMove (C7)", () => {
   it("ignores illegal input and never wipes the line", () => {
     st().playMove("e4");
     st().playMove("e5");
@@ -79,11 +79,15 @@ describe("loadGame", () => {
 });
 
 describe("persist migration v5 (one look only)", () => {
-  it("drops stored board colors and sound sets from older versions", () => {
+  it("drops stored board colours and sound sets from older versions", () => {
     const m = migratePersisted({ boardTheme: "green", soundTheme: "piano", soundEnabled: false }, 4);
     expect(m).not.toHaveProperty("boardTheme");
     expect(m).not.toHaveProperty("soundTheme");
     expect(m.soundEnabled).toBe(false);
+  });
+  it("the live store always uses the Lichen board and the standard sounds", () => {
+    expect(st().boardTheme).toBe("lichen");
+    expect(st().soundTheme).toBe("standard");
   });
 });
 
@@ -97,7 +101,7 @@ describe("setLine", () => {
   });
 });
 
-describe("persist migration v2", () => {
+describe("persist migration v2 (C5)", () => {
   it("drops the move range from stored filters", () => {
     const v1 = { selected: "all", filters: { color: "black", moves_start: 1, moves_end: 10, result: "1-0" }, orientation: "black", sideChosen: true };
     expect(migratePersisted(v1, 1)).toMatchObject({ filters: { color: "black", result: "1-0" }, sideChosen: true });
@@ -117,7 +121,7 @@ describe("persist migration v2", () => {
   });
 });
 
-describe("isResultFresh", () => {
+describe("isResultFresh (C7)", () => {
   const r = (path: string[]) => ({ path }) as unknown as QueryResult;
   it("is true only for the shown position", () => {
     expect(isResultFresh({ result: null, path: [], cursor: 0 })).toBe(false);
@@ -127,7 +131,7 @@ describe("isResultFresh", () => {
   });
 });
 
-describe("position cache", () => {
+describe("position cache (C15)", () => {
   it("returns the same object for the same line and extends incrementally", () => {
     const a = ["e4", "e5", "Nf3"];
     const lp = linePositions(a);
@@ -156,7 +160,7 @@ describe("position cache", () => {
   });
 });
 
-describe("URL ?line=", () => {
+describe("URL ?line= (C16)", () => {
   const get = (search: string) => new URLSearchParams(search).get("line");
   it("restores '+' decoded as a space, accepts %2B and a missing '+'", () => {
     expect(parseLineParam(get("?line=e4,e5,Bc4,Nc6,Bxf7+,Kxf7"))).toEqual(["e4", "e5", "Bc4", "Nc6", "Bxf7+", "Kxf7"]);
@@ -184,13 +188,13 @@ describe("explicit side choice", () => {
     expect(useExplorerStore.getState()).toMatchObject({ sideExplicit: true, orientation: "white" });
     expect(useExplorerStore.getState().filters.color).toBe("white");
   });
-  it("migration: v2 state gets sideExplicit=false; v0 explicit color is explicit", () => {
+  it("migration: v2 state gets sideExplicit=false; v0 explicit colour is explicit", () => {
     expect(migratePersisted({ filters: { color: "black" }, sideChosen: true }, 2)).toMatchObject({ sideExplicit: false });
     expect(migratePersisted({ filters: { color: "black" } }, 0)).toMatchObject({ sideExplicit: true });
   });
 });
 
-describe("auto side", () => {
+describe("auto side (C12)", () => {
   it("first summary: the side with more games, including a Black-only player", () => {
     expect(autoSide({ games: 0, counts: { white: 0, black: 2 } }, "white", false, 0)).toBe("black");
     expect(autoSide({ games: 3, counts: { white: 3, black: 2 } }, "white", false, 0)).toBeNull();
@@ -203,7 +207,7 @@ describe("auto side", () => {
   });
 });
 
-describe("change-aware persist storage", () => {
+describe("change-aware persist storage (M6)", () => {
   it("skips writes when the persisted fields did not change", () => {
     const writes: string[] = [];
     const g = globalThis as unknown as { window?: unknown };
@@ -234,7 +238,7 @@ describe("change-aware persist storage", () => {
   });
 });
 
-describe("filters and side", () => {
+describe("filters and side (M5, L15)", () => {
   it("setFilters swaps inverted rating and date ranges", () => {
     st().setFilters({ min_my_rating: 2500, max_my_rating: 1000 });
     expect(st().filters).toMatchObject({ min_my_rating: 1000, max_my_rating: 2500 });
@@ -249,7 +253,7 @@ describe("filters and side", () => {
   });
 });
 
-describe("loadFailed", () => {
+describe("loadFailed (M3)", () => {
   it("is true only when nothing is pending and no result exists", () => {
     const base = { ready: true, players: [{ id: "p" }] as never, result: null, resultLoading: false };
     expect(loadFailed(base)).toBe(true);

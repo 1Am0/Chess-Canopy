@@ -73,7 +73,7 @@ function jsonRes(body: unknown, status = 200): Response {
 describe("chess.com fetch", () => {
   const archives = ["https://api.chess.com/pub/player/hero/games/2024/01", "https://api.chess.com/pub/player/hero/games/2024/02", "https://api.chess.com/pub/player/hero/games/2024/03"];
   const noSleep = async () => {};
-  it("fetches newest first, honors sinceMonth, reports progress", async () => {
+  it("fetches newest first, honours sinceMonth, reports progress", async () => {
     const calls: string[] = [];
     const fetchImpl = vi.fn(async (u: string | URL | Request) => {
       const url = String(u);
@@ -141,7 +141,7 @@ describe("chess.com fetch", () => {
     expect(n).toBe(1);
     expect(err).toMatchObject({ status: 403, body: "Blocked: Archive crawl was too heavy for this API." });
   });
-  it("honors Retry-After and caps the backoff", async () => {
+  it("honours Retry-After and caps the backoff", async () => {
     let n = 0;
     const delays: number[] = [];
     const fetchImpl = (async (u: string | URL | Request) => {
@@ -266,7 +266,7 @@ describe("normalize", () => {
   });
 });
 
-describe("time-control rule", () => {
+describe("time-control rule (C14)", () => {
   it("daily for '/', '-' and 'day' formats", () => {
     expect(timeControlLabel("1/86400")).toBe("daily");
     expect(timeControlLabel("-")).toBe("daily");
@@ -298,7 +298,7 @@ describe("time-control rule", () => {
   });
 });
 
-describe("san normalisation", () => {
+describe("san normalisation (C17)", () => {
   it("lower-case and zero castling, promotions without '=', glued e.p.", () => {
     expect(extractSanMoves("1. e4 e5 2. o-o o-o-o+ 3. 0-0")).toEqual(["e4", "e5", "O-O", "O-O-O+", "O-O"]);
     expect(extractSanMoves("1. e8Q exd1q+ e8=n")).toEqual(["e8=Q", "exd1=Q+", "e8=N"]);
@@ -306,7 +306,7 @@ describe("san normalisation", () => {
   });
 });
 
-describe("pgn ids, variants, elo and dates", () => {
+describe("pgn ids, variants, elo and dates (C3, C4, C20)", () => {
   const game = (h: Record<string, string>, moves = "1. e4 e5 2. Nf3 Nc6") =>
     Object.entries(h).map(([k, v]) => `[${k} "${v}"]`).join("\n") + `\n\n${moves} ${h.Result ?? "*"}\n\n`;
   it("Site 'Chess.com' without Link keeps every game; OTB Site too", () => {
@@ -363,7 +363,7 @@ describe("pgn ids, variants, elo and dates", () => {
   });
 });
 
-describe("json import checks", () => {
+describe("json import checks (C3, C4, C13, C14)", () => {
   const opts = { source: "json" as const, playerId: "json:me" };
   const base = { moves: ["e4", "e5"], color: "white", result: "1-0", date: "2024-01-01", opponent: "x", time_control: "blitz", time_control_raw: "300+0" };
   it("drops variants and counts them", () => {
@@ -439,7 +439,7 @@ describe("chess.com and lichess variant checks (C4d)", () => {
     expect(isOngoing({ ...l, status: "created" })).toBe(true);
     expect(isOngoing(l)).toBe(false);
   });
-  it("requests oldest first including ongoing games", async () => {
+  it("requests oldest first including ongoing games (C1, C2)", async () => {
     let url = "";
     const fetchImpl = (async (u: string | URL | Request) => {
       url = String(u);

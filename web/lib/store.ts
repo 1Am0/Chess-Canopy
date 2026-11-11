@@ -3,9 +3,10 @@
 import { create } from "zustand";
 import { persist, type PersistStorage, type StorageValue } from "zustand/middleware";
 import type { Color, Filters, Player, QueryResult, SelectionSummary } from "@/lib/engine/types";
-import { setSoundsEnabled } from "@/lib/sound";
+import { DEFAULT_SOUND_THEME, setSoundsEnabled, type SoundTheme } from "@/lib/sound";
 import { canonicalLine, legalSan, linePositions } from "@/lib/position-cache";
 
+export type BoardTheme = "lichen";
 
 function readLocal(key: string): string | null {
   try {
@@ -65,8 +66,10 @@ export interface ExplorerState {
   // persisted
   selected: string[] | "all";
   filters: Filters;
+  boardTheme: BoardTheme;
   /** Sound feedback on moves and imports (persisted). */
   soundEnabled: boolean;
+  soundTheme: SoundTheme;
   setSoundEnabled: (on: boolean) => void;
   orientation: Color;
   /** true once the user picked a side (or the one-time auto pick ran) */
@@ -135,7 +138,10 @@ export const useExplorerStore = create<ExplorerState>()(
       filters: { color: "white" },
       sideChosen: false,
       sideExplicit: false,
+      // Fixed for now: no UI picks the board colours or the sound set, and neither is persisted.
+      boardTheme: "lichen",
       soundEnabled: true,
+      soundTheme: DEFAULT_SOUND_THEME,
       setSoundEnabled: (soundEnabled) => {
         setSoundsEnabled(soundEnabled);
         set({ soundEnabled });
@@ -329,10 +335,12 @@ export function migratePersisted(persisted: unknown, version: number): ExplorerS
     p = { ...p, filters };
   }
   if (version < 3 && p.sideExplicit === undefined) p = { ...p, sideExplicit: false };
-  // v5: one look only (default board colors, standard sounds). The pickers are gone, so older stored choices are dropped.
+  // v4: the default sound theme became "standard" (Lichess default); nobody picked "sfx" on purpose yet.
+  if (version < 4 && (p.soundTheme === undefined || (p.soundTheme as string) === "sfx")) p = { ...p, soundTheme: "standard" };
+  // v5: one look only (Lichen board, "standard" sounds). The pickers are gone, so older stored choices are dropped.
   if (version < 5) {
-    delete (p as Record<string, unknown>).boardTheme;
-    delete (p as Record<string, unknown>).soundTheme;
+    delete p.boardTheme;
+    delete p.soundTheme;
   }
   return p as ExplorerState;
 }

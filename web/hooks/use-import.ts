@@ -21,7 +21,7 @@ export function useImport() {
       refreshed = false;
     }
     if (!refreshed) {
-      toast.warning("Import finished. Reload the page to refresh the player list.");
+      toast.warning("Import finished, but the player list could not be refreshed. Reload the page to see it.");
       return;
     }
     const st = useExplorerStore.getState();
@@ -47,7 +47,7 @@ export function useImport() {
     toast.success(
       outcome.added > 0
         ? `Imported ${outcome.added.toLocaleString()} new games (${outcome.total.toLocaleString()} total)${skipped}`
-        : `Already up to date. No new games${skipped}`,
+        : `Already up to date: no new games${skipped}`,
     );
   }, []);
 

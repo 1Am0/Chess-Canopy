@@ -34,7 +34,7 @@ _sleep = time.sleep  # indirection so tests can avoid real waits
 
 
 def _get_with_retry(session: requests.Session, url: str, timeout: int) -> requests.Response:
-    """GET with exponential backoff (honoring Retry-After) on throttling/server errors."""
+    """GET with exponential backoff (honouring Retry-After) on throttling/server errors."""
     for attempt in range(_MAX_ATTEMPTS):
         r = session.get(url, timeout=timeout)
         if r.status_code not in _RETRY_STATUSES or attempt == _MAX_ATTEMPTS - 1:

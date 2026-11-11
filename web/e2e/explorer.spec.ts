@@ -21,7 +21,7 @@ test("onboarding -> JSON import shows move table and game count", async ({ page 
 
 test("PGN import (username Hero) shows move rows in the explorer", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Explore the openings/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
   await page.getByRole("tab", { name: "PGN" }).click();
   await page.getByLabel("Drop a .pgn file here").setInputFiles(PGN_SAMPLE);
   await page.getByLabel("Your username in these games").fill("Hero");
@@ -120,15 +120,15 @@ test("deleting the last player returns to Welcome", async ({ page }) => {
   await page.getByRole("button", { name: "Delete tester" }).click();
   await page.getByRole("button", { name: "Delete", exact: true }).click();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("heading", { name: /Explore the openings/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("heading", { name: /Explore the openings/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
 });
 
 test("mobile viewport: no horizontal scroll, board visible, tabs switch", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Explore the openings/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
   await importSampleJson(page);
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
@@ -166,14 +166,14 @@ test("side switch keeps the line, flips board and player strip; White switches b
   // The line is kept: only the side and board orientation change.
   await expect(page).toHaveURL(/line=e4/);
 
-  // Board orientation follows the side: a1 is now at the top, and the bottom strip is "You Black".
+  // Board orientation follows the side: a1 is now at the top, and the bottom strip is "You · Black".
   const board = page.getByLabel("Chess board");
   const a1 = await board.locator("[data-square='a1']").first().boundingBox();
   const h8 = await board.locator("[data-square='h8']").first().boundingBox();
   expect(a1!.y).toBeLessThan(h8!.y);
   const you = page.getByText("You", { exact: true });
   await expect(you).toBeVisible();
-  await expect(page.getByTestId("strip-bottom").getByText("Black", { exact: true })).toBeVisible();
+  await expect(page.getByText(/^·\s*Black$/)).toBeVisible();
   const boardBox = await board.boundingBox();
   const youBox = await you.boundingBox();
   expect(youBox!.y).toBeGreaterThan(boardBox!.y + boardBox!.height);
@@ -181,7 +181,7 @@ test("side switch keeps the line, flips board and player strip; White switches b
   await white.click();
   await expect(white).toBeChecked();
   await expect(black).not.toBeChecked();
-  await expect(page.getByTestId("strip-bottom").getByText("White", { exact: true })).toBeVisible();
+  await expect(page.getByText(/^·\s*White$/)).toBeVisible();
   const a1w = await board.locator("[data-square='a1']").first().boundingBox();
   const h8w = await board.locator("[data-square='h8']").first().boundingBox();
   expect(a1w!.y).toBeGreaterThan(h8w!.y);

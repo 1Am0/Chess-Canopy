@@ -6,7 +6,7 @@ import type { ExplorerAPI } from "@/lib/engine/types";
 
 const wait = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 
-describe("cross-tab sync", () => {
+describe("cross-tab sync (M12)", () => {
   it("tells other tabs about changes and hears theirs", async () => {
     const other = new BroadcastChannel("chess-canopy");
     const heard = vi.fn();

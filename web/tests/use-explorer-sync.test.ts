@@ -59,7 +59,7 @@ afterEach(async () => {
 });
 
 describe("useExplorerSync", () => {
-  it("auto-picks Black for a Black-only player", async () => {
+  it("auto-picks Black for a Black-only player (C12)", async () => {
     await wait(220);
     expect(calls.setSelection).toHaveLength(1);
     await act(async () => calls.setSelection[0].d.resolve(sum(0, 2)));
@@ -102,7 +102,7 @@ describe("useExplorerSync", () => {
     expect(useExplorerStore.getState().filters.color).toBe("white");
   });
 
-  it("ignores a stale setSelection and waits for the pending one before querying", async () => {
+  it("ignores a stale setSelection and waits for the pending one before querying (C8)", async () => {
     await wait(220);
     await act(async () => calls.setSelection[0].d.resolve(sum(3, 1)));
     await wait(10);

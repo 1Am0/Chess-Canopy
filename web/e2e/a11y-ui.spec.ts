@@ -7,7 +7,7 @@ test.beforeEach(async ({ context }) => {
 
 const lineParam = (page: Page) => new URL(page.url()).searchParams.get("line");
 
-test("arrow keys on the tabs and the side switch move focus, not the line", async ({ page }) => {
+test("arrow keys on the tabs and the side switch move focus, not the line (H1)", async ({ page }) => {
   await importSampleJson(page);
   await moveRow(page, "e4").click();
   await expect(page).toHaveURL(/line=e4$/);
@@ -36,7 +36,7 @@ test("arrow keys on the tabs and the side switch move focus, not the line", asyn
   await expect.poll(() => lineParam(page)).toBeNull();
 });
 
-test("the board is one labelled image and its pieces are not tab stops", async ({ page }) => {
+test("the board is one labelled image and its pieces are not tab stops (H2, L1)", async ({ page }) => {
   await importSampleJson(page);
   const board = page.getByTestId("board");
   await expect(board).toHaveAttribute("role", "img");
@@ -50,7 +50,7 @@ test("the board is one labelled image and its pieces are not tab stops", async (
   await expect(page.getByRole("region", { name: "Board" })).toHaveCount(1);
 });
 
-test("the move table is a grid whose active row is only announced while it has focus", async ({ page }) => {
+test("the move table is a grid whose active row is only announced while it has focus (M8)", async ({ page }) => {
   await importSampleJson(page);
   const grid = page.getByRole("grid", { name: /^Candidate moves/ });
   await expect(grid).not.toHaveAttribute("aria-activedescendant", /.+/);
@@ -61,10 +61,11 @@ test("the move table is a grid whose active row is only announced while it has f
   await expect(page.locator("#move-row-1")).toHaveAttribute("aria-selected", "true");
 });
 
-test("one look only: no Appearance menu, light theme even when the system prefers dark", async ({ page }) => {
+test("one look only: no Appearance menu, light theme even when the system prefers dark (R4)", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await importSampleJson(page);
   await expect(page.getByRole("button", { name: "Appearance" })).toHaveCount(0);
+  await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
   // The shortcuts help is reachable at every width.
   await page.getByRole("button", { name: "Keyboard shortcuts" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -74,7 +75,7 @@ test("one look only: no Appearance menu, light theme even when the system prefer
   await page.keyboard.press("Escape");
 });
 
-test("popovers and the opponent picker have names", async ({ page }) => {
+test("popovers and the opponent picker have names (L2, M8)", async ({ page }) => {
   await importSampleJson(page);
   await page.getByRole("button", { name: /^Players:/ }).click();
   await expect(page.getByRole("dialog", { name: "Choose players" })).toBeVisible();
@@ -84,7 +85,7 @@ test("popovers and the opponent picker have names", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Opponents" })).toBeVisible();
 });
 
-test("320px: header controls do not overlap and the summary is not clipped", async ({ page }) => {
+test("320px: header controls do not overlap and the summary is not clipped (H3)", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });
   await importSampleJson(page);
   const boxes = await page.evaluate(() =>
@@ -118,7 +119,7 @@ test("320px: header controls do not overlap and the summary is not clipped", asy
   expect(await page.evaluate(() => document.scrollingElement!.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test("rating ranges are applied on blur and an inverted range is swapped", async ({ page }) => {
+test("rating ranges are applied on blur and an inverted range is swapped (M5)", async ({ page }) => {
   await importSampleJson(page);
   await page.getByRole("button", { name: /^Filters/ }).click();
   const min = page.getByLabel("My rating minimum");
@@ -134,7 +135,7 @@ test("rating ranges are applied on blur and an inverted range is swapped", async
   await expect(page.getByLabel("Active filters").getByText("My rating 1000–2500")).toBeVisible();
 });
 
-test("the viewed side is written to the address bar after a click", async ({ page }) => {
+test("the viewed side is written to the address bar after a click (L15)", async ({ page }) => {
   await importSampleJson(page);
   await page.getByRole("radio", { name: "View games as Black" }).click();
   await expect(page).toHaveURL(/side=black/);
@@ -142,7 +143,7 @@ test("the viewed side is written to the address bar after a click", async ({ pag
   await expect(page).toHaveURL(/side=white/);
 });
 
-test("closing the import dialog keeps progress and Cancel in the header", async ({ page, context }) => {
+test("closing the import dialog keeps progress and Cancel in the header (M1)", async ({ page, context }) => {
   await context.unrouteAll();
   await mockApis(context, 2500);
   await importSampleJson(page);
@@ -167,7 +168,7 @@ test("closing the import dialog keeps progress and Cancel in the header", async 
   await expect(chip).toBeHidden();
 });
 
-test("the last selected player can't be unchecked", async ({ page }) => {
+test("the last selected player can't be unchecked (L14)", async ({ page }) => {
   await importSampleJson(page);
   await page.getByRole("button", { name: "Import games" }).click();
   const dlg = page.getByRole("dialog");

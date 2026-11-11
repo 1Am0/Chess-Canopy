@@ -37,7 +37,7 @@ export const MANY_GAMES_JSON = path.join(root, "e2e/fixtures/many_games.json");
 
 export async function importJsonFile(page: Page, file: string, username = "tester") {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Explore the openings/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Your openings/ })).toBeVisible();
   await page.getByRole("tab", { name: "JSON" }).click();
   await page.getByLabel("Drop a JSON file exported by the Python CLI").setInputFiles(file);
   await page.getByLabel(/Player label/).fill(username);

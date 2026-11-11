@@ -6,8 +6,10 @@ import { getExplorer, isExplorerRestart } from "@/lib/explorer-client";
 import { compact, pct, score } from "@/lib/format";
 import { useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
-import { EmptyState } from "@/components/field";
+import { EmptySpecimen, Kicker } from "@/components/field";
+import { PaperLabel } from "@/components/paper";
 import { Button } from "@/components/ui/button";
+import { inkStrokePath } from "@/lib/paper";
 import { cn } from "@/lib/utils";
 
 const DEPTHS = [2, 3, 4] as const;
@@ -25,15 +27,15 @@ const SPREAD = 0.15;
 /** Node heights that still fit a one-line / two-line label. */
 const H_ONE = 12;
 const H_TWO = 28;
-/** Rough advance of one 12px tabular digit/glyph in the stats line, used to check it fits its slot. */
-const STAT_CH = 7;
+/** Rough advance of one 11px tabular digit/glyph in the stats line, used to check it fits its slot. */
+const STAT_CH = 6.4;
 
-/** Diverging OKLCH color for a score in [0, 1]; the tokens are defined in the theme. */
+/** Diverging OKLCH colour for a score in [0, 1]; the tokens are defined in the theme. */
 export function scoreColor(sc: number): string {
   const d = Math.max(-1, Math.min(1, (sc - 0.5) / SPREAD));
-  const mid = "var(--tree-mid)";
-  if (d >= 0) return `color-mix(in oklab, var(--tree-high) ${Math.round(d * 100)}%, ${mid})`;
-  return `color-mix(in oklab, var(--tree-low) ${Math.round(-d * 100)}%, ${mid})`;
+  const mid = "var(--tree-mid, #cfc6ad)";
+  if (d >= 0) return `color-mix(in oklch, var(--tree-high, #3f8a7a) ${Math.round(d * 100)}%, ${mid})`;
+  return `color-mix(in oklch, var(--tree-low, #c0782f) ${Math.round(-d * 100)}%, ${mid})`;
 }
 
 /** "3. Nf3" for a White ply, "3… c5" for a Black ply; `ply` is the 0-based index of the move. */
@@ -218,13 +220,14 @@ export function CanopyTree({ active }: { active: boolean }) {
         height={size.h}
         viewBox={`0 0 ${Math.max(size.w, 1)} ${Math.max(size.h, 1)}`}
         role="group"
-        aria-label="Opening tree: branch width is games, color is your score"
+        aria-label="Opening tree: branch width is games, colour is your score"
         className={cn("absolute inset-0 transition-opacity duration-150 motion-reduce:transition-none", loading ? "opacity-50" : "opacity-100")}
       >
         {lay && !empty && (
           <>
-            {/* Ribbons: one translucent stroke per branch, colored by score. */}
-            <g fill="none">
+            {/* Ribbons are watercolour washes: a soft, wider halo under a core wash, multiplied into the paper
+                (a plain overlay in dark mode), so they pool and overlap like pigment. */}
+            <g fill="none" style={{ mixBlendMode: "var(--hilite-blend)" as React.CSSProperties["mixBlendMode"] }}>
               {lay.nodes.map((p) => {
                 if (!p.parent) return null;
                 const x1 = p.parent.x + NODE_W + (p.parent.level === 0 ? 0 : lay.labelW);
@@ -236,7 +239,9 @@ export function CanopyTree({ active }: { active: boolean }) {
                 const o = hover === null ? 1 : on ? 1.6 : 0.4;
                 return (
                   <g key={p.id} className="transition-opacity duration-150 motion-reduce:transition-none" style={{ stroke: scoreColor(p.sc) }}>
-                    <path d={d} strokeWidth={Math.max(1, p.w)} style={{ opacity: Math.min(1, 0.5 * o) }} />
+                    <path d={d} strokeWidth={p.w + 3.5} style={{ opacity: 0.16 * o }} />
+                    <path d={d} strokeWidth={p.w + 1.2} style={{ opacity: 0.22 * o }} />
+                    <path d={d} strokeWidth={Math.max(1, p.w - 1)} style={{ opacity: 0.42 * o }} />
                   </g>
                 );
               })}
@@ -286,18 +291,14 @@ export function CanopyTree({ active }: { active: boolean }) {
                       />
                     </>
                   )}
-                  <rect
-                    x={p.x}
-                    y={p.y}
-                    width={NODE_W}
-                    height={p.h}
-                    rx={1}
-                    style={{ fill: root ? "var(--strong)" : `color-mix(in oklab, ${scoreColor(p.sc)} 72%, var(--strong))` }}
+                  <path
+                    d={inkStrokePath(p.id || "root", p.x + NODE_W / 2, p.y, p.x + NODE_W / 2, p.y + p.h, { width: NODE_W + 0.6, taper: 0.85, wobble: 0.5, samples: 6 })}
+                    style={{ fill: root ? "var(--ink)" : `color-mix(in oklch, ${scoreColor(p.sc)} 72%, var(--ink))` }}
                   />
                   {root && lay.padL >= PAD_L && (
-                    <text x={p.x - 7} textAnchor="end" y={cy - 1} className="font-sans" style={{ fontSize: 13, fontWeight: 600, fill: "var(--strong)" }}>
+                    <text x={p.x - 7} textAnchor="end" y={cy - 1} className="font-serif" style={{ fontSize: 13, fontStyle: "italic", fill: "var(--ink)" }}>
                       {label}
-                      <tspan x={p.x - 7} dy={13} className="font-sans" style={{ fontSize: 12, fontVariantNumeric: "tabular-nums", fill: "var(--muted-foreground)" }}>
+                      <tspan x={p.x - 7} dy={13} className="font-sans" style={{ fontSize: 11, fontStyle: "normal", fontVariantNumeric: "tabular-nums", fill: "var(--muted-foreground)" }}>
                         {compact(games)} {games === 1 ? "game" : "games"}
                       </tspan>
                     </text>
@@ -309,7 +310,7 @@ export function CanopyTree({ active }: { active: boolean }) {
                         y={two ? cy - 2 : cy}
                         dominantBaseline={two ? "auto" : "central"}
                         className="font-mono"
-                        style={{ fontSize: 12, fontWeight: 600, fill: "var(--strong)" }}
+                        style={{ fontSize: 11, fontWeight: 600, fill: "var(--ink)" }}
                       >
                         {label}
                       </text>
@@ -318,7 +319,7 @@ export function CanopyTree({ active }: { active: boolean }) {
                           x={p.x + NODE_W + 6}
                           y={cy + 12}
                           className="font-sans"
-                          style={{ fontSize: 12, fontVariantNumeric: "tabular-nums", fill: "var(--muted-foreground)" }}
+                          style={{ fontSize: 11, fontVariantNumeric: "tabular-nums", fill: "var(--muted-foreground)" }}
                         >
                           {stats}
                         </text>
@@ -337,7 +338,7 @@ export function CanopyTree({ active }: { active: boolean }) {
                         style={{ stroke: "var(--rule-strong)" }}
                       />
                       {stubRoom >= 64 && (
-                        <text x={stubX + 16} y={p.y + p.h - 1} dominantBaseline="central" className="font-sans" style={{ fontSize: 12, fill: "var(--muted-foreground)" }}>
+                        <text x={stubX + 16} y={p.y + p.h - 1} dominantBaseline="central" className="font-sans" style={{ fontSize: 9, fill: "var(--muted-foreground)" }}>
                           +{compact(other)} other
                         </text>
                       )}
@@ -351,34 +352,34 @@ export function CanopyTree({ active }: { active: boolean }) {
       </svg>
       {empty && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-          {hasPlayers ? (
-            <EmptyState className="py-2" title={tree && tree.stats.total > 0 ? "Your games end here" : "No games reach this position"} />
-          ) : (
-            <EmptyState className="py-2" title="No games yet" hint="Import games to see your opening tree." />
-          )}
+          <EmptySpecimen
+            className="py-2"
+            title="No specimens collected here"
+            hint={hasPlayers ? "No games continue from this position." : "Add games to see your opening tree."}
+          />
         </div>
       )}
       <div className="pointer-events-none absolute inset-x-2 top-1.5 flex items-start justify-between gap-2">
-        {/* legend: color chips from the same scale as the branches */}
-        <div className="flex h-auto min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 rounded-sm border border-border bg-card px-1.5 py-1">
-          <span className="text-xs text-muted-foreground">
-            <span className="min-[430px]:hidden">Games · score</span>
-            <span className="hidden min-[430px]:inline">Width: games. Color: your score.</span>
-          </span>
-          <span className="hidden items-center gap-1.5 text-xs text-muted-foreground tabular-nums min-[430px]:flex" aria-hidden="true">
-            <span className="tabular-nums">{`≤${pct(0.5 - SPREAD)}`}</span>
+        {/* the key: a little paper card, colour chips cut from the same scale as the ribbons */}
+        <PaperLabel tone="cream" rotate={-0.5} className="h-auto min-w-0 flex-wrap gap-x-3 gap-y-0.5 py-1 font-sans tracking-normal">
+          <Kicker as="span" className="mb-0">
+            <span className="min-[430px]:hidden">games · score</span>
+            <span className="hidden min-[430px]:inline">width = games · colour = your score</span>
+          </Kicker>
+          <span className="hidden items-center gap-1.5 text-pencil tabular-nums min-[430px]:flex" aria-hidden="true">
+            <span className="font-mono">{`≤${pct(0.5 - SPREAD)}`}</span>
             <span className="flex">
               {[0, 0.25, 0.5, 0.75, 1].map((t) => (
                 <span key={t} className="h-2 w-3 shadow-[inset_0_0_0_0.5px_var(--bar-border)]" style={{ background: scoreColor(0.5 - SPREAD + t * 2 * SPREAD) }} />
               ))}
             </span>
-            <span className="tabular-nums">{`≥${pct(0.5 + SPREAD)}`}</span>
+            <span className="font-mono">{`≥${pct(0.5 + SPREAD)}`}</span>
           </span>
-        </div>
-        <div role="group" aria-label="Tree depth" className="pointer-events-auto flex shrink-0 items-center gap-1.5 text-xs">
-          <span className="hidden text-xs text-muted-foreground min-[430px]:inline" aria-hidden="true">
+        </PaperLabel>
+        <div role="group" aria-label="Tree depth" className="pointer-events-auto flex shrink-0 items-center gap-1.5 text-[11px]">
+          <Kicker as="span" className="mb-0 hidden min-[430px]:inline" aria-hidden="true">
             Plies
-          </span>
+          </Kicker>
           <div className="flex items-center gap-1">
             {DEPTHS.map((d) => (
               <Button
@@ -389,7 +390,7 @@ export function CanopyTree({ active }: { active: boolean }) {
                 aria-pressed={depth === d}
                 aria-label={`Show ${d} plies`}
                 onClick={() => setDepth(d)}
-                className="min-w-6 px-1.5 text-xs tabular-nums"
+                className="min-w-6 px-1.5 font-mono text-[11px] tabular-nums"
               >
                 {d}
               </Button>

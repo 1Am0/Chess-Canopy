@@ -238,6 +238,10 @@ describe("lichess", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Round-3 audit fixes
+// ---------------------------------------------------------------------------
+
 const T0 = 1_700_000_000_000;
 const enc = new TextEncoder();
 type LiGame = { i: number; status?: string; variant?: string; moves?: string };
@@ -255,7 +259,7 @@ const liLine = (g: LiGame) =>
   });
 
 /**
- * A fake Lichess export: honors since, sort and ongoing like the real endpoint.
+ * A fake Lichess export: honours since, sort and ongoing like the real endpoint.
  * `failAt` errors the stream (network) and `cancelAt` cancels via the service after that many lines.
  */
 function lichessServer(all: LiGame[], o: { failAt?: number; cancelAt?: number; svc?: () => ExplorerService } = {}) {
@@ -289,7 +293,7 @@ function lichessServer(all: LiGame[], o: { failAt?: number; cancelAt?: number; s
 
 const range = (n: number, extra: Partial<LiGame> = {}) => Array.from({ length: n }, (_, i) => ({ i, ...extra }));
 
-describe("lichess watermark", () => {
+describe("lichess watermark (C1, C2, C11)", () => {
   it("requests oldest first with ongoing games", async () => {
     const srv = lichessServer(range(3));
     const s = new ExplorerService({ fetchImpl: srv.f });
@@ -378,7 +382,7 @@ describe("lichess watermark", () => {
   });
 });
 
-describe("orphans and 'all'", () => {
+describe("orphans and 'all' (C11)", () => {
   it("'all' ignores games without a player and startup cleanup removes them", async () => {
     await svc.importGames(jsonReq, noop);
     await db.games.bulkAdd([
@@ -400,7 +404,7 @@ describe("orphans and 'all'", () => {
   });
 });
 
-describe("selection races", () => {
+describe("selection races (C8)", () => {
   function countReads() {
     let reads = 0;
     const orig = db.games.where.bind(db.games);
@@ -478,7 +482,7 @@ async function dbPut(playerId: string, games: Array<Record<string, unknown>>) {
   await db.games.bulkAdd(games.map((x) => ({ ...x, source: "json", playerId, id: `${playerId}|${x.game_id}` })) as never);
 }
 
-describe("imports", () => {
+describe("imports (C3, C4, C13, C21, C24, C25)", () => {
   it("two PGN files without Site are both added", async () => {
     const a = `[White "Hero"]\n[Black "A"]\n[Result "1-0"]\n\n1. e4 e5 1-0\n\n[White "Hero"]\n[Black "B"]\n[Result "0-1"]\n\n1. d4 d5 0-1\n`;
     const b = `[White "C"]\n[Black "Hero"]\n[Result "1-0"]\n\n1. c4 e5 1-0\n\n[White "D"]\n[Black "Hero"]\n[Result "0-1"]\n\n1. Nf3 d5 0-1\n`;

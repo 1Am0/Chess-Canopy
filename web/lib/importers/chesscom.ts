@@ -123,7 +123,7 @@ async function fetchJson(url: string, o: Required<Pick<FetchChessComOptions, "ma
 /**
  * Fetch all (or incremental) monthly archives for a chess.com user. At most 2 archives are
  * fetched at once (chess.com blocks heavier crawls with a 403); 429/5xx are retried with
- * exponential backoff (honoring Retry-After), and the first failure cancels the other fetches.
+ * exponential backoff (honouring Retry-After), and the first failure cancels the other fetches.
  */
 export async function fetchChessComGames(username: string, opts: FetchChessComOptions = {}): Promise<ChessComFetchResult> {
   // One controller for this crawl, so a failing archive stops its siblings.

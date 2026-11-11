@@ -38,7 +38,7 @@ const api = (o: Record<string, unknown> = {}) => ({ listPlayers: async () => [],
 
 afterEach(() => setExplorerSpawnForTests(undefined));
 
-describe("worker crash handling", () => {
+describe("worker crash handling (C10)", () => {
   it("rejects pending and later calls, terminates the worker and reports once", async () => {
     const w = fakeWorker(api());
     let crashes = 0;

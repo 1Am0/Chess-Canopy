@@ -66,7 +66,7 @@ export function useExplorerSync() {
   useEffect(
     () =>
       onExplorerRestart(() => {
-        toast.error("The explorer hit an error and restarted.");
+        toast.error("The explorer stopped unexpectedly and was restarted.");
         setRestarts((n) => n + 1);
       }),
     [],
@@ -126,7 +126,7 @@ export function useExplorerSync() {
       try {
         await refreshPlayers();
       } catch (e) {
-        toast.error(`Couldn't load players: ${e instanceof Error ? e.message : String(e)}`);
+        toast.error(`Could not load players: ${e instanceof Error ? e.message : String(e)}`);
       }
       if (!cancelled) useExplorerStore.getState().setReady(true);
     })();
@@ -184,7 +184,7 @@ export function useExplorerSync() {
         selPending.current = false;
         useExplorerStore.getState().setResultLoading(false);
         if (isExplorerRestart(e)) return; // re-applied after the restart
-        toast.error(`Couldn't apply filters: ${e instanceof Error ? e.message : String(e)}`);
+        toast.error(`Could not apply filters: ${e instanceof Error ? e.message : String(e)}`);
       }
     }, 180);
     return () => clearTimeout(t);
@@ -220,7 +220,7 @@ export function useExplorerSync() {
           }
           return;
         }
-        toast.error(`Couldn't load moves: ${e instanceof Error ? e.message : String(e)}`);
+        toast.error(`Query failed: ${e instanceof Error ? e.message : String(e)}`);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, selectionVersion, key]);

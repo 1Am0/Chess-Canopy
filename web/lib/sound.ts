@@ -19,6 +19,12 @@
 
 export type SoundKind = "move" | "capture" | "castle" | "promote" | "mate" | "reset";
 
+export const SOUND_THEMES = [
+  { id: "standard", label: "Lichess (default)" },
+] as const;
+export type SoundTheme = (typeof SOUND_THEMES)[number]["id"];
+export const DEFAULT_SOUND_THEME: SoundTheme = "standard";
+
 /** What kind of sound a SAN move makes. Checks sound like the underlying move. Mate beats castling, then promotion, then capture. */
 export function classifyMove(san: string | undefined): SoundKind {
   if (!san) return "move";
@@ -48,6 +54,7 @@ export function soundForStep(prev: LineState, next: LineState): { kind: SoundKin
 }
 
 let enabled = true;
+let theme: SoundTheme = DEFAULT_SOUND_THEME;
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let lastPlayed = 0;
@@ -55,6 +62,13 @@ const buffers = new Map<string, Promise<AudioBuffer | null>>();
 
 export function setSoundsEnabled(value: boolean): void {
   enabled = value;
+}
+
+export function setSoundTheme(next: SoundTheme): void {
+  if (next === theme) return;
+  theme = next;
+  buffers.clear();
+  if (ctx && enabled) void preloadSounds();
 }
 
 type AudioContextCtor = typeof AudioContext;
@@ -82,14 +96,14 @@ function audioContext(): AudioContext | null {
 const SAMPLES = ["Move", "Capture"] as const;
 type Sample = (typeof SAMPLES)[number];
 
-/** Fetch + decode one sample (cached; null if it cannot be loaded). */
+/** Fetch + decode one sample of the current theme (cached; null if it cannot be loaded). */
 function sample(name: Sample): Promise<AudioBuffer | null> {
   const c = audioContext();
   if (!c) return Promise.resolve(null);
-  const key = name;
+  const key = `${theme}/${name}`;
   let p = buffers.get(key);
   if (!p) {
-    p = fetch(`/sounds/standard/${name}.mp3`)
+    p = fetch(`/sounds/${theme}/${name}.mp3`)
       .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
       .then((data) => c.decodeAudioData(data))
       .catch(() => {
@@ -101,7 +115,7 @@ function sample(name: Sample): Promise<AudioBuffer | null> {
   return p;
 }
 
-/** Load every sample. Resolves when they are all ready. */
+/** Load every sample of the current theme. Resolves when they are all ready. */
 export async function preloadSounds(): Promise<void> {
   await Promise.all(SAMPLES.map((n) => sample(n)));
 }

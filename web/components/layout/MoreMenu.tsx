@@ -14,7 +14,7 @@ export function MoreMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" aria-label="More options" className="sm:hidden">
+        <Button variant="chit" size="icon" aria-label="More options" className="sm:hidden">
           <MoreHorizontal />
         </Button>
       </DropdownMenuTrigger>

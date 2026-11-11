@@ -5,7 +5,7 @@ beforeAll(async () => {
   await loadOpenings();
 });
 
-describe("transpositions", () => {
+describe("transpositions (M10)", () => {
   it("names 1.Nf3 d5 2.d4 like 1.d4 d5 2.Nf3 (not just 'Zukertort Opening')", () => {
     const direct = lookupOpening(["d4", "d5", "Nf3"]);
     expect(direct?.name).toBe("Queen's Pawn Game: Zukertort Variation");
@@ -69,7 +69,7 @@ describe("openingCount", () => {
   });
 });
 
-describe("lookupOpening with check marks", () => {
+describe("lookupOpening with check marks (C6)", () => {
   it("finds lines whose index key contains a check", () => {
     expect(lookupOpening(["e4", "c5", "Nf3", "d6", "Bb5+"])).toMatchObject({ eco: "B51" });
     expect(lookupOpening(["e4", "c5", "Nf3", "d6", "Bb5"])).toMatchObject({ eco: "B51" });

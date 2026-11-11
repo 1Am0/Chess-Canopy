@@ -45,17 +45,18 @@ function Tip({ label, keys, children }: { label: string; keys?: string; children
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent>
         {label}
-        {keys && <kbd className="ml-1.5 rounded-sm border border-current/30 px-1 font-mono text-xs">{keys}</kbd>}
+        {keys && <kbd className="ml-1.5 rounded-[1px] border border-current/30 px-1 font-mono text-[10px]">{keys}</kbd>}
       </TooltipContent>
     </Tooltip>
   );
 }
 
 // Below sm (640px) buttons are 32px so both strips fit on one row in the 276px-wide toolbar of a 320px viewport
-// (4 x 32, twice, plus gaps). From sm up they are 36px. Each strip is a run of buttons butted together: only the first has a left border, so neighbors share one divider and their hit boxes never overlap.
+// (4 x 32, twice, plus gaps). From sm up they are 36px. Each strip is a run of card buttons butted together like a
+// ticket of cards: only the first has a left border, so neighbours share one divider and their hit boxes never overlap.
 const btn =
-  "relative size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9 rounded-none border-l-0 first:rounded-l-md first:border-l last:rounded-r-md hover:z-10 focus-visible:z-10";
-const btnAfterGap = "ml-2 rounded-l-md border-l";
+  "relative size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9 rounded-none border-l-0 first:rounded-l-[2px] first:border-l last:rounded-r-[2px] hover:z-10 focus-visible:z-10";
+const btnAfterGap = "ml-2 rounded-l-[2px] border-l";
 const group = "flex items-center";
 
 export function BoardControls() {

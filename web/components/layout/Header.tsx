@@ -8,6 +8,7 @@ import { PlayerSwitcher } from "@/components/players/PlayerSwitcher";
 import { Logo } from "@/components/layout/Logo";
 import { MoreMenu } from "@/components/layout/MoreMenu";
 import { SoundToggle } from "@/components/layout/SoundToggle";
+import { TornEdge } from "@/components/paper";
 
 export function Header({ showTools }: { showTools: boolean }) {
   const filters = useExplorerStore((s) => s.filters);
@@ -16,12 +17,15 @@ export function Header({ showTools }: { showTools: boolean }) {
 
   return (
     <header
-      className="sticky top-0 z-20 bg-card shadow-[0_1px_0_0_var(--border)] forced-colors:border-b"
+      className="paper-scope sticky top-0 z-20 bg-[var(--strip)] forced-colors:border-b"
+      style={{ backgroundImage: "var(--sheet-tile)" }}
     >
+      {/* a torn strip of cream paper laid across the top of the desk */}
+      <TornEdge seed={11} />
       <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:px-4">
         <div className="mr-1 flex shrink-0 items-center gap-2 text-primary">
           <Logo className="size-7" />
-          <span className="hidden text-xl leading-none font-semibold tracking-tight text-foreground sm:inline">Chess Canopy</span>
+          <span className="hidden font-serif text-xl leading-none font-semibold tracking-tight text-foreground sm:inline">Chess Canopy</span>
         </div>
         {showTools && <div className="min-w-0 shrink" data-testid="player-switcher"><PlayerSwitcher /></div>}
         <div className="ml-auto flex shrink-0 items-center gap-1.5 max-sm:gap-2">
@@ -31,7 +35,7 @@ export function Header({ showTools }: { showTools: boolean }) {
               <Filter />
               <span className="hidden sm:inline">Filters</span>
               {count > 0 && (
-                <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-sm bg-primary px-1 text-xs font-semibold text-primary-foreground tabular-nums">
+                <span className="ml-0.5 flex size-5 items-center justify-center rounded-full bg-primary font-mono text-[11px] font-semibold text-primary-foreground tabular-nums shadow-[0_0_0_1.5px_var(--sheet-flat),0.5px_1px_1px_var(--btn-drop)]">
                   {count}
                 </span>
               )}
@@ -45,7 +49,7 @@ export function Header({ showTools }: { showTools: boolean }) {
           )}
           <SoundToggle className="max-sm:hidden" />
           <MoreMenu />
-          <Button variant="outline" size="icon" className="max-sm:hidden" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
+          <Button variant="chit" size="icon" className="max-sm:hidden" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
             <HelpCircle />
           </Button>
         </div>
