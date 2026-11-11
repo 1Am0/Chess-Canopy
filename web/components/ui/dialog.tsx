@@ -60,13 +60,11 @@ function DialogContent({
 
 function DialogHeader({
   className,
-  kicker,
   children,
   ...props
-}: React.ComponentProps<"div"> & { kicker?: React.ReactNode }) {
+}: React.ComponentProps<"div">) {
   return (
     <div className={cn("flex flex-col gap-1.5 text-left", className)} {...props}>
-      {kicker && <p className="kicker mb-0">{kicker}</p>}
       {children}
     </div>
   );

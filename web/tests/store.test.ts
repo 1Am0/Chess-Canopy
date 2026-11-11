@@ -79,7 +79,7 @@ describe("loadGame", () => {
 });
 
 describe("persist migration v5 (one look only)", () => {
-  it("drops stored board colours and sound sets from older versions", () => {
+  it("drops stored board colors and sound sets from older versions", () => {
     const m = migratePersisted({ boardTheme: "green", soundTheme: "piano", soundEnabled: false }, 4);
     expect(m).not.toHaveProperty("boardTheme");
     expect(m).not.toHaveProperty("soundTheme");
@@ -188,7 +188,7 @@ describe("explicit side choice", () => {
     expect(useExplorerStore.getState()).toMatchObject({ sideExplicit: true, orientation: "white" });
     expect(useExplorerStore.getState().filters.color).toBe("white");
   });
-  it("migration: v2 state gets sideExplicit=false; v0 explicit colour is explicit", () => {
+  it("migration: v2 state gets sideExplicit=false; v0 explicit color is explicit", () => {
     expect(migratePersisted({ filters: { color: "black" }, sideChosen: true }, 2)).toMatchObject({ sideExplicit: false });
     expect(migratePersisted({ filters: { color: "black" } }, 0)).toMatchObject({ sideExplicit: true });
   });

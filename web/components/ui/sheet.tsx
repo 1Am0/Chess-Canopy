@@ -44,13 +44,11 @@ function SheetContent({
 
 function SheetHeader({
   className,
-  kicker,
   children,
   ...props
-}: React.ComponentProps<"div"> & { kicker?: React.ReactNode }) {
+}: React.ComponentProps<"div">) {
   return (
     <div className={cn("flex flex-col gap-1.5 border-b border-border px-6 pt-5 pr-14 pb-4", className)} {...props}>
-      {kicker && <p className="kicker mb-0">{kicker}</p>}
       {children}
     </div>
   );

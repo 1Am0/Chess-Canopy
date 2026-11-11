@@ -32,7 +32,6 @@
   --ink: oklch(0.16 0.01 255);
   --rule: oklch(0.9 0.004 255);
   --rule-strong: oklch(0.64 0.008 255);
-  --specimen: oklch(0.955 0.003 250);
   --scrim: oklch(0.2 0.01 255 / 0.4);
   --pop-shadow: 0 6px 20px -4px oklch(0.2 0.01 255 / 0.18);
 
@@ -63,9 +62,6 @@
   --bar-white-fg: #1f2328;
   --bar-draw-fg: #111111;
   --bar-black-fg: #ffffff;
-
-  /* Kept for the board files (plate frame, eval bar); remove with the plate. */
-  --sheet: oklch(1 0 0);
 
   /* Board (default theme = "lichen", mirrors BOARD_THEMES.lichen) */
   --board-light: #e8e4d4;
@@ -99,7 +95,6 @@
   --color-ink: var(--ink);
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
-  --color-specimen: var(--specimen);
   --color-tree-low: var(--tree-low);
   --color-tree-mid: var(--tree-mid);
   --color-tree-high: var(--tree-high);
@@ -134,9 +129,6 @@
   --radius-xl: var(--radius);
   --shadow-pop: var(--pop-shadow);
   --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
-  /* Aliases while workstream B removes the remaining serif and handwriting classes: both resolve to the sans. */
-  --font-serif: var(--font-sans);
-  --font-hand: var(--font-sans);
   --font-mono: var(--font-martian), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -148,21 +140,6 @@
     transparent 0 4px,
     color-mix(in oklab, var(--bar-draw) 32%, transparent) 4px 8px
   );
-}
-
-/* Section label: small, medium weight, muted. */
-@utility label-caps {
-  font-weight: 500;
-  color: var(--muted-foreground);
-}
-
-/* Kicker: a small muted label above a title. */
-@utility kicker {
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.25;
-  color: var(--muted-foreground);
-  margin-bottom: 2px;
 }
 
 @layer base {

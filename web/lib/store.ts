@@ -138,7 +138,7 @@ export const useExplorerStore = create<ExplorerState>()(
       filters: { color: "white" },
       sideChosen: false,
       sideExplicit: false,
-      // Fixed for now: no UI picks the board colours or the sound set, and neither is persisted.
+      // Fixed for now: no UI picks the board colors or the sound set, and neither is persisted.
       boardTheme: "lichen",
       soundEnabled: true,
       soundTheme: DEFAULT_SOUND_THEME,
