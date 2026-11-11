@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type WheelEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { useExplorerStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -18,29 +18,46 @@ export function LinePanel({ className }: { className?: string }) {
   const goTo = useExplorerStore((s) => s.goTo);
   const toStart = useExplorerStore((s) => s.toStart);
   const scroller = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLOListElement>(null);
+  const hasMoves = path.length > 0; // the <ol> only exists then
   const [scrolled, setScrolled] = useState(false); // content hidden on the left: fade that edge too
 
   // Keep the current move in view (horizontally only; never scrolls the page).
+  const keepInView = useCallback(
+    (behavior: ScrollBehavior) => {
+      const box = scroller.current;
+      if (!box) return;
+      const el = box.querySelector<HTMLElement>('[data-current="true"]');
+      if (!el || cursor === 0) {
+        box.scrollTo({ left: 0, behavior });
+        return;
+      }
+      const b = box.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      const left = r.left - b.left + box.scrollLeft;
+      const padLeft = 12;
+      const padRight = 36; // clear of the fade on the right edge
+      if (left - padLeft < box.scrollLeft) box.scrollTo({ left: left - padLeft, behavior });
+      else if (left + r.width + padRight > box.scrollLeft + box.clientWidth) {
+        box.scrollTo({ left: left + r.width + padRight - box.clientWidth, behavior });
+      }
+    },
+    [cursor],
+  );
+
   useEffect(() => {
-    const box = scroller.current;
-    if (!box) return;
     const smooth = typeof window.matchMedia === "function" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const behavior: ScrollBehavior = smooth ? "smooth" : "auto";
-    const el = box.querySelector<HTMLElement>('[data-current="true"]');
-    if (!el || cursor === 0) {
-      box.scrollTo({ left: 0, behavior });
-      return;
-    }
-    const b = box.getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    const left = r.left - b.left + box.scrollLeft;
-    const padLeft = 12;
-    const padRight = 36; // clear of the fade on the right edge
-    if (left - padLeft < box.scrollLeft) box.scrollTo({ left: left - padLeft, behavior });
-    else if (left + r.width + padRight > box.scrollLeft + box.clientWidth) {
-      box.scrollTo({ left: left + r.width + padRight - box.clientWidth, behavior });
-    }
-  }, [cursor, path]);
+    keepInView(smooth ? "smooth" : "auto");
+  }, [cursor, path, keepInView]);
+
+  // The mono font can load after the effect above and widen the buttons: re-check when the list's size changes.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => keepInView("auto"));
+    ro.observe(list);
+    return () => ro.disconnect();
+  }, [keepInView, hasMoves]);
 
   // Vertical wheel → horizontal scroll (trackpads already send deltaX).
   const onWheel = (e: WheelEvent<HTMLDivElement>) => {
@@ -95,7 +112,7 @@ export function LinePanel({ className }: { className?: string }) {
         {path.length === 0 ? (
           <p className="shrink-0 px-2 text-sm whitespace-nowrap text-muted-foreground">Play a move on the board or pick one from the table</p>
         ) : (
-          <ol className="flex items-center">
+          <ol ref={listRef} className="flex items-center">
             {Array.from({ length: pairs }).map((_, r) => (
               <li key={r} className="flex shrink-0 items-center whitespace-nowrap">
                 <span className="pr-0.5 pl-1.5 text-xs text-muted-foreground tabular-nums">{r + 1}.</span>
