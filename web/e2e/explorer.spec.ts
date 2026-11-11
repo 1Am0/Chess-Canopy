@@ -166,14 +166,14 @@ test("side switch keeps the line, flips board and player strip; White switches b
   // The line is kept: only the side and board orientation change.
   await expect(page).toHaveURL(/line=e4/);
 
-  // Board orientation follows the side: a1 is now at the top, and the bottom strip is "You · Black".
+  // Board orientation follows the side: a1 is now at the top, and the bottom strip is "You Black".
   const board = page.getByLabel("Chess board");
   const a1 = await board.locator("[data-square='a1']").first().boundingBox();
   const h8 = await board.locator("[data-square='h8']").first().boundingBox();
   expect(a1!.y).toBeLessThan(h8!.y);
   const you = page.getByText("You", { exact: true });
   await expect(you).toBeVisible();
-  await expect(page.getByText(/^·\s*Black$/)).toBeVisible();
+  await expect(page.getByTestId("strip-bottom").getByText("Black", { exact: true })).toBeVisible();
   const boardBox = await board.boundingBox();
   const youBox = await you.boundingBox();
   expect(youBox!.y).toBeGreaterThan(boardBox!.y + boardBox!.height);
@@ -181,7 +181,7 @@ test("side switch keeps the line, flips board and player strip; White switches b
   await white.click();
   await expect(white).toBeChecked();
   await expect(black).not.toBeChecked();
-  await expect(page.getByText(/^·\s*White$/)).toBeVisible();
+  await expect(page.getByTestId("strip-bottom").getByText("White", { exact: true })).toBeVisible();
   const a1w = await board.locator("[data-square='a1']").first().boundingBox();
   const h8w = await board.locator("[data-square='h8']").first().boundingBox();
   expect(a1w!.y).toBeGreaterThan(h8w!.y);

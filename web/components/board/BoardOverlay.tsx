@@ -235,7 +235,7 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
             <circle key={t.to} className="ov-mark" cx={t.c.x} cy={t.c.y} r={15} style={{ fill: "var(--ov-dot)" }} />
           ),
         )}
-        <g fontFamily="var(--font-serif, Georgia, serif)" fontSize={Math.round(fontSize * 1.08)} fontWeight="600" fontStyle="italic" opacity={0.95} style={{ fontVariantNumeric: "lining-nums" }}>
+        <g fontFamily="var(--font-sans)" fontSize={Math.round(fontSize * 1.08)} fontWeight="600" opacity={0.95} style={{ fontVariantNumeric: "lining-nums" }}>
           {coords.map((c) => (
             <text
               key={c.key}
@@ -251,7 +251,7 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
         </g>
       </svg>
 
-      {/* Layer 2: a thin paper-coloured under-stroke so ink stays readable over dark squares and pieces. */}
+      {/* Layer 2: a thin light under-stroke so ink stays readable over dark squares and pieces. */}
       <svg viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-halo`} style={{ pointerEvents: "none" }}>
         {slots.map(({ a, g, show }, i) => (
           <g key={i} className="ov-arrow" data-slot={i} style={{ opacity: show ? 0.82 : 0, visibility: show ? "visible" : "hidden" }}>

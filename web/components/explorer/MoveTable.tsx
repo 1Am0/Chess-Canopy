@@ -11,7 +11,7 @@ import { COL, MoveRow } from "@/components/explorer/MoveRow";
 import { splitRare } from "@/components/explorer/rare";
 import { WdbBar } from "@/components/explorer/WdbBar";
 import { scoreTextClass } from "@/components/explorer/wdb";
-import { EmptySpecimen } from "@/components/field";
+import { EmptyState } from "@/components/field";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -195,7 +195,7 @@ export function MoveTable({ className }: { className?: string }) {
         className="w-full table-fixed border-separate border-spacing-0 text-left text-sm outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring/60"
       >
         <thead className="sticky top-0 z-10">
-          <tr className="label-caps h-7 bg-card text-[13px] [&>th]:border-b [&>th]:border-border">
+          <tr className="h-7 text-muted-foreground bg-card text-[13px] [&>th]:border-b [&>th]:border-border">
             <Th k="move" label="Move" className={COL.move} />
             <Th k="games" label="Games" short="G" className={COL.games} />
             <th scope="col" className={cn(COL.share, "font-medium")}>Share</th>
@@ -227,7 +227,7 @@ export function MoveTable({ className }: { className?: string }) {
                     type="button"
                     aria-expanded={showRare}
                     onClick={() => setShowRare((v) => !v)}
-                    className="flex h-8 w-full items-center justify-center gap-1.5 px-3 text-sm leading-none text-muted-foreground outline-none hover:bg-specimen hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                    className="flex h-8 w-full items-center justify-center gap-1.5 px-3 text-sm leading-none text-muted-foreground outline-none hover:bg-secondary hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
                   >
                     {showRare ? "Hide" : "Show"} {rare.length} rare {rare.length === 1 ? "move" : "moves"}
                     {showRare ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />}
@@ -257,10 +257,9 @@ export function MoveTable({ className }: { className?: string }) {
 
       {failed && (
         <div className="absolute inset-x-0 top-7 bottom-0 flex items-center justify-center overflow-hidden" role="alert">
-          <EmptySpecimen
+          <EmptyState
             className="py-2"
             title="Couldn't load your games"
-            hint="Something went wrong while reading the saved games. Try again."
             action={
               <Button size="sm" variant="outline" onClick={retryLoad}>
                 <RotateCcw /> Retry
@@ -273,10 +272,9 @@ export function MoveTable({ className }: { className?: string }) {
       {empty && (
         <div className="absolute inset-x-0 top-7 bottom-0 flex items-center justify-center overflow-hidden">
           {noGames && filterCount === 0 && otherCount > 0 ? (
-            <EmptySpecimen
+            <EmptyState
               className="py-2"
               title={`No games as ${side === "white" ? "White" : "Black"}`}
-              hint="This selection only has games with the other color."
               action={
                 <Button size="sm" variant="outline" onClick={() => setSide(other)}>
                   View as {other === "white" ? "White" : "Black"} ({otherCount.toLocaleString()} {otherCount === 1 ? "game" : "games"})
@@ -284,23 +282,15 @@ export function MoveTable({ className }: { className?: string }) {
               }
             />
           ) : noGames ? (
-            <EmptySpecimen
+            <EmptyState
               className="py-2"
               title="No games match these filters"
-              hint="Loosen or clear the filters to see your moves."
               action={<Button size="sm" variant="outline" onClick={clearFilters}>Clear filters</Button>}
             />
           ) : (
-            <EmptySpecimen
+            <EmptyState
               className="py-2"
-              title={outOfBook ? "No specimens collected here" : "No moves found"}
-              hint={
-                outOfBook
-                  ? total > 0
-                    ? "Your games end here. No further moves were played from this position."
-                    : "None of your games reached this position."
-                  : "There are no games for the current selection."
-              }
+              title={outOfBook ? (total > 0 ? "Your games end here" : "No games reach this position.") : "No moves found"}
               action={
                 outOfBook ? (
                   <div className="flex gap-2">

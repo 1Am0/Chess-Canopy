@@ -30,7 +30,7 @@ export function FieldSection({
       {...props}
     >
       <div className="flex min-h-6 items-center justify-between gap-2">
-        <h3 id={id} className="kicker mb-0">
+        <h3 id={id} className="text-sm font-medium">
           {title}
         </h3>
         {onClear && (

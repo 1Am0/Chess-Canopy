@@ -9,7 +9,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { CountedOption, FieldSection } from "@/components/field";
+import { FieldSection } from "@/components/field";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
@@ -131,7 +131,7 @@ function RatingRange({
 function DateField({ label, aria, value, onChange }: { label: string; aria: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="relative">
-      <span aria-hidden className="label-caps pointer-events-none absolute top-1 left-2.5 text-xs">
+      <span aria-hidden className="pointer-events-none absolute top-1 left-2.5 text-xs text-muted-foreground">
         {label}
       </span>
       <Input type="date" aria-label={aria} value={value} onChange={(e) => onChange(e.target.value)} className="h-12 pt-5 font-mono text-sm tabular-nums" />
@@ -248,7 +248,7 @@ export function FilterSheet() {
         side={desktop ? "right" : "bottom"}
         className="max-h-[88dvh] gap-0 lg:inset-y-4 lg:right-4 lg:h-auto lg:max-h-none lg:w-[26rem] lg:max-w-[26rem] lg:rounded-lg lg:border"
       >
-        <SheetHeader kicker="Sampling criteria">
+        <SheetHeader>
           <SheetTitle>Filters</SheetTitle>
           <SheetDescription>
             Results update as you change filters.<span className="sr-only"> Win / Draw / Loss is from your point of view.</span>
@@ -269,7 +269,7 @@ export function FilterSheet() {
               <ToggleGroupItem value="1/2-1/2" className="flex-1">Draw</ToggleGroupItem>
               <ToggleGroupItem value="0-1" className="flex-1">Loss</ToggleGroupItem>
             </ToggleGroup>
-            <p className="text-sm text-muted-foreground">Win / draw / loss: from your side of the board</p>
+            <p className="text-xs text-muted-foreground">Win, draw and loss are from your side of the board.</p>
           </FieldSection>
 
           <FieldSection
@@ -291,7 +291,7 @@ export function FilterSheet() {
                     onClick={() => patch({ time_control: on ? null : tc })}
                   >
                     {on && <CheckIcon className="size-3.5" />}
-                    <CountedOption label={tc} />
+                    {tc}
                   </Button>
                 );
               })}

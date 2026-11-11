@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useExplorerStore } from "@/lib/store";
 
-// Each entry: the keycaps (typed on little paper labels) and what they do.
+// Each entry: the keys and what they do.
 const SHORTCUTS: [string[], string][] = [
   [["←"], "Previous move"],
   [["→"], "Next move (redo)"],

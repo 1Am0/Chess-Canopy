@@ -8,7 +8,7 @@ import { getExplorer } from "@/lib/explorer-client";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
 import { usePosition } from "@/hooks/use-position";
 import { formatDate, resultLabel, sourceLabel } from "@/lib/format";
-import { EmptySpecimen } from "@/components/field";
+import { EmptyState } from "@/components/field";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -105,9 +105,9 @@ export function GamesList({ className, active = true }: { className?: string; ac
       aria-busy={active && (loading || games === null)}
       className={cn("relative h-full min-h-0 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin]", className)}
     >
-      <h3 className="label-caps sticky top-0 z-10 flex h-7 items-center gap-1.5 border-b border-border bg-card px-3 text-[13px]">
+      <h3 className="sticky top-0 z-10 flex h-7 items-center gap-1.5 border-b border-border bg-card px-3 text-[13px] font-medium">
         <span className="text-ink">Recent games here</span>
-        {count && <span className="tabular-nums">· {count}</span>}
+        {count && <span className="font-normal text-muted-foreground tabular-nums">· {count}</span>}
       </h3>
       <ul aria-label="Recent games" className={cn("transition-opacity duration-200", loading && games !== null && !failed && "opacity-50")}>
         {games === null &&
@@ -119,9 +119,8 @@ export function GamesList({ className, active = true }: { className?: string; ac
           ))}
         {failed && (
           <li role="alert">
-            <EmptySpecimen
+            <EmptyState
               title="Couldn't load the games"
-              hint="Something went wrong while reading the saved games."
               action={
                 <Button size="sm" variant="outline" onClick={() => setAttempt((n) => n + 1)}>
                   <RotateCcw /> Retry
@@ -132,9 +131,8 @@ export function GamesList({ className, active = true }: { className?: string; ac
         )}
         {!failed && games?.length === 0 && noGames && filterCount === 0 && otherCount > 0 && (
           <li>
-            <EmptySpecimen
+            <EmptyState
               title={`No games as ${side === "white" ? "White" : "Black"}`}
-              hint="This selection only has games with the other color."
               action={
                 <Button size="sm" variant="outline" onClick={() => setSide(other)}>
                   View as {other === "white" ? "White" : "Black"} ({otherCount.toLocaleString()} {otherCount === 1 ? "game" : "games"})
@@ -145,16 +143,15 @@ export function GamesList({ className, active = true }: { className?: string; ac
         )}
         {!failed && games?.length === 0 && noGames && filterCount > 0 && (
           <li>
-            <EmptySpecimen
+            <EmptyState
               title="No games match these filters"
-              hint="Loosen or clear the filters to see your games."
               action={<Button size="sm" variant="outline" onClick={clearFilters}>Clear filters</Button>}
             />
           </li>
         )}
         {!failed && games?.length === 0 && !(noGames && (filterCount > 0 || otherCount > 0)) && (
           <li>
-            <EmptySpecimen title="No specimens collected here" hint="No games reach this position." />
+            <EmptyState title="No games reach this position." />
           </li>
         )}
         {!failed && games?.map((g) => {
@@ -170,11 +167,11 @@ export function GamesList({ className, active = true }: { className?: string; ac
                 type="button"
                 onClick={() => {
                   loadGame(g.moves, gameKey);
-                  toast.success("Game loaded", { id: "game-loaded", description: "Use → to step through the rest of it." });
+                  toast.success("Game loaded. Use → to step through it.", { id: "game-loaded" });
                 }}
                 aria-pressed={loaded}
                 title="Load this game into the line"
-                className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-left outline-none transition-colors hover:bg-specimen focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-left outline-none transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
               >
                 <span className="sr-only">Load game: {r} </span>
                 <span aria-hidden className="flex w-9 shrink-0 justify-center">
@@ -190,9 +187,9 @@ export function GamesList({ className, active = true }: { className?: string; ac
                   {g.opponent}
                   {g.opponent_rating != null && <span className="ml-1 text-muted-foreground tabular-nums">({g.opponent_rating})</span>}
                 </span>
-                <span className="label-caps hidden w-16 shrink-0 truncate text-right text-[13px] sm:block">{g.time_control}</span>
+                <span className="hidden w-16 shrink-0 truncate text-right text-[13px] text-muted-foreground sm:block">{g.time_control}</span>
                 <span className="hidden w-[6.5rem] shrink-0 text-right font-mono text-xs text-muted-foreground tabular-nums sm:block">{formatDate(g.date)}</span>
-                <span className="label-caps hidden w-16 shrink-0 text-right text-[13px] sm:block">
+                <span className="hidden w-16 shrink-0 text-right text-[13px] text-muted-foreground sm:block">
                   {g.source === "chess.com" || g.source === "lichess" ? sourceLabel(g.source) : ""}
                 </span>
               </button>
