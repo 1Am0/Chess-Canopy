@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FileUp } from "lucide-react";
 import type { ImportRequest } from "@/lib/engine/types";
 import { useSharedImport } from "@/components/players/ImportProvider";
 import { ImportProgress } from "@/components/players/ImportProgress";
@@ -9,11 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
+import { Envelope } from "@/components/paper";
 
-// Index tabs: inactive = specimen ground, active = raised card with a primary top rule.
-const tabCls =
-  "rounded-t-sm rounded-b-none border border-b-0 border-rule bg-specimen font-mono text-xs uppercase tracking-wider data-[state=active]:border-rule-strong data-[state=active]:border-t-2 data-[state=active]:border-t-primary data-[state=active]:border-b-0 data-[state=active]:bg-card";
+const tabCls = "px-1.5 text-[13px] sm:px-3 sm:text-sm";
 
 type Tab = "chess.com" | "lichess" | "pgn" | "json";
 
@@ -30,6 +27,7 @@ export function labelFromFileName(name: string): string {
 function FileDrop({ accept, label, file, onFile }: { accept: string; label: string; file: File | null; onFile: (f: File | null) => void }) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
+  // A manila envelope: the flap lifts while a file hovers over it, the file name sits in the pocket's clear band.
   return (
     <div
       onDragOver={(e) => {
@@ -42,18 +40,15 @@ function FileDrop({ accept, label, file, onFile }: { accept: string; label: stri
         setOver(false);
         onFile(e.dataTransfer.files?.[0] ?? null);
       }}
-      className={cn(
-        "relative flex flex-col items-center justify-center gap-2 rounded-sm border-2 border-dashed border-rule-strong bg-specimen/40 p-1.5 text-center text-sm transition-colors forced-colors:border-[GrayText]",
-        over && "border-primary bg-accent",
-      )}
     >
-      <div className="ruled flex w-full flex-col items-center justify-center gap-2 rounded-[1px] px-4 py-5 [--rule-gap:1.25rem]">
-        <FileUp className="size-6 text-muted-foreground" aria-hidden="true" />
-        <p className={file ? "max-w-full truncate" : "label-caps text-xs"}>{file ? <span className="font-mono text-xs text-foreground">{file.name}</span> : label}</p>
+      <Envelope open={over} className="min-h-48 gap-2 px-4 pt-[4.75rem] pb-[3.25rem]">
+        <p className={file ? "max-w-full truncate" : "label-caps text-[11px] text-foreground"}>
+          {file ? <span className="font-mono text-xs text-foreground">{file.name}</span> : label}
+        </p>
         <Button type="button" size="sm" variant="outline" onClick={() => input.current?.click()}>
-          Choose file
+          {file ? "Change file" : "Choose file"}
         </Button>
-      </div>
+      </Envelope>
       <input ref={input} type="file" accept={accept} className="sr-only" aria-label={label} onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
     </div>
   );

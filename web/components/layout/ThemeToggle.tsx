@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Keyboard, Laptop, Moon, Palette, Sun } from "lucide-react";
-import { Stamp } from "@/components/field";
+import { RubberStamp } from "@/components/paper";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -40,12 +40,12 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Appearance">
+        <Button variant="chit" size="icon" aria-label="Appearance">
           {mounted && resolvedTheme === "dark" ? <Moon /> : mounted ? <Sun /> : <Palette />}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 p-0 pb-1">
-        <DropdownMenuLabel className="px-3 pt-3">Theme</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-60">
+        <DropdownMenuLabel>Theme</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={mounted ? theme : undefined} onValueChange={setTheme} aria-label="Theme">
           {([["light", Sun, "Light"], ["dark", Moon, "Dark"], ["system", Laptop, "System"]] as const).map(([v, Icon, label]) => (
             <DropdownMenuRadioItem key={v} value={v}>
@@ -53,24 +53,24 @@ export function ThemeToggle() {
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator className="mx-0" />
-        <DropdownMenuLabel className="px-3 pt-2">Board</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Board</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={boardTheme} onValueChange={(v) => setBoardTheme(v as BoardTheme)} aria-label="Board">
           {BOARDS.map((b) => (
             <DropdownMenuRadioItem key={b.id} value={b.id}>
-              <span aria-hidden className="grid size-5 shrink-0 grid-cols-2 overflow-hidden rounded-[2px] border border-rule-strong">
+              <span aria-hidden className="grid size-6 shrink-0 grid-cols-2 overflow-hidden rounded-[1px] shadow-[0_0_0_1.5px_var(--sheet-flat),0_0_0_2.5px_var(--rule-strong),0.5px_1.5px_2px_1px_var(--btn-drop)]">
                 <span style={{ background: BOARD_THEMES[b.id].light }} />
                 <span style={{ background: BOARD_THEMES[b.id].dark }} />
                 <span style={{ background: BOARD_THEMES[b.id].dark }} />
                 <span style={{ background: BOARD_THEMES[b.id].light }} />
               </span>
               <span className="font-serif text-base italic">{b.label}</span>
-              {b.id === "lichen" && <Stamp aria-hidden className="ml-auto mr-1 text-[9px]">default</Stamp>}
+              {b.id === "lichen" && <RubberStamp aria-hidden size="sm" seed="lichen-default" className="ml-auto mr-1">default</RubberStamp>}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator className="mx-0" />
-        <DropdownMenuLabel className="px-3 pt-2">Move sounds</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Move sounds</DropdownMenuLabel>
         <DropdownMenuRadioGroup
           value={soundTheme}
           aria-label="Move sounds"
@@ -87,7 +87,7 @@ export function ThemeToggle() {
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator className="mx-0 sm:hidden" />
+        <DropdownMenuSeparator className="sm:hidden" />
         <DropdownMenuItem className="sm:hidden" onSelect={() => setUi({ shortcutsOpen: true })}>
           <Keyboard /> Keyboard shortcuts
         </DropdownMenuItem>

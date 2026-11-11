@@ -3,15 +3,16 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useExplorerStore } from "@/lib/store";
 
-const SHORTCUTS: [string, string][] = [
-  ["←", "Previous move"],
-  ["→", "Next move (redo)"],
-  ["↑", "Jump to start"],
-  ["↓", "Jump to end"],
-  ["F", "Flip board"],
-  ["Esc", "Clear move preview"],
-  ["?", "Show this help"],
-  ["Tab to move table, then ↑ ↓ / Enter", "Select and play a candidate move"],
+// Each entry: the keycaps (typed on little paper labels) and what they do.
+const SHORTCUTS: [string[], string][] = [
+  [["←"], "Previous move"],
+  [["→"], "Next move (redo)"],
+  [["↑"], "Jump to start"],
+  [["↓"], "Jump to end"],
+  [["F"], "Flip board"],
+  [["Esc"], "Clear move preview"],
+  [["?"], "Show this help"],
+  [["Tab", "↑ ↓", "Enter"], "Tab to the move table, then ↑ ↓ and Enter select and play a candidate move"],
 ];
 
 export function ShortcutsDialog() {
@@ -25,13 +26,19 @@ export function ShortcutsDialog() {
           <DialogDescription>Shortcuts are paused while typing or when a dialog is open.</DialogDescription>
         </DialogHeader>
         <dl className="border-t border-rule-strong text-sm">
-          {SHORTCUTS.map(([k, d]) => (
-            <div key={k} className="flex items-baseline gap-2 border-b border-rule py-2">
-              <dd className="order-1 min-w-0">{d}</dd>
-              <span className="leader order-2" aria-hidden="true" />
-              <dt className="order-3 max-w-[45%] text-right">
-                <kbd className="inline-flex min-w-6 items-center justify-center rounded-sm border border-b-2 border-rule-strong bg-specimen px-1.5 py-0.5 text-center font-mono text-xs">{k}</kbd>
+          {SHORTCUTS.map(([keys, d]) => (
+            <div key={d} className="flex min-h-10 items-center gap-3 border-b border-rule py-1.5">
+              <dt className="flex w-28 shrink-0 flex-wrap gap-1">
+                {keys.map((k) => (
+                  <kbd
+                    key={k}
+                    className="paper-label inline-flex min-w-7 items-center justify-center rounded-[2px] border-b-2 border-b-[var(--btn-edge)] px-1.5 py-0.5 text-center font-mono text-xs font-medium text-foreground"
+                  >
+                    {k}
+                  </kbd>
+                ))}
               </dt>
+              <dd className="min-w-0 flex-1 leading-snug">{d}</dd>
             </div>
           ))}
         </dl>

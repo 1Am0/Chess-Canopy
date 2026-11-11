@@ -18,12 +18,12 @@ export function ImportIndicator() {
   if (!running || importOpen || managerOpen) return null;
   const { label, pct } = progressSummary(progress);
   return (
-    <div role="status" aria-live="polite" data-testid="import-indicator" className="flex h-8 items-center rounded-sm border border-rule-strong bg-specimen font-mono text-xs">
+    <div role="status" aria-live="polite" data-testid="import-indicator" className="paper-label flex h-8 items-center rounded-[2px] font-mono text-xs">
       <button
         type="button"
         onClick={() => setUi({ importOpen: true })}
         aria-label={`Importing: ${label}. Show details`}
-        className="flex h-full items-center gap-1.5 relative rounded-l-sm px-2 outline-none hover:bg-card focus-visible:ring-2 focus-visible:ring-ring/60"
+        className="flex h-full items-center gap-1.5 relative rounded-l-sm px-2 outline-none hover:bg-[var(--sheet-under)]/60 focus-visible:outline-2 focus-visible:outline-ring"
       >
         <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
         <span className="tabular-nums">{pct != null ? `${pct}%` : <span className="hidden sm:inline">Importing</span>}</span>

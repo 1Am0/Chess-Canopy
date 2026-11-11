@@ -145,17 +145,20 @@ function Tree() {
   );
 }
 
-/** Hairline-framed "specimen plate": a static, decorative sketch of an opening tree. */
+/**
+ * The specimen plate: a static, decorative print of an opening tree. It is a flat printed card (the data-ish part stays
+ * on plain paper); the scrapbook mount (mat, photo corners, tape) is drawn by the caller.
+ */
 export function SpecimenPlate({ className }: { className?: string }) {
   return (
-    <figure className={cn("border border-rule bg-card p-4 sm:p-5", className)} aria-hidden="true">
+    <figure className={cn("border border-rule-strong/50 bg-[var(--sheet-flat)] p-3.5 sm:p-5", className)} aria-hidden="true">
       <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-rule pb-2">
         <span className="label-caps text-sm">Plate I — 1. e4, {TOTAL} games</span>
         <span className="font-mono text-[10px] text-muted-foreground">No. 001</span>
       </div>
       <Tree />
       <figcaption className="mt-3 flex items-center justify-between gap-3 border-t border-rule pt-2 text-xs text-muted-foreground">
-        <span className="font-serif italic">Ribbon width follows how often a move was played.</span>
+        <span className="font-serif italic">Sample data. Yours is built from your own games.</span>
         <span className="label-caps hidden shrink-0 sm:inline">Sample</span>
       </figcaption>
     </figure>

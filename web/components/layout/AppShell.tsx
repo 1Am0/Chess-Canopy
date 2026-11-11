@@ -13,6 +13,7 @@ import { ImportProvider } from "@/components/players/ImportProvider";
 import { ImportDialog } from "@/components/players/ImportDialog";
 import { PlayerManager } from "@/components/players/PlayerManager";
 import { Welcome } from "@/components/onboarding/Welcome";
+import { PaperSheet } from "@/components/paper";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -30,24 +31,29 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 const BOARD_COLUMN =
   "[--board-size:min(calc(100vw-1.5rem),62dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-2rem)*0.57-1rem),52rem),calc(100dvh-13.5rem))]";
 
-/** Placeholder with the same slots as the explorer, so the first paint doesn't jump. */
+/**
+ * Placeholder with the same slots as the explorer, so the first paint doesn't jump: the desk, a mat for the board
+ * and a sheet for the explorer, each with pencilled ruled lines where the content will be written.
+ */
 function LoadingShell() {
   return (
-    <div className={`mx-auto grid w-full max-w-[1600px] grid-cols-1 lg:grid-cols-[auto_minmax(0,1fr)] ${BOARD_COLUMN}`} aria-busy="true">
-      <div className="px-3 pt-3 pb-2 sm:px-4 lg:pr-4 lg:pb-3">
-        <div className="flex flex-col gap-1.5" style={{ width: "var(--board-size)", maxWidth: "100%" }}>
+    <div className={`mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 lg:grid-cols-[auto_minmax(0,1fr)] ${BOARD_COLUMN}`} aria-busy="true">
+      <div className="px-3 pt-4 pb-2 sm:px-4 lg:pt-[18px] lg:pr-4 lg:pb-3">
+        <PaperSheet className="flex flex-col gap-1.5 p-2.5" style={{ width: "calc(var(--board-size) + 1.25rem)", maxWidth: "100%" }}>
           <Skeleton className="h-7 w-40" />
           <Skeleton className="aspect-square w-full" />
           <Skeleton className="h-7 w-40" />
-        </div>
+        </PaperSheet>
       </div>
-      <div className="flex min-w-0 flex-col gap-2 px-3 sm:px-4 lg:pt-3 lg:pl-1">
-        <Skeleton className="h-11 w-full" />
-        <Skeleton className="h-7 w-2/3" />
-        <Skeleton className="h-8 w-1/3" />
-        <Skeleton className="hidden h-[154px] w-full lg:block" />
-        <Skeleton className="h-[52px] w-full" />
-        <Skeleton className="h-64 w-full" />
+      <div className="flex min-w-0 flex-col px-3 pb-6 sm:px-4 lg:pt-[18px] lg:pl-1">
+        <PaperSheet className="flex flex-col gap-2 p-3">
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-7 w-2/3" />
+          <Skeleton className="h-8 w-1/3" />
+          <Skeleton className="hidden h-[154px] w-full lg:block" />
+          <Skeleton className="h-[52px] w-full" />
+          <Skeleton className="h-64 w-full" />
+        </PaperSheet>
       </div>
     </div>
   );
@@ -64,7 +70,7 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <ImportProvider>
-      <div className={`flex min-h-dvh flex-col ${explorer ? "desk overflow-x-clip lg:h-dvh lg:overflow-hidden" : ""}`}>
+      <div className={`flex min-h-dvh flex-col ${explorer ? "desk overflow-x-clip lg:h-dvh lg:overflow-hidden" : "desk overflow-x-clip"}`}>
         <UrlSideSync />
         <Header showTools={explorer} />
         {!ready && <LoadingShell />}

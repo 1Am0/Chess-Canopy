@@ -13,7 +13,7 @@ import { CountedOption, FieldSection } from "@/components/field";
 import { InkTick } from "@/components/field/InkTick";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Tape } from "@/components/paper";
+import { Handnote, Tape } from "@/components/paper";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -159,7 +159,7 @@ function OpponentCombobox() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-label="Opponent" aria-expanded={open} className="h-9 w-full justify-between rounded-none border-b-2 border-b-rule-strong bg-card font-normal">
+        <Button variant="outline" role="combobox" aria-label="Opponent" aria-expanded={open} className="w-full justify-between font-normal">
           <span className={opponent ? "truncate font-serif text-base italic" : "text-muted-foreground"}>{opponent || "Any opponent"}</span>
           <ChevronsUpDown className="size-3.5 text-muted-foreground" />
         </Button>
@@ -255,7 +255,9 @@ export function FilterSheet() {
         <Tape variant="sage" length={92} angle={2.5} seed="card-b" className="-bottom-2.5 left-[58%]" />
         <SheetHeader kicker="Sampling criteria" className="border-b-[1.5px] border-solid border-margin">
           <SheetTitle className="font-serif text-xl font-semibold tracking-tight">Filters</SheetTitle>
-          <SheetDescription>Results update as you change filters. Win / Draw / Loss is from your point of view.</SheetDescription>
+          <SheetDescription>
+            Results update as you change filters.<span className="sr-only"> Win / Draw / Loss is from your point of view.</span>
+          </SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
@@ -272,6 +274,10 @@ export function FilterSheet() {
               <ToggleGroupItem value="1/2-1/2" className="flex-1">Draw</ToggleGroupItem>
               <ToggleGroupItem value="0-1" className="flex-1">Loss</ToggleGroupItem>
             </ToggleGroup>
+            {/* a pencilled margin note (the same words are in the sheet's description for screen readers) */}
+            <Handnote seed="wdl" rotate={-1.5} underline={false} className="-mt-0.5 ml-1 block w-fit text-[17px]">
+              win / draw / loss: from your side of the board
+            </Handnote>
           </FieldSection>
 
           <FieldSection
@@ -283,16 +289,18 @@ export function FilterSheet() {
               {TIME_CONTROLS.map((tc) => {
                 const on = filters.time_control === tc;
                 return (
-                  <button
+                  <Button
                     key={tc}
                     type="button"
+                    variant="outline"
+                    size="sm"
                     aria-pressed={on}
-                    className="inline-flex h-8 items-center gap-1 rounded-sm border border-rule-strong bg-specimen px-2.5 text-sm text-muted-foreground capitalize outline-none hover:bg-card hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-pressed:border-primary aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-[inset_0_2px_0_0_var(--primary)]"
+                    className="capitalize"
                     onClick={() => patch({ time_control: on ? null : tc })}
                   >
                     {on && <InkTick className="size-3.5 text-ink" />}
                     <CountedOption label={tc} />
-                  </button>
+                  </Button>
                 );
               })}
             </div>

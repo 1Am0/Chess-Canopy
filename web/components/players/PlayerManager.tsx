@@ -10,7 +10,8 @@ import { useExplorerStore } from "@/lib/store";
 import { sourceLabel } from "@/lib/format";
 import { useSharedImport } from "@/components/players/ImportProvider";
 import { ImportProgress } from "@/components/players/ImportProgress";
-import { MetaGrid, SpecimenTag, Stamp } from "@/components/field";
+import { EmptySpecimen, MetaGrid } from "@/components/field";
+import { PaperLabel, PaperSheet, RubberStamp } from "@/components/paper";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -60,17 +61,23 @@ export function PlayerManager() {
           <DialogTitle className="font-serif text-xl font-semibold tracking-tight">Manage players</DialogTitle>
           <DialogDescription>All data stays in your browser. Export a player as schema v1 JSON for the Python CLI.</DialogDescription>
         </DialogHeader>
-        <ul className="max-h-[60vh] space-y-3 overflow-y-auto pr-0.5">
-          {players.length === 0 && <li className="border border-dashed border-rule-strong p-4 text-sm text-muted-foreground">No players imported yet.</li>}
+        <ul className="-mx-1 max-h-[60vh] space-y-4 overflow-y-auto px-1 pt-1 pb-2">
+          {players.length === 0 && (
+            <li>
+              <EmptySpecimen title="No players yet" hint="No players imported yet." />
+            </li>
+          )}
           {players.map((p, i) => (
-            <li key={p.id} className="border border-rule-strong bg-background/60 p-3">
+            <li key={p.id}>
+            <PaperSheet className="p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="kicker mb-0 tabular-nums">No. {String(i + 1).padStart(3, "0")}</p>
                   <span className="block truncate font-serif text-lg leading-tight font-semibold italic">{p.displayName}</span>
                 </div>
-                <SpecimenTag>{sourceLabel(p.source)}</SpecimenTag>
+                <PaperLabel tone="manila" taped rotate={i % 2 ? 1 : -1} className="mt-1 mr-1">{sourceLabel(p.source)}</PaperLabel>
               </div>
+              <span aria-hidden className="mt-2 block h-px bg-margin" />
               <MetaGrid
                 className="mt-2"
                 items={[
@@ -80,7 +87,7 @@ export function PlayerManager() {
               />
               {confirming === p.id ? (
                 <div className="mt-3 flex items-center gap-2">
-                  <Stamp tone="destructive">Delete {p.displayName}?</Stamp>
+                  <RubberStamp tone="destructive" seed={p.id}>Delete {p.displayName}?</RubberStamp>
                   <div className="ml-auto flex items-center gap-1">
                     <Button size="sm" variant="destructive" disabled={running} onClick={() => remove(p)}>Delete</Button>
                     <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Keep</Button>
@@ -101,6 +108,7 @@ export function PlayerManager() {
                   </Button>
                 </div>
               )}
+            </PaperSheet>
             </li>
           ))}
         </ul>

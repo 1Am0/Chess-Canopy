@@ -28,14 +28,14 @@ export function Header({ showTools }: { showTools: boolean }) {
           <span className="hidden font-serif text-xl leading-none font-semibold tracking-tight text-foreground sm:inline">Chess Canopy</span>
         </div>
         {showTools && <div className="min-w-0 shrink" data-testid="player-switcher"><PlayerSwitcher /></div>}
-        <div className="ml-auto flex shrink-0 items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
           {showTools && <ImportIndicator />}
           {showTools && (
             <Button variant="outline" size="sm" onClick={() => setUi({ filtersOpen: true })} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
               <Filter />
               <span className="hidden sm:inline">Filters</span>
               {count > 0 && (
-                <span className="ml-0.5 flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground tabular-nums">
+                <span className="ml-0.5 flex size-5 items-center justify-center rounded-full bg-primary font-mono text-[11px] font-semibold text-primary-foreground tabular-nums shadow-[0_0_0_1.5px_var(--sheet-flat),0.5px_1px_1px_var(--btn-drop)]">
                   {count}
                 </span>
               )}
@@ -49,7 +49,7 @@ export function Header({ showTools }: { showTools: boolean }) {
           )}
           <SoundToggle />
           <ThemeToggle />
-          <Button variant="ghost" size="icon" className="hidden sm:inline-flex" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
+          <Button variant="chit" size="icon" className="hidden sm:inline-flex" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
             <HelpCircle />
           </Button>
         </div>

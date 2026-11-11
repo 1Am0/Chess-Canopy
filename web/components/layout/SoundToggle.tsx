@@ -11,7 +11,7 @@ export function SoundToggle() {
   const setOn = useExplorerStore((s) => s.setSoundEnabled);
   return (
     <Button
-      variant="ghost"
+      variant="chit"
       size="icon"
       aria-label="Move sounds"
       aria-pressed={on}
