@@ -21,18 +21,18 @@ export function ShortcutsDialog() {
   return (
     <Dialog open={open} onOpenChange={(o) => setUi({ shortcutsOpen: o })}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader kicker="Key to symbols">
-          <DialogTitle className="font-serif text-xl font-semibold tracking-tight">Keyboard shortcuts</DialogTitle>
+        <DialogHeader>
+          <DialogTitle>Keyboard shortcuts</DialogTitle>
           <DialogDescription>Shortcuts are paused while typing or when a dialog is open.</DialogDescription>
         </DialogHeader>
-        <dl className="border-t border-rule-strong text-sm">
+        <dl className="border-t border-border text-sm">
           {SHORTCUTS.map(([keys, d]) => (
-            <div key={d} className="flex min-h-10 items-center gap-3 border-b border-rule py-1.5">
+            <div key={d} className="flex min-h-10 items-center gap-3 border-b border-border py-1.5">
               <dt className="flex w-28 shrink-0 flex-wrap gap-1">
                 {keys.map((k) => (
                   <kbd
                     key={k}
-                    className="paper-label inline-flex min-w-7 items-center justify-center rounded-[2px] border-b-2 border-b-[var(--btn-edge)] px-1.5 py-0.5 text-center font-mono text-xs font-medium text-foreground"
+                    className="inline-flex min-w-7 items-center justify-center rounded-sm border border-border border-b-2 bg-secondary px-1.5 py-0.5 text-center font-mono text-xs font-medium text-foreground"
                   >
                     {k}
                   </kbd>

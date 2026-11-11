@@ -1,10 +1,5 @@
 export { Kicker } from "./Kicker";
-export { PlateCaption } from "./PlateCaption";
-export { SpecimenTag } from "./SpecimenTag";
-export { Stamp } from "./Stamp";
-export { Leader } from "./Leader";
 export { MetaGrid, type MetaItem } from "./MetaGrid";
 export { CountedOption } from "./CountedOption";
 export { FieldSection } from "./FieldSection";
 export { EmptySpecimen } from "./EmptySpecimen";
-export { InkTick, InkDash } from "./InkTick";

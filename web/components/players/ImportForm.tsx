@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Envelope } from "@/components/paper";
 
 const tabCls = "px-0.5 text-xs sm:px-3 sm:text-sm";
 
@@ -27,9 +26,9 @@ export function labelFromFileName(name: string): string {
 function FileDrop({ accept, label, file, onFile }: { accept: string; label: string; file: File | null; onFile: (f: File | null) => void }) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
-  // A manila envelope: the flap lifts while a file hovers over it, the file name sits in the pocket's clear band.
   return (
     <div
+      className={`flex min-h-32 flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-6 text-center ${over ? "border-primary bg-accent" : "border-input"}`}
       onDragOver={(e) => {
         e.preventDefault();
         setOver(true);
@@ -41,14 +40,14 @@ function FileDrop({ accept, label, file, onFile }: { accept: string; label: stri
         onFile(e.dataTransfer.files?.[0] ?? null);
       }}
     >
-      <Envelope open={over} className="min-h-48 gap-2 px-4 pt-[4.75rem] pb-[3.25rem]">
-        <p className={file ? "max-w-full truncate" : "label-caps text-[11px] text-foreground"}>
+      <>
+        <p className={file ? "max-w-full truncate" : "text-sm text-foreground"}>
           {file ? <span className="font-mono text-xs text-foreground">{file.name}</span> : label}
         </p>
         <Button type="button" size="sm" variant="outline" onClick={() => input.current?.click()}>
           {file ? "Change file" : "Choose file"}
         </Button>
-      </Envelope>
+      </>
       <input ref={input} type="file" accept={accept} className="sr-only" aria-label={label} onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
     </div>
   );

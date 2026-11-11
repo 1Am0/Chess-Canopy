@@ -1,27 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   createRng,
-  deckledPath,
-  edgeProfile,
   fibreStrands,
-  handArrow,
   hashSeed,
   inkArrowPath,
-  inkCheckPath,
   inkEllipsePath,
   inkStrokePath,
   isWellFormedPath,
   pathPoints,
-  pencilHatchSvg,
-  speckPath,
-  speckleMaskSvg,
   svgDataUri,
-  tapePath,
-  ticketPath,
-  tornEdgeLine,
-  tornStripPath,
   washPath,
-  wobbleLine,
 } from "@/lib/paper";
 
 describe("seeded rng", () => {
@@ -51,106 +39,7 @@ describe("seeded rng", () => {
   });
 });
 
-describe("edge profile and torn strip", () => {
-  it("stays within [0, amp] and spans the width", () => {
-    const pts = edgeProfile(3, 640, 9);
-    expect(pts[0].x).toBe(0);
-    expect(pts[pts.length - 1].x).toBe(640);
-    for (const p of pts) {
-      expect(p.y).toBeGreaterThanOrEqual(0);
-      expect(p.y).toBeLessThanOrEqual(9);
-      expect(p.x).toBeGreaterThanOrEqual(0);
-      expect(p.x).toBeLessThanOrEqual(640);
-    }
-  });
-
-  it("is deterministic and seed dependent", () => {
-    expect(tornStripPath(1, 640, 14, 9)).toBe(tornStripPath(1, 640, 14, 9));
-    expect(tornStripPath(1, 640, 14, 9)).not.toBe(tornStripPath(2, 640, 14, 9));
-  });
-
-  it("loops: first and last height agree so the tile is seamless", () => {
-    const pts = edgeProfile(5, 400, 8, { loop: true });
-    expect(pts[0].y).toBe(pts[pts.length - 1].y);
-  });
-
-  it("is a valid closed path inside its box, and the lift raises the edge", () => {
-    const d = tornStripPath(4, 300, 14, 9, { loop: true });
-    expect(isWellFormedPath(d)).toBe(true);
-    expect(d.endsWith("Z")).toBe(true);
-    for (const p of pathPoints(d)) {
-      expect(p.x).toBeGreaterThanOrEqual(0);
-      expect(p.x).toBeLessThanOrEqual(300);
-      expect(p.y).toBeGreaterThanOrEqual(0);
-      expect(p.y).toBeLessThanOrEqual(14);
-    }
-    const low = Math.max(...pathPoints(tornStripPath(4, 300, 14, 9)).map((p) => p.y));
-    const high = Math.max(...pathPoints(tornStripPath(4, 300, 14, 9, { lift: 2 })).map((p) => p.y));
-    expect(high).toBeLessThan(low);
-  });
-
-  it("the open edge line is valid path data", () => {
-    expect(isWellFormedPath(tornEdgeLine(9, 200, 6))).toBe(true);
-  });
-});
-
-describe("tape", () => {
-  it("is a valid closed polygon inside length x height with serrated ends", () => {
-    for (const seed of [1, 2, 3, "ochre-a"]) {
-      const d = tapePath(seed, 96, 22);
-      expect(isWellFormedPath(d)).toBe(true);
-      expect(d.endsWith("Z")).toBe(true);
-      const pts = pathPoints(d);
-      for (const p of pts) {
-        expect(p.x).toBeGreaterThanOrEqual(0);
-        expect(p.x).toBeLessThanOrEqual(96);
-        expect(p.y).toBeGreaterThanOrEqual(0);
-        expect(p.y).toBeLessThanOrEqual(22);
-      }
-      // the ends are really zig-zags: several distinct x values within the first teeth
-      const leftXs = new Set(pts.filter((p) => p.x < 5).map((p) => p.x));
-      expect(leftXs.size).toBeGreaterThanOrEqual(4);
-    }
-  });
-
-  it("is deterministic", () => {
-    expect(tapePath("a", 90, 20)).toBe(tapePath("a", 90, 20));
-    expect(tapePath("a", 90, 20)).not.toBe(tapePath("b", 90, 20));
-  });
-});
-
-describe("deckled sheet", () => {
-  it("keeps every point inside the box with small inward offsets", () => {
-    const d = deckledPath(11, 420, 700, 1.6);
-    expect(isWellFormedPath(d)).toBe(true);
-    for (const p of pathPoints(d)) {
-      expect(p.x).toBeGreaterThanOrEqual(0);
-      expect(p.x).toBeLessThanOrEqual(420);
-      expect(p.y).toBeGreaterThanOrEqual(0);
-      expect(p.y).toBeLessThanOrEqual(700);
-    }
-    expect(deckledPath(11, 420, 700, 1.6)).toBe(d);
-  });
-});
-
 describe("hand-drawn lines", () => {
-  it("wobbleLine starts and ends exactly on the endpoints and stays near the chord", () => {
-    const d = wobbleLine(2, 4, 10, 120, 12, 1.2);
-    expect(isWellFormedPath(d)).toBe(true);
-    const pts = pathPoints(d);
-    expect(pts[0]).toEqual({ x: 4, y: 10 });
-    expect(pts[pts.length - 1]).toEqual({ x: 120, y: 12 });
-    for (const p of pts) expect(Math.abs(p.y - (10 + ((p.x - 4) / 116) * 2))).toBeLessThanOrEqual(1.4);
-    expect(wobbleLine(2, 4, 10, 120, 12, 1.2)).toBe(d);
-  });
-
-  it("handArrow is valid, deterministic, and ends at the tip", () => {
-    const d = handArrow(5, 2, 2, 60, 30, 5);
-    expect(isWellFormedPath(d)).toBe(true);
-    expect(handArrow(5, 2, 2, 60, 30, 5)).toBe(d);
-    expect(d).toContain("60 30");
-  });
-
   it("fibreStrands returns the requested count of valid strands inside the box", () => {
     const strands = fibreStrands(3, 300, 300, 24, { margin: 6 });
     expect(strands).toHaveLength(24);
@@ -265,52 +154,4 @@ describe("paper kit v2 generators", () => {
     expect(washPath(4, 120, 18)).toBe(d);
   });
 
-  it("speckPath keeps every speck inside the tile and speckleMaskSvg wraps it", () => {
-    const d = speckPath(8, 100, 40, 30);
-    expect(isWellFormedPath(d)).toBe(true);
-    const b = bbox(d);
-    expect(b.minX).toBeGreaterThanOrEqual(0);
-    expect(b.maxX).toBeLessThanOrEqual(100);
-    expect(b.minY).toBeGreaterThanOrEqual(0);
-    expect(b.maxY).toBeLessThanOrEqual(40);
-    expect(speckleMaskSvg(8, 100, 40, 30)).toContain("evenodd");
-  });
-
-  it("ticketPath cuts both ends and stays inside its box for both styles", () => {
-    for (const ends of ["perforated", "torn"] as const) {
-      const d = ticketPath("t", 220, 44, { ends });
-      expect(isWellFormedPath(d)).toBe(true);
-      expect(d.endsWith("Z")).toBe(true);
-      const b = bbox(d);
-      expect(b.minX).toBeGreaterThanOrEqual(0);
-      expect(b.maxX).toBeLessThanOrEqual(220);
-      expect(b.minY).toBeGreaterThanOrEqual(0);
-      expect(b.maxY).toBeLessThanOrEqual(44);
-      // notches/teeth reach inward on both ends
-      expect(pathPoints(d).some((p) => p.x > 1 && p.x < 8)).toBe(true);
-      expect(pathPoints(d).some((p) => p.x < 219 && p.x > 212)).toBe(true);
-      expect(ticketPath("t", 220, 44, { ends })).toBe(d);
-    }
-    expect(isWellFormedPath(ticketPath(1, 20, 6))).toBe(true);
-  });
-
-  it("pencilHatchSvg gives a seamless-size tile and differs by seed", () => {
-    const a = pencilHatchSvg(1, 5);
-    expect(a.size).toBe(20);
-    expect(a.svg).toContain("<path");
-    expect(pencilHatchSvg(1, 5).svg).toBe(a.svg);
-    expect(pencilHatchSvg(2, 5).svg).not.toBe(a.svg);
-    expect(pencilHatchSvg(1, 5, -1).svg).not.toBe(a.svg);
-  });
-
-  it("inkCheckPath is a short well formed open path inside the 16px box", () => {
-    const d = inkCheckPath("cb");
-    expect(isWellFormedPath(d)).toBe(true);
-    expect(inkCheckPath("cb")).toBe(d);
-    const b = bbox(d);
-    expect(b.minX).toBeGreaterThan(1);
-    expect(b.maxX).toBeLessThan(15.5);
-    expect(b.minY).toBeGreaterThan(1);
-    expect(b.maxY).toBeLessThan(15);
-  });
 });

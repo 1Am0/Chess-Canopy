@@ -11,7 +11,6 @@ import { sourceLabel } from "@/lib/format";
 import { useSharedImport } from "@/components/players/ImportProvider";
 import { ImportProgress } from "@/components/players/ImportProgress";
 import { EmptySpecimen, MetaGrid } from "@/components/field";
-import { PaperLabel, PaperSheet, RubberStamp } from "@/components/paper";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -58,7 +57,7 @@ export function PlayerManager() {
     <Dialog open={open} onOpenChange={(o) => setUi({ managerOpen: o })}>
       <DialogContent>
         <DialogHeader kicker="Collection register">
-          <DialogTitle className="font-serif text-xl font-semibold tracking-tight">Manage players</DialogTitle>
+          <DialogTitle>Manage players</DialogTitle>
           <DialogDescription>All data stays in your browser. Export a player as schema v1 JSON for the Python CLI.</DialogDescription>
         </DialogHeader>
         <ul className="-mx-1 max-h-[60vh] space-y-4 overflow-y-auto px-1 pt-1 pb-2">
@@ -67,17 +66,15 @@ export function PlayerManager() {
               <EmptySpecimen title="No players yet" hint="No players imported yet." />
             </li>
           )}
-          {players.map((p, i) => (
+          {players.map((p) => (
             <li key={p.id}>
-            <PaperSheet className="p-3">
+            <div className="rounded-lg border border-border bg-card p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="kicker mb-0 tabular-nums">No. {String(i + 1).padStart(3, "0")}</p>
-                  <span className="block truncate font-serif text-lg leading-tight font-semibold italic">{p.displayName}</span>
+                  <span className="block truncate text-base leading-tight font-semibold">{p.displayName}</span>
                 </div>
-                <PaperLabel tone="manila" taped rotate={i % 2 ? 1 : -1} className="mt-1 mr-1">{sourceLabel(p.source)}</PaperLabel>
+                <span className="shrink-0 rounded-sm border border-border bg-secondary px-1.5 text-xs leading-5 text-muted-foreground">{sourceLabel(p.source)}</span>
               </div>
-              <span aria-hidden className="mt-2 block h-px bg-margin" />
               <MetaGrid
                 className="mt-2"
                 items={[
@@ -87,28 +84,28 @@ export function PlayerManager() {
               />
               {confirming === p.id ? (
                 <div className="mt-3 flex items-center gap-2">
-                  <RubberStamp tone="destructive" seed={p.id}>Delete {p.displayName}?</RubberStamp>
+                  <p className="min-w-0 truncate text-sm font-medium text-loss-text">Delete {p.displayName}?</p>
                   <div className="ml-auto flex items-center gap-1">
                     <Button size="sm" variant="destructive" disabled={running} onClick={() => remove(p)}>Delete</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Keep</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Cancel</Button>
                   </div>
                 </div>
               ) : (
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
                   {(p.source === "chess.com" || p.source === "lichess") && (
-                    <Button size="xs" variant="tag" disabled={running} onClick={() => sync(p.id)} aria-label={`Sync ${p.displayName}`} title="Sync new games">
+                    <Button size="xs" variant="outline" disabled={running} onClick={() => sync(p.id)} aria-label={`Sync ${p.displayName}`} title="Sync new games">
                       <RefreshCw /> Sync
                     </Button>
                   )}
-                  <Button size="xs" variant="tag" onClick={() => exportPlayer(p)} aria-label={`Export ${p.displayName} as JSON`} title="Export JSON">
+                  <Button size="xs" variant="outline" onClick={() => exportPlayer(p)} aria-label={`Export ${p.displayName} as JSON`} title="Export JSON">
                     <Download /> Export JSON
                   </Button>
-                  <Button size="xs" variant="tag" className="ml-auto" disabled={running} onClick={() => setConfirming(p.id)} aria-label={`Delete ${p.displayName}`} title={running ? "Wait for the import to finish" : "Delete"}>
+                  <Button size="xs" variant="outline" className="ml-auto" disabled={running} onClick={() => setConfirming(p.id)} aria-label={`Delete ${p.displayName}`} title={running ? "Wait for the import to finish" : "Delete"}>
                     <Trash2 /> Delete
                   </Button>
                 </div>
               )}
-            </PaperSheet>
+            </div>
             </li>
           ))}
         </ul>

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState, type WheelEvent } from "react";
 import { RotateCcw } from "lucide-react";
 import { useExplorerStore } from "@/lib/store";
-import { InkCircle } from "@/components/paper";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +72,6 @@ export function LinePanel({ className }: { className?: string }) {
     const san = path[i];
     if (san === undefined) return null;
     const current = i === cursor - 1;
-    const text = <span className="relative inline-block">{san}</span>;
     return (
       <button
         type="button"
@@ -81,25 +79,18 @@ export function LinePanel({ className }: { className?: string }) {
         aria-current={current ? "step" : undefined}
         data-current={current || undefined}
         className={cn(
-          "h-7 shrink-0 px-2 font-mono text-sm font-medium text-ink outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
-          current && "font-bold",
-          !current && i >= cursor && "font-normal text-pencil/70 italic",
+          "h-7 shrink-0 rounded-sm px-2 font-mono text-sm font-medium text-ink outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
+          current && "bg-accent font-bold text-accent-foreground",
+          !current && i >= cursor && "font-normal text-muted-foreground",
         )}
       >
-        {current ? (
-          <InkCircle seed={`ply-${i}`} padX={5} padY={2} strokeWidth={1.6}>
-            {text}
-          </InkCircle>
-        ) : (
-          text
-        )}
+        {san}
       </button>
     );
   };
 
   return (
-    // A plain ruled strip: moves typed in mono, the current move circled in ink.
-    <div role="region" aria-label="Line" className={cn("flex h-11 shrink-0 items-center gap-1 border-y border-rule pr-1 pl-1", className)}>
+    <div role="region" aria-label="Line" className={cn("flex h-11 shrink-0 items-center gap-1 border-y border-border pr-1 pl-1", className)}>
       <div
         ref={scroller}
         onWheel={onWheel}
@@ -112,7 +103,7 @@ export function LinePanel({ className }: { className?: string }) {
           onClick={() => goTo(0)}
           aria-current={cursor === 0 ? "step" : undefined}
           className={cn(
-            "h-7 shrink-0 px-2 text-xs font-medium text-pencil outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
+            "h-7 shrink-0 px-2 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring",
             cursor === 0 && "font-semibold text-ink",
           )}
         >
@@ -127,7 +118,7 @@ export function LinePanel({ className }: { className?: string }) {
           <ol ref={listRef} className="flex items-center">
             {Array.from({ length: pairs }).map((_, r) => (
               <li key={r} className="flex shrink-0 items-center whitespace-nowrap">
-                <span className="pr-0.5 pl-2 font-mono text-xs text-pencil/80 tabular-nums">{r + 1}.</span>
+                <span className="pr-0.5 pl-2 font-mono text-xs text-muted-foreground tabular-nums">{r + 1}.</span>
                 {cell(r * 2)}
                 {cell(r * 2 + 1)}
               </li>
