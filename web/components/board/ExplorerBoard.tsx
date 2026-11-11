@@ -168,7 +168,7 @@ export function ExplorerBoard() {
   }, [result, key, fen, hoverMove]);
 
   // Drag momentum: while a piece is held, its tilt follows a damped spring driven by the pointer's sideways speed,
-  // so it swings against the direction of travel, overshoots a little, and settles when you stop.
+  // so its base trails behind the direction of travel like air drag, overshoots a little, and settles when you stop.
   useEffect(() => {
     const el = box.current;
     if (!el || reduceMotion) return;
@@ -180,7 +180,7 @@ export function ExplorerBoard() {
     let vel = 0;
     let raf = 0;
     const tick = () => {
-      const target = Math.max(-30, Math.min(30, -vx * 1.4));
+      const target = Math.max(-30, Math.min(30, vx * 1.4));
       vel = (vel + (target - ang) * 0.16) * 0.8;
       ang += vel;
       vx *= 0.85;
