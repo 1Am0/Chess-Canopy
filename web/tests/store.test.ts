@@ -20,7 +20,7 @@ beforeEach(() => {
   useExplorerStore.setState({ path: [], cursor: 0, hoverMove: null, filters: { color: "white" }, result: null });
 });
 
-describe("playMove (C7)", () => {
+describe("playMove", () => {
   it("ignores illegal input and never wipes the line", () => {
     st().playMove("e4");
     st().playMove("e5");
@@ -97,7 +97,7 @@ describe("setLine", () => {
   });
 });
 
-describe("persist migration v2 (C5)", () => {
+describe("persist migration v2", () => {
   it("drops the move range from stored filters", () => {
     const v1 = { selected: "all", filters: { color: "black", moves_start: 1, moves_end: 10, result: "1-0" }, orientation: "black", sideChosen: true };
     expect(migratePersisted(v1, 1)).toMatchObject({ filters: { color: "black", result: "1-0" }, sideChosen: true });
@@ -117,7 +117,7 @@ describe("persist migration v2 (C5)", () => {
   });
 });
 
-describe("isResultFresh (C7)", () => {
+describe("isResultFresh", () => {
   const r = (path: string[]) => ({ path }) as unknown as QueryResult;
   it("is true only for the shown position", () => {
     expect(isResultFresh({ result: null, path: [], cursor: 0 })).toBe(false);
@@ -127,7 +127,7 @@ describe("isResultFresh (C7)", () => {
   });
 });
 
-describe("position cache (C15)", () => {
+describe("position cache", () => {
   it("returns the same object for the same line and extends incrementally", () => {
     const a = ["e4", "e5", "Nf3"];
     const lp = linePositions(a);
@@ -156,7 +156,7 @@ describe("position cache (C15)", () => {
   });
 });
 
-describe("URL ?line= (C16)", () => {
+describe("URL ?line=", () => {
   const get = (search: string) => new URLSearchParams(search).get("line");
   it("restores '+' decoded as a space, accepts %2B and a missing '+'", () => {
     expect(parseLineParam(get("?line=e4,e5,Bc4,Nc6,Bxf7+,Kxf7"))).toEqual(["e4", "e5", "Bc4", "Nc6", "Bxf7+", "Kxf7"]);
@@ -190,7 +190,7 @@ describe("explicit side choice", () => {
   });
 });
 
-describe("auto side (C12)", () => {
+describe("auto side", () => {
   it("first summary: the side with more games, including a Black-only player", () => {
     expect(autoSide({ games: 0, counts: { white: 0, black: 2 } }, "white", false, 0)).toBe("black");
     expect(autoSide({ games: 3, counts: { white: 3, black: 2 } }, "white", false, 0)).toBeNull();
@@ -203,7 +203,7 @@ describe("auto side (C12)", () => {
   });
 });
 
-describe("change-aware persist storage (M6)", () => {
+describe("change-aware persist storage", () => {
   it("skips writes when the persisted fields did not change", () => {
     const writes: string[] = [];
     const g = globalThis as unknown as { window?: unknown };
@@ -234,7 +234,7 @@ describe("change-aware persist storage (M6)", () => {
   });
 });
 
-describe("filters and side (M5, L15)", () => {
+describe("filters and side", () => {
   it("setFilters swaps inverted rating and date ranges", () => {
     st().setFilters({ min_my_rating: 2500, max_my_rating: 1000 });
     expect(st().filters).toMatchObject({ min_my_rating: 1000, max_my_rating: 2500 });
@@ -249,7 +249,7 @@ describe("filters and side (M5, L15)", () => {
   });
 });
 
-describe("loadFailed (M3)", () => {
+describe("loadFailed", () => {
   it("is true only when nothing is pending and no result exists", () => {
     const base = { ready: true, players: [{ id: "p" }] as never, result: null, resultLoading: false };
     expect(loadFailed(base)).toBe(true);

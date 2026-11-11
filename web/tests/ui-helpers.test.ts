@@ -20,7 +20,7 @@ describe("splitRare (arrows and table agree)", () => {
   });
 });
 
-describe("progressSummary (L19)", () => {
+describe("progressSummary", () => {
   it("shows the month while chess.com archives are fetched", () => {
     const p = progressSummary({ phase: "fetching", done: 11, total: 60, added: 0, duplicates: 0 });
     expect(p.detail).toBe("Month 12 of 60");

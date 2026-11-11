@@ -266,7 +266,7 @@ describe("normalize", () => {
   });
 });
 
-describe("time-control rule (C14)", () => {
+describe("time-control rule", () => {
   it("daily for '/', '-' and 'day' formats", () => {
     expect(timeControlLabel("1/86400")).toBe("daily");
     expect(timeControlLabel("-")).toBe("daily");
@@ -298,7 +298,7 @@ describe("time-control rule (C14)", () => {
   });
 });
 
-describe("san normalisation (C17)", () => {
+describe("san normalisation", () => {
   it("lower-case and zero castling, promotions without '=', glued e.p.", () => {
     expect(extractSanMoves("1. e4 e5 2. o-o o-o-o+ 3. 0-0")).toEqual(["e4", "e5", "O-O", "O-O-O+", "O-O"]);
     expect(extractSanMoves("1. e8Q exd1q+ e8=n")).toEqual(["e8=Q", "exd1=Q+", "e8=N"]);
@@ -306,7 +306,7 @@ describe("san normalisation (C17)", () => {
   });
 });
 
-describe("pgn ids, variants, elo and dates (C3, C4, C20)", () => {
+describe("pgn ids, variants, elo and dates", () => {
   const game = (h: Record<string, string>, moves = "1. e4 e5 2. Nf3 Nc6") =>
     Object.entries(h).map(([k, v]) => `[${k} "${v}"]`).join("\n") + `\n\n${moves} ${h.Result ?? "*"}\n\n`;
   it("Site 'Chess.com' without Link keeps every game; OTB Site too", () => {
@@ -363,7 +363,7 @@ describe("pgn ids, variants, elo and dates (C3, C4, C20)", () => {
   });
 });
 
-describe("json import checks (C3, C4, C13, C14)", () => {
+describe("json import checks", () => {
   const opts = { source: "json" as const, playerId: "json:me" };
   const base = { moves: ["e4", "e5"], color: "white", result: "1-0", date: "2024-01-01", opponent: "x", time_control: "blitz", time_control_raw: "300+0" };
   it("drops variants and counts them", () => {

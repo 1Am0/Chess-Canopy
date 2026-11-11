@@ -30,7 +30,7 @@ beforeEach(async () => {
   await db.games.clear();
 });
 
-describe("chess.com import saves incrementally (M2)", () => {
+describe("chess.com import saves incrementally", () => {
   const months = ["2024/01", "2024/02", "2024/03"];
 
   it("keeps the months downloaded before a failed month and reports a partial outcome", async () => {
@@ -66,7 +66,7 @@ describe("chess.com import saves incrementally (M2)", () => {
   });
 });
 
-describe("gamesAt paging (L12)", () => {
+describe("gamesAt paging", () => {
   it("returns further pages with an offset", async () => {
     const games = Array.from({ length: 60 }, (_, i) => ({
       game_id: `g${String(i).padStart(2, "0")}`,
@@ -94,7 +94,7 @@ describe("gamesAt paging (L12)", () => {
   });
 });
 
-describe("import input (L21, L26)", () => {
+describe("import input", () => {
   const pgn = (res: string, name: string) =>
     `[Event "x"]\n[Site "https://lichess.org/${name}"]\n[Date "2024.01.01"]\n[White "Hero"]\n[Black "Foe"]\n[Result "${res}"]\n\n1. e4 e5 ${res}\n`;
 
@@ -119,7 +119,7 @@ describe("import input (L21, L26)", () => {
   });
 });
 
-describe("QueryResult.fen (L22)", () => {
+describe("QueryResult.fen", () => {
   it("reports the path's position even when no game matches", async () => {
     const svc = new ExplorerService();
     await svc.importGames({ kind: "pgn", username: "hero", text: `[White "Hero"]\n[Black "F"]\n[Result "1-0"]\n[Date "2024.01.01"]\n[Site "https://lichess.org/zzzzzzzz"]\n\n1. e4 e5 1-0\n` }, noop);

@@ -289,7 +289,7 @@ function lichessServer(all: LiGame[], o: { failAt?: number; cancelAt?: number; s
 
 const range = (n: number, extra: Partial<LiGame> = {}) => Array.from({ length: n }, (_, i) => ({ i, ...extra }));
 
-describe("lichess watermark (C1, C2, C11)", () => {
+describe("lichess watermark", () => {
   it("requests oldest first with ongoing games", async () => {
     const srv = lichessServer(range(3));
     const s = new ExplorerService({ fetchImpl: srv.f });
@@ -378,7 +378,7 @@ describe("lichess watermark (C1, C2, C11)", () => {
   });
 });
 
-describe("orphans and 'all' (C11)", () => {
+describe("orphans and 'all'", () => {
   it("'all' ignores games without a player and startup cleanup removes them", async () => {
     await svc.importGames(jsonReq, noop);
     await db.games.bulkAdd([
@@ -400,7 +400,7 @@ describe("orphans and 'all' (C11)", () => {
   });
 });
 
-describe("selection races (C8)", () => {
+describe("selection races", () => {
   function countReads() {
     let reads = 0;
     const orig = db.games.where.bind(db.games);
@@ -478,7 +478,7 @@ async function dbPut(playerId: string, games: Array<Record<string, unknown>>) {
   await db.games.bulkAdd(games.map((x) => ({ ...x, source: "json", playerId, id: `${playerId}|${x.game_id}` })) as never);
 }
 
-describe("imports (C3, C4, C13, C21, C24, C25)", () => {
+describe("imports", () => {
   it("two PGN files without Site are both added", async () => {
     const a = `[White "Hero"]\n[Black "A"]\n[Result "1-0"]\n\n1. e4 e5 1-0\n\n[White "Hero"]\n[Black "B"]\n[Result "0-1"]\n\n1. d4 d5 0-1\n`;
     const b = `[White "C"]\n[Black "Hero"]\n[Result "1-0"]\n\n1. c4 e5 1-0\n\n[White "D"]\n[Black "Hero"]\n[Result "0-1"]\n\n1. Nf3 d5 0-1\n`;
