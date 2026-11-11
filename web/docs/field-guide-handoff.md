@@ -842,3 +842,11 @@ Contrast passed everywhere; no page-level horizontal scroll.
 - Checks: build, typecheck, lint, vitest clean; e2e 33/34, the 320px header test failed once in the full run (concurrent rebuilds by other agents) and passed on rerun.
 
 - **WL (Round 6, Welcome)**: one grid on desktop (headline + form left, plate right spanning both rows with the handnote, steps full-width below, 32px gaps, top edges aligned, footer 32px under steps); DOM order headline, form, steps, plate gives the mobile order. Plate rebuilt as two SVG layouts (wide 410x470, narrow 290x390) so labels render at >=11px, "No. 001" 11px. Entrance is now 200ms with opacity from 0.7 (no delays). Note: never render a PaperSheet inside a `display:none` ancestor (torn-edge hook throws on 0x0), so the plate is a single instance. Observed, not mine: at 320 the "Chess.com" import tab text is clipped (components/players/ImportForm). typecheck, lint, test, e2e (34) pass.
+
+## Status log (round 6, Workstream IA)
+
+- I1: Line strip is a plain ruled strip (no ticket/stamp), "Start" a small text button; "+ Add filter" plain underlined text (name "Add filter" kept); filter chips are plain bordered tags (no clip/tilt). Kept: ECO string tag, inked circle.
+- I2: summary legend removed; bar strips labelled in place ("White 40%" wide, "13%" narrow, none under 7%), bar now h-6. Summary slot is 20 + 8 + 24 = 52 exact, so the column rhythm is 8px throughout (the old 5px-padded summary was the odd gap). `WdbSwatch` deleted. e2e/a11y-ui.spec.ts summary check now expects one `p` (legend gone).
+- I3: hint "Play a move to start" below `@[34rem]/sheet`, long copy above; narrow column widths in MoveRow `COL` so "MOVE" fits at 320; Canopy key card shortens to "games · score" and "Plies" label hides below 430px, so depth buttons 2/3/4 stay inside.
+- I4: bar labels 11px (table-bar digit labels hidden under 17% so they never clip), Games W/D/L stamps use size md (11px).
+- Verified: build, typecheck, lint, 425 unit tests, 34 e2e pass. Slot heights unchanged. Shots: scratchpad/shots/ia3-*.
