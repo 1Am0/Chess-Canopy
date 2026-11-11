@@ -6,7 +6,7 @@ import { evalLocal } from "@/lib/local-eval";
 
 /**
  * Evaluation of `fen`: Lichess's cloud cache first, and when it has nothing (or is unreachable) a local
- * Stockfish search that reports deeper scores as it goes. Debounced so holding an arrow key doesn't spam either.
+ * Stockfish search that keeps going deeper (reporting each new score) until the position changes. Debounced so holding an arrow key doesn't spam either.
  */
 export function useCloudEval(fen: string): EvalResult | "loading" {
   const [state, setState] = useState<{ fen: string; res: EvalResult } | null>(null);
@@ -22,6 +22,7 @@ export function useCloudEval(fen: string): EvalResult | "loading" {
         // Keep the previous evaluation on screen until the local engine has a first score.
         const local = await evalLocal(fen, {
           signal: ctl.signal,
+          continuous: true, // keep going deeper until you leave the position
           onProgress: (e) => show({ status: "ok", eval: { ...e, source: "local" } }),
         });
         if (ctl.signal.aborted) return;

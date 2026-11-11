@@ -37,6 +37,8 @@ interface Job {
   whiteToMove: boolean;
   depth: number;
   movetime: number;
+  /** Search until stopped (`go infinite`) instead of to a fixed depth / time. */
+  continuous: boolean;
   onProgress?: (e: CloudEval) => void;
   resolve: (e: CloudEval | null) => void;
   last: CloudEval | null;
@@ -98,8 +100,9 @@ function onLine(line: string) {
   } else if (running && line.startsWith("bestmove")) {
     const job = running;
     running = null;
-    const result = job.aborted ? null : job.last;
-    if (result) cache.set(job.fen, result);
+    // a continuous search only ends when it is stopped, and then its last score is still the answer
+    const result = job.aborted && !job.continuous ? null : job.last;
+    if (result && !job.continuous) cache.set(job.fen, result);
     job.resolve(result);
     next();
   }
@@ -148,7 +151,7 @@ function next() {
       return;
     }
     handle.post(`position fen ${job.fen}`);
-    handle.post(`go depth ${job.depth} movetime ${job.movetime}`);
+    handle.post(job.continuous ? "go infinite" : `go depth ${job.depth} movetime ${job.movetime}`);
   });
 }
 
@@ -156,6 +159,8 @@ export interface LocalEvalOptions {
   signal?: AbortSignal;
   depth?: number;
   movetime?: number;
+  /** Keep analysing, going deeper until the signal aborts (ignores depth and movetime, and is not cached). */
+  continuous?: boolean;
   /** Called with a deeper score as the search progresses. */
   onProgress?: (e: CloudEval) => void;
 }
@@ -166,7 +171,7 @@ export function localEvalAvailable(): boolean {
 
 /** Evaluate `fen` with the local engine; resolves null if aborted, superseded or the engine is unavailable. */
 export function evalLocal(fen: string, opts: LocalEvalOptions = {}): Promise<CloudEval | null> {
-  const hit = cache.get(fen);
+  const hit = opts.continuous ? undefined : cache.get(fen);
   if (hit) return Promise.resolve(hit);
   if (!localEvalAvailable() || opts.signal?.aborted) return Promise.resolve(null);
   return new Promise((resolve) => {
@@ -175,6 +180,7 @@ export function evalLocal(fen: string, opts: LocalEvalOptions = {}): Promise<Clo
       whiteToMove: fen.split(" ")[1] !== "b",
       depth: opts.depth ?? DEFAULT_DEPTH,
       movetime: opts.movetime ?? DEFAULT_MOVETIME_MS,
+      continuous: !!opts.continuous,
       onProgress: opts.onProgress,
       resolve,
       last: null,

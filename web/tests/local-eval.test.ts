@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { __setEngineFactory, evalLocal, parseInfoScore, type EngineFactory } from "@/lib/local-eval";
 
 const WHITE_TO_MOVE = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -114,5 +114,25 @@ describe("evalLocal", () => {
     });
     expect(await evalLocal(WHITE_TO_MOVE)).toBeNull();
     expect(await evalLocal(BLACK_TO_MOVE)).toBeNull();
+  });
+
+  it("continuous mode searches without a limit, keeps reporting, and ends when stopped", async () => {
+    const eng = fakeEngine(() => "cp 0", { holdSearch: true });
+    __setEngineFactory(eng.factory);
+    const seen: number[] = [];
+    const ctl = new AbortController();
+    const p = evalLocal(WHITE_TO_MOVE, { continuous: true, signal: ctl.signal, onProgress: (e) => seen.push(e.depth) });
+    await vi.waitFor(() => expect(eng.log).toContain("go infinite"));
+    eng.emit("info depth 14 score cp 5 pv a");
+    eng.emit("info depth 22 score cp 7 pv a");
+    eng.emit("info depth 31 score cp 9 pv a");
+    expect(seen).toEqual([14, 22, 31]); // goes past the old depth-14 limit
+    expect(eng.log.some((c) => c.startsWith("go depth"))).toBe(false);
+    ctl.abort();
+    expect(await p).toEqual({ cp: 9, mate: null, depth: 31 });
+    // not cached: asking again searches again
+    const again = evalLocal(WHITE_TO_MOVE, { continuous: true });
+    await vi.waitFor(() => expect(eng.log.filter((c) => c === "go infinite").length).toBe(2));
+    void again;
   });
 });
