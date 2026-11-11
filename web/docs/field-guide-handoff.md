@@ -293,3 +293,19 @@ marks ✅.)_
   (field-notebook page, per-group Clear, index tabs, ticked rating scales),
   appearance catalogue card (mini-board swatches, "default" stamp), import
   index card, collection popover with leaders, perforated toast slips.
+
+## Backlog (noted for later, not started)
+
+- **Custom board arrows that match the theme.** The current arrows (saturated
+  blue candidates, orange hover preview, rgba user arrows in
+  `components/board/BoardOverlay.tsx` and `ExplorerBoard.tsx`) pop far too much
+  against the paper look. Redo them as ink/pencil-style marks: muted ink
+  colours from the tokens, thinner tapered strokes, a hand-drawn or
+  nib-like head, lower opacity, maybe a slight paper "pressed in" feel.
+  Keep: thickness/opacity still encodes how often a move was played, the hover
+  preview stays distinguishable from candidates, and the fixed SVG node count
+  (layout/perf contract). Owner request from 11 Nov 2026.
+- **Direction check: "scrapbook" paper theme.** The owner meant a real
+  scrapbook / paper-craft feel (physical paper, layered cut-outs, tape, etc.),
+  more tactile than the current field-notebook restraint. Research is under
+  way; nothing implemented until the owner approves the direction.
