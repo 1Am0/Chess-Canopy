@@ -7,7 +7,7 @@ import {
   inkStrokePath,
   isWellFormedPath,
   pathPoints,
-} from "@/lib/paper";
+} from "@/lib/strokes";
 
 describe("seeded rng", () => {
   it("repeats for the same seed and differs between seeds", () => {
@@ -23,8 +23,8 @@ describe("seeded rng", () => {
   });
 
   it("accepts string seeds and keeps range/int in bounds", () => {
-    expect(hashSeed("tape-1")).toBe(hashSeed("tape-1"));
-    expect(hashSeed("tape-1")).not.toBe(hashSeed("tape-2"));
+    expect(hashSeed("a")).toBe(hashSeed("a"));
+    expect(hashSeed("a")).not.toBe(hashSeed("b"));
     const r = createRng("x");
     for (let i = 0; i < 200; i++) {
       const v = r.range(3, 5);

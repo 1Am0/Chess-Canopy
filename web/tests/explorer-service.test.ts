@@ -255,7 +255,7 @@ const liLine = (g: LiGame) =>
   });
 
 /**
- * A fake Lichess export: honours since, sort and ongoing like the real endpoint.
+ * A fake Lichess export: honors since, sort and ongoing like the real endpoint.
  * `failAt` errors the stream (network) and `cancelAt` cancels via the service after that many lines.
  */
 function lichessServer(all: LiGame[], o: { failAt?: number; cancelAt?: number; svc?: () => ExplorerService } = {}) {

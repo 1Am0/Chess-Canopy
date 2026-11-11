@@ -142,10 +142,9 @@ describe("playSound (recorded Lichess samples)", () => {
     expect(reset[0].gain).toBeLessThan(0.6); // and quieter
   });
 
-  it("defaults to Lichess's Standard theme, which has move and capture recordings", async () => {
+  it("loads the standard Lichess sounds, which are move and capture recordings", async () => {
     const { fetched } = installFakeAudio();
-    const { preloadSounds, DEFAULT_SOUND_THEME } = await import("@/lib/sound");
-    expect(DEFAULT_SOUND_THEME).toBe("standard");
+    const { preloadSounds } = await import("@/lib/sound");
     await preloadSounds();
     expect(fetched.sort()).toEqual(["Capture", "Move"].map((n) => `/sounds/standard/${n}.mp3`));
     // Never any game-over / victory / notification sample.

@@ -251,7 +251,7 @@ export function FilterSheet() {
         <SheetHeader>
           <SheetTitle>Filters</SheetTitle>
           <SheetDescription>
-            Results update as you change filters.<span className="sr-only"> Win / Draw / Loss is from your point of view.</span>
+            Results update as you change filters.
           </SheetDescription>
         </SheetHeader>
 

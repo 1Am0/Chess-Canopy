@@ -4,14 +4,14 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const schibsted = Schibsted_Grotesk({ subsets: ["latin"], weight: "variable", variable: "--font-schibsted" });
-// Mono for SAN, FEN and ECO only. The wdth axis is set to 87.5% via `font-stretch` in globals.css.
+// Mono for moves, codes and tabular numbers. The wdth axis is set to 87.5% via `font-stretch` in globals.css.
 const martian = Martian_Mono({ subsets: ["latin"], weight: "variable", axes: ["wdth"], preload: false, variable: "--font-martian" });
 
 const title = "Chess Canopy: opening explorer for your own games";
-const description = "Import your games from Chess.com or Lichess and see which openings you play and how they score. Everything runs in your browser.";
+const description = "Import your games from Chess.com or Lichess and see which openings you play and how they score.";
 
 // Absolute OG image URLs need a base. Vercel exposes the production host at build time;
-// elsewhere set NEXT_PUBLIC_SITE_URL. Without either, Next falls back to localhost and warns.
+// elsewhere set NEXT_PUBLIC_SITE_URL. Without either, the preview image is omitted.
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined);
 
 export const metadata: Metadata = {
@@ -23,9 +23,9 @@ export const metadata: Metadata = {
     description,
     type: "website",
     siteName: "Chess Canopy",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Chess Canopy" }],
+    ...(siteUrl ? { images: [{ url: "/og.png", width: 1200, height: 630, alt: "Chess Canopy" }] } : {}),
   },
-  twitter: { card: "summary_large_image", title, description, images: ["/og.png"] },
+  twitter: { card: siteUrl ? "summary_large_image" : "summary", title, description, ...(siteUrl ? { images: ["/og.png"] } : {}) },
 };
 
 export const viewport: Viewport = {

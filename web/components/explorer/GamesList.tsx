@@ -151,7 +151,7 @@ export function GamesList({ className, active = true }: { className?: string; ac
         )}
         {!failed && games?.length === 0 && !(noGames && (filterCount > 0 || otherCount > 0)) && (
           <li>
-            <EmptyState title="No games reach this position." />
+            <EmptyState title="No games reach this position" />
           </li>
         )}
         {!failed && games?.map((g) => {
@@ -171,14 +171,14 @@ export function GamesList({ className, active = true }: { className?: string; ac
                 }}
                 aria-pressed={loaded}
                 title="Load this game into the line"
-                className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-left outline-none transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-left outline-none transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring"
               >
                 <span className="sr-only">Load game: {r} </span>
                 <span aria-hidden className="flex w-9 shrink-0 justify-center">
                   <span className={cn("inline-grid h-5 min-w-6 place-items-center rounded-sm font-mono text-xs font-semibold", RESULT_CLS[r])}>{r[0]}</span>
                 </span>
                 <span
-                  className={cn("size-3 shrink-0 rounded-full ring-1 ring-foreground/40", g.color === "white" ? "bg-white" : "bg-neutral-900")}
+                  className={cn("size-3 shrink-0 rounded-full border border-bar-border", g.color === "white" ? "bg-bar-white" : "bg-bar-black")}
                   title={`Played ${g.color}`}
                   aria-label={`Played ${g.color}`}
                   role="img"
@@ -200,7 +200,7 @@ export function GamesList({ className, active = true }: { className?: string; ac
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Open game vs ${g.opponent} on ${sourceLabel(g.source)}`}
-                    className="px-1 py-1.5 font-mono text-xs text-muted-foreground underline decoration-ink/40 underline-offset-[3px] outline-none hover:text-ink hover:decoration-ink focus-visible:outline-2 focus-visible:outline-ring"
+                    className="px-1 py-1.5 font-mono text-xs text-muted-foreground underline decoration-ink/40 underline-offset-[3px] outline-none hover:text-ink hover:decoration-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
                   >
                     <span aria-hidden>open</span>
                   </a>

@@ -73,7 +73,7 @@ function jsonRes(body: unknown, status = 200): Response {
 describe("chess.com fetch", () => {
   const archives = ["https://api.chess.com/pub/player/hero/games/2024/01", "https://api.chess.com/pub/player/hero/games/2024/02", "https://api.chess.com/pub/player/hero/games/2024/03"];
   const noSleep = async () => {};
-  it("fetches newest first, honours sinceMonth, reports progress", async () => {
+  it("fetches newest first, honors sinceMonth, reports progress", async () => {
     const calls: string[] = [];
     const fetchImpl = vi.fn(async (u: string | URL | Request) => {
       const url = String(u);
@@ -141,7 +141,7 @@ describe("chess.com fetch", () => {
     expect(n).toBe(1);
     expect(err).toMatchObject({ status: 403, body: "Blocked: Archive crawl was too heavy for this API." });
   });
-  it("honours Retry-After and caps the backoff", async () => {
+  it("honors Retry-After and caps the backoff", async () => {
     let n = 0;
     const delays: number[] = [];
     const fetchImpl = (async (u: string | URL | Request) => {

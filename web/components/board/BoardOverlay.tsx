@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { inkArrowPath, inkEllipsePath, inkStrokePath } from "@/lib/paper";
+import { inkArrowPath, inkEllipsePath, inkStrokePath } from "@/lib/strokes";
 
 export type OverlayArrowKind = "candidate" | "hover";
 export type UserInk = "green" | "red" | "ochre" | "blue" | "graphite";
@@ -62,7 +62,7 @@ const norm = (v: Pt): Pt => {
 /** Arrow width multipliers; move frequency still scales the width. */
 const INK_SCALE = 0.78;
 const PENCIL_SCALE = 0.62;
-const TIP_GAP = 26; // the tip stops short of the target centre so the piece stays visible
+const TIP_GAP = 26; // the tip stops short of the target center so the piece stays visible
 const START_GAP = 16;
 
 interface Geometry {
@@ -117,7 +117,7 @@ function geometry(from: string, to: string, kind: OverlayArrowKind | "user", wid
   };
 }
 
-const COORD_MIN_PX = 11; // smallest rendered size of the rank / file labels
+const COORD_MIN_PX = 12; // smallest rendered size of the rank / file labels
 
 const OVERLAY_CSS = `
   .board-overlay {
@@ -214,7 +214,7 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
       <style>{OVERLAY_CSS}</style>
 
       {/* Layer 1: target dots / rings and coordinates, blended into the board (multiply in light). */}
-      <svg ref={svg} viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-wash`} style={{ pointerEvents: "none", mixBlendMode: "var(--hilite-blend, multiply)" as React.CSSProperties["mixBlendMode"] }}>
+      <svg ref={svg} viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-wash`} style={{ pointerEvents: "none", mixBlendMode: "multiply" }}>
         {targets.map((t) =>
           t.capture ? (
             <path
@@ -262,8 +262,8 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
         ))}
       </svg>
 
-      {/* Layer 3: the arrows. Candidates are dark blue (thicker = played more); the hover preview is orange. */}
-      <svg viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-ink`} style={{ pointerEvents: "none", mixBlendMode: "var(--hilite-blend, multiply)" as React.CSSProperties["mixBlendMode"] }}>
+      {/* Layer 3: the arrows. Candidates are dark blue (thicker = played more); the hover preview is dark gray. */}
+      <svg viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-ink`} style={{ pointerEvents: "none", mixBlendMode: "multiply" }}>
         {slots.map(({ a, g, show }, i) => (
           <g key={i} className="ov-arrow" data-slot={i} style={{ opacity: show ? 0.82 : 0, visibility: show ? "visible" : "hidden" }}>
             <g style={{ opacity: a.opacity }}>

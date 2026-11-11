@@ -47,7 +47,7 @@ function DialogContent({
             {children}
           </div>
           {showCloseButton && (
-            <DialogPrimitive.Close className="absolute top-3 right-3 z-20 grid size-7 place-items-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&_svg]:size-4">
+            <DialogPrimitive.Close className="absolute top-3 right-3 z-20 grid size-7 place-items-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring [&_svg]:size-4">
               <XIcon />
               <span className="sr-only">Close</span>
             </DialogPrimitive.Close>

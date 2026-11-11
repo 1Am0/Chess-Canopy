@@ -220,7 +220,7 @@ export function useExplorerSync() {
           }
           return;
         }
-        toast.error(`Search failed: ${e instanceof Error ? e.message : String(e)}`);
+        toast.error(`Couldn't load moves: ${e instanceof Error ? e.message : String(e)}`);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, selectionVersion, key]);

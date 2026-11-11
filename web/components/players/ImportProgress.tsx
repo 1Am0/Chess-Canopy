@@ -20,7 +20,7 @@ export function ImportProgress({ progress, onCancel }: { progress: Progress; onC
         aria-valuenow={pct ?? undefined}
       >
         <div
-          className={`absolute inset-y-0 left-0 bg-primary transition-[width] forced-colors:bg-[Highlight] ${pct == null ? "w-1/3 motion-safe:animate-pulse" : ""}`}
+          className={`absolute inset-y-0 left-0 bg-primary transition-[width] motion-reduce:transition-none forced-colors:bg-[Highlight] ${pct == null ? "w-1/3" : ""}`}
           style={pct != null ? { width: `${pct}%` } : undefined}
         />
       </div>

@@ -31,9 +31,9 @@ const STAT_CH = 7;
 /** Diverging OKLCH color for a score in [0, 1]; the tokens are defined in the theme. */
 export function scoreColor(sc: number): string {
   const d = Math.max(-1, Math.min(1, (sc - 0.5) / SPREAD));
-  const mid = "var(--tree-mid, #cfc6ad)";
-  if (d >= 0) return `color-mix(in oklab, var(--tree-high, #3f8a7a) ${Math.round(d * 100)}%, ${mid})`;
-  return `color-mix(in oklab, var(--tree-low, #c0782f) ${Math.round(-d * 100)}%, ${mid})`;
+  const mid = "var(--tree-mid)";
+  if (d >= 0) return `color-mix(in oklab, var(--tree-high) ${Math.round(d * 100)}%, ${mid})`;
+  return `color-mix(in oklab, var(--tree-low) ${Math.round(-d * 100)}%, ${mid})`;
 }
 
 /** "3. Nf3" for a White ply, "3… c5" for a Black ply; `ply` is the 0-based index of the move. */
@@ -352,7 +352,7 @@ export function CanopyTree({ active }: { active: boolean }) {
       {empty && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
           {hasPlayers ? (
-            <EmptyState className="py-2" title="No games reach this position." />
+            <EmptyState className="py-2" title={tree && tree.stats.total > 0 ? "Your games end here" : "No games reach this position"} />
           ) : (
             <EmptyState className="py-2" title="No games yet" hint="Import games to see your opening tree." />
           )}

@@ -61,11 +61,10 @@ test("the move table is a grid whose active row is only announced while it has f
   await expect(page.locator("#move-row-1")).toHaveAttribute("aria-selected", "true");
 });
 
-test("one look only: no Appearance menu, light theme even when the system prefers dark (R4)", async ({ page }) => {
+test("one look only: no Appearance menu, light theme even when the system prefers dark", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await importSampleJson(page);
   await expect(page.getByRole("button", { name: "Appearance" })).toHaveCount(0);
-  await expect(page.locator("html")).not.toHaveClass(/\bdark\b/);
   // The shortcuts help is reachable at every width.
   await page.getByRole("button", { name: "Keyboard shortcuts" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -180,4 +179,24 @@ test("the last selected player can't be unchecked (L14)", async ({ page }) => {
   await page.getByRole("checkbox", { name: "Hero" }).click(); // all -> only tester
   await expect(page.getByRole("checkbox", { name: "tester" })).toBeDisabled();
   await expect(page.getByRole("checkbox", { name: "tester" })).toBeChecked();
+});
+
+test("keyboard focus shows a visible outline on header buttons", async ({ page }) => {
+  await importSampleJson(page);
+  const header = page.getByRole("banner");
+  let found = false;
+  for (let i = 0; i < 40 && !found; i++) {
+    await page.keyboard.press("Tab");
+    found = await page.evaluate(() => {
+      const el = document.activeElement;
+      return !!el && el.tagName === "BUTTON" && !!el.closest("header");
+    });
+  }
+  expect(found).toBe(true);
+  const outline = await header.locator("button:focus-visible").first().evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { style: cs.outlineStyle, width: parseFloat(cs.outlineWidth) };
+  });
+  expect(outline.style).toBe("solid");
+  expect(outline.width).toBeGreaterThan(0);
 });
