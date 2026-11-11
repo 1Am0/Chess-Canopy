@@ -167,8 +167,51 @@ Request; the coordinator applies it.
 
 ## Field Kit reference
 
-_(Workstream A fills this in: one short entry per utility/component with its
-props and a usage example.)_
+_Workstream A: all in `app/globals.css` (utilities, tokens) and `components/field/` (import from `@/components/field`)._
+
+### CSS utilities
+
+| Utility | Usage |
+| --- | --- |
+| `kicker` | `<p className="kicker">Filters</p>` over a serif title. 11px small caps, primary ink, `margin-bottom: 2px` (add `mb-0` when inside a flex/gap parent). |
+| `ruled` | `<div className="ruled">` faint rules every `--rule-gap` (override: `[--rule-gap:1.5rem]`). Decorative; keep under prose, never under controls. |
+| `margin-rule` | `<div className="relative margin-rule">` vertical red-brown hairline at `--margin-x`. Needs a positioned element. Uses `::after`, so it pairs with `binding`. |
+| `ticks` | `<span aria-hidden className="ticks h-2 [--tick-gap:5%]">` ruler scale on the bottom edge (default gap 8px, taller tick every 5th, closing tick at the right edge). Sizing is the caller's. `--tick-color` overrides ink. |
+| `perforated` | `<div className="perforated pt-5 ...">` dotted tear-off edge along the top. Leave about 6px of top padding. Uses background-image (add `!`, as `perforated!`, if another rule sets the `background` shorthand, e.g. Sonner). |
+| `stamp` | `<span className="stamp">Default</span>` or use `<Stamp>`. 3px double border, mono caps, -1.5deg. Ink from `--stamp`. |
+| `leader` | `<div className="flex items-baseline gap-2"><span>Label</span><span className="leader" aria-hidden /><span>Value</span></div>`, or use `<Leader>`. |
+| `binding` / `binding-end` | `<div className="relative binding">` 7px specimen band with a hairline on the left / right edge (positioned element). Sheets apply it automatically (right sheet: `binding`, left sheet: `binding-end`). |
+| `skeleton-lines` | Faint ruled lines as a placeholder fill; `Skeleton` already uses it. |
+| `shadow-paper` | Tailwind shadow utility from `--paper-shadow`, for floating paper (dialog, sheet, popovers, toasts). |
+
+All have `forced-colors` fallbacks (system `GrayText` borders) or are decorative.
+
+### Components in `components/field/`
+
+- `Kicker`: `as?: "p"|"span"|"div"|"h2"|"h3"|"h4"` plus normal props. `<Kicker>Opening</Kicker>`.
+- `PlateCaption`: `fig?` (number or string; omit for a bare caption), `as?: "p"|"figcaption"|"div"`. `<PlateCaption fig={2}>After 2. Nf3</PlateCaption>` renders "FIG. 2 -- *After 2. Nf3*".
+- `SpecimenTag`: span with mono code in a hairline box. `<SpecimenTag>B12</SpecimenTag>`.
+- `Stamp`: `tone?: "primary"|"muted"|"destructive"` (default primary). `<Stamp tone="destructive">Deleted</Stamp>`. Tilt is baked in; don't add other rotation.
+- `Leader`: `label`, children = value. `<Leader label="Next move"><kbd>→</kbd></Leader>`.
+- `MetaGrid`: `items: {label, value}[]`; renders a `dl` with hairline rows. `<MetaGrid items={[{label:"Games", value:60},{label:"Last sync", value:"3 Nov"}]} />`.
+- `CountedOption`: `label`, `count?` (omit to hide the "(n)"). Inline spans, safe inside a chip/button: `<button><CountedOption label="Bullet" count={12} /></button>`.
+- `FieldSection`: `title`, `onClear?`, `clearLabel?` (default "Clear"), `clearDisabled?`, plus `section` props. Client component. Renders hairline-topped `section` (first one has none) with a `h3.kicker` and a `tag` button named "Clear <title>" (accessible name, visible text "Clear"). `<FieldSection title="Result" onClear={reset}>...</FieldSection>`.
+- `EmptySpecimen`: `title`, `hint?`, `action?`. Add `role="status"` yourself if it is a live state. `<EmptySpecimen title="No specimens collected here" hint="Play a move to start." />`.
+- `InkTick`, `InkDash`: the hand-ruled check / dash SVGs (decorative) used by checkbox, select and menu indicators.
+
+### Primitive changes in `components/ui/` (all additive, nothing renamed)
+
+- `Button`: new variant `tag` (small mono uppercase, hairline, specimen ground) and size `xs` (h-6). Use `variant="tag" size="xs"` for Clear/Reset. `ghost` now underlines on hover.
+- `Badge`: default is now an accession tag (mono, hairline, specimen), not a solid green pill. New variant `stamp`.
+- `Separator`: new prop `variant="double"` (3px double rule).
+- `DialogHeader`, `SheetHeader`: new optional `kicker` prop, rendered above the title. `SheetHeader` now carries the double rule under it and `SheetFooter` the hairline above; keep titles in `DialogTitle`/`SheetTitle` (serif).
+- `DropdownMenuShortcut`, `CommandShortcut`: new mono shortcut spans (`ml-auto`).
+- `Toaster`: kicker line ("Noted", "Note", "Caution", "Problem") is drawn by CSS from the toast type, so `toast.success(...)` etc. need no change. Errors use destructive ink.
+- `Slider`: ticks are drawn automatically (20 divisions). Root is now h-6 (was 16px). Keep passing the same props.
+- `Input`: ledger field; numeric/`inputMode="numeric"|"decimal"` inputs automatically use mono tabular figures.
+- `ToggleGroup`: index tabs. Group has no border of its own (heights unchanged); items are h-9 as before.
+- `Checkbox`: ink tick, indeterminate dash supported.
+- `Tooltip`: specimen tag with an eyelet; no arrow (there was none).
 
 ## Requests
 
@@ -180,3 +223,32 @@ marks ✅.)_
 - **Coordinator:** research done (2 rounds: natural-history collection sites,
   field-notebook control techniques). Baseline screenshots of the off-theme
   surfaces taken. Workstream A started.
+- **Workstream A (Field Kit): done.**
+  - Files: `app/globals.css` (tokens `--margin --rule-gap --margin-x --stamp --paper-shadow`, `--shadow-paper`,
+    `--color-margin/stamp`; utilities kicker, ruled, margin-rule, ticks, perforated, stamp, leader, binding,
+    binding-end, skeleton-lines, each with a forced-colors fallback), all of `components/ui/*` except `card`,
+    `label`, `tabs`, `collapsible`, `keys` (left as is), new `components/field/*` (Kicker, PlateCaption,
+    SpecimenTag, Stamp, Leader, MetaGrid, CountedOption, FieldSection, EmptySpecimen, InkTick/InkDash, index.ts),
+    `docs/palette.md` (new tokens + 10 contrast rows, all pass).
+  - Checked: `pnpm typecheck`, `pnpm lint`, `pnpm test` pass. CSS compiles through `@tailwindcss/postcss`; a static
+    mock of the utilities was screenshotted in light and dark. Radix/Sonner components were NOT visually
+    verified in the real app (no rebuild by design): coordinator please eyeball sheet, dialog, menus, toast.
+  - Deliberate skips: tooltip arrow (never existed), `--tape` (unused), slider min/max labels (consumer's call),
+    no `card` restyle, dialog footer left borderless. Badge default changed from green solid to specimen tag
+    (only used with `outline` today).
+  - Risks: (1) Toast kicker is CSS `content` on `[data-content]::before`, depends on Sonner's `data-content` /
+    `data-icon` attributes and `perforated!` beating its `background` shorthand. (2) Slider root grew from 16px to
+    24px tall and the old filter sheet layout shifts slightly (WS B restyles it anyway). (3) `FieldSection` Clear
+    button has accessible name "Clear <title>" (visible "Clear"). (4) `binding` pseudo-element sits at the sheet's
+    edge; sheet bodies should keep >= 12px horizontal padding. (5) DropdownMenu/Select/Command rows use
+    `border-l-2` for the highlight, so row content is inset 2px versus before.
+  - Requests: none.
+- **Coordinator review of WS-A (after a rebuild):** kit verified in the real
+  app. Toast slip (perforated, "Noted" kicker), index-tab toggle group, ticked
+  slider scales and ledger inputs render well in light and dark. Still off-theme
+  and now owned by B: time-control and date-preset **pill** chips (local classes
+  in `FilterSheet.tsx`), native `mm/dd/yyyy` date inputs, the opponent combobox
+  trigger, the sheet's footer buttons, and the appearance dropdown (still a
+  plain list with lucide icons and coloured squares). C: player popover is close
+  but should become a counted index; import dialog and player manager untouched.
+  D: empty/loading states untouched. B, C and D start now, in parallel.

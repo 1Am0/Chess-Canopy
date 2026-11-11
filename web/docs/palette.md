@@ -6,6 +6,8 @@ Tailwind utilities exist for every token (`bg-primary`, `text-win-text`, `bg-bra
 
 New in the Field Guide pass: `--ink` (strongest text), `--rule` (hairline; same value as `--border`), `--rule-strong` (control borders; same value as `--input`), `--specimen` (label/tag ground), `--tree-low|mid|high` (+ `-foreground`) for the Canopy score scale (ochre / sand / teal-green; low and high differ in lightness, not just hue), `--grain` (the static paper-grain SVG tile used on `body`). Result bars are paper / graphite / ink and flat: `--bar-gloss*` remain defined as no-op shadows so existing `box-shadow: var(--bar-gloss)` consumers keep working.
 
+Field Kit (round 2, additive): `--margin` (notebook margin rule, red-brown at partial alpha, decorative: 2.2:1 light / 2.5:1 dark on card), `--rule-gap` (ruled line spacing), `--margin-x` (margin rule offset), `--stamp` (stamp ink, follows `--primary`; `Stamp` tones override it with `--muted-foreground` or `--loss-text`), `--paper-shadow` (two-layer floating-paper shadow, exposed as the `shadow-paper` utility). CSS utilities `kicker`, `ruled`, `margin-rule`, `ticks`, `perforated`, `stamp`, `leader`, `binding`, `binding-end`, `skeleton-lines` live in `globals.css`; see the Field Kit reference in `field-guide-handoff.md`. New text/control pairs checked in the contrast table: kicker (primary on specimen/popover), error ink (loss-text on specimen), ink-tick/checkbox border (foreground on card), ledger bottom rule (rule-strong on card/popover), slider thumb (primary on card).
+
 Radius: `--radius: 0.375rem`; `rounded-sm` 2px, `rounded-md` 4px, `rounded-lg` 6px, `rounded-xl` 10px.
 
 Fonts: Newsreader (`font-serif`), Schibsted Grotesk (`font-sans`), Martian Mono (`font-mono`, `font-stretch: 87.5%`), loaded in `app/layout.tsx` via `next/font/google`.
@@ -59,6 +61,11 @@ Fonts: Newsreader (`font-serif`), Schibsted Grotesk (`font-sans`), Martian Mono 
 | `--rule` | `oklch(0.86 0.022 88)` | `#d7d0c1` |
 | `--rule-strong` | `oklch(0.6 0.02 95)` | `#848073` |
 | `--specimen` | `oklch(0.925 0.032 92)` | `#eee6cf` |
+| `--margin` | `oklch(0.6 0.12 30 / 0.6)` | `#d49c8e (over bg)` |
+| `--rule-gap` | `1.75rem` | n/a |
+| `--margin-x` | `2.25rem` | n/a |
+| `--stamp` | `var(--primary)` | `#115531` |
+| `--paper-shadow` | `0 1px 0 oklch(0.3 0.03 90 / 0.06), 0 8px 24px -8px oklch(0.3 0.04 100 / 0.25)` | n/a |
 | `--tree-low` | `oklch(0.72 0.13 72)` | `#d6963b` |
 | `--tree-mid` | `oklch(0.8 0.035 92)` | `#c6bea5` |
 | `--tree-high` | `oklch(0.42 0.09 175)` | `#005c4a` |
@@ -152,6 +159,9 @@ Unlisted tokens (brand and paper scales, board, arrows, highlights) are mode-ind
 | `--rule` | `oklch(0.94 0.03 95 / 13%)` | `#2e3129 (over bg)` |
 | `--rule-strong` | `oklch(0.94 0.03 95 / 42%)` | `#6f6f62 (over bg)` |
 | `--specimen` | `oklch(0.275 0.025 120)` | `#262a1c` |
+| `--margin` | `oklch(0.7 0.11 30 / 0.5)` | `#764c42 (over bg)` |
+| `--stamp` | `var(--primary)` | follows `--primary` |
+| `--paper-shadow` | `0 1px 0 oklch(0 0 0 / 0.3), 0 10px 28px -8px oklch(0 0 0 / 0.6)` | n/a |
 | `--tree-low` | `oklch(0.8 0.13 82)` | `#e7b551` |
 | `--tree-mid` | `oklch(0.62 0.025 100)` | `#898776` |
 | `--tree-high` | `oklch(0.56 0.1 180)` | `#098777` |
@@ -267,6 +277,16 @@ Thresholds: 4.5:1 for text pairs, 3:1 for control borders and UI fills, relaxed 
 | light | bar-draw-fg | bar-draw | 5.84 | 4.5 | PASS |
 | light | bar-black-fg | bar-black | 12.13 | 4.5 | PASS |
 | light | bar-border (outline) | card | 4.03 | 3 | PASS |
+| light | kicker: primary | specimen | 7.07 | 4.5 | PASS |
+| light | kicker: primary | popover | 8.47 | 4.5 | PASS |
+| light | loss-text (error toast, stamp) | specimen | 6.27 | 4.5 | PASS |
+| light | muted-foreground (stamp muted) | popover | 7.43 | 4.5 | PASS |
+| light | foreground (ink tick/checkbox border) | card | 17.14 | 3 | PASS |
+| light | rule-strong (ledger bottom rule) | card | 3.75 | 3 | PASS |
+| light | rule-strong (ledger bottom rule) | popover | 3.79 | 3 | PASS |
+| light | primary (slider thumb/range) | card | 8.40 | 3 | PASS |
+| light | margin (notebook rule, decorative) | card | 2.17 | 1.15 | PASS |
+| light | specimen (tab ground) vs card |  | 1.19 | 1.05 | PASS |
 | dark | card-foreground | card | 14.12 | 4.5 | PASS |
 | dark | popover-foreground | popover | 13.37 | 4.5 | PASS |
 | dark | secondary-foreground | secondary | 12.18 | 4.5 | PASS |
@@ -320,6 +340,16 @@ Thresholds: 4.5:1 for text pairs, 3:1 for control borders and UI fills, relaxed 
 | dark | bar-draw-fg | bar-draw | 5.12 | 4.5 | PASS |
 | dark | bar-black-fg | bar-black | 16.40 | 4.5 | PASS |
 | dark | bar-border (outline) | card | 4.60 | 3 | PASS |
+| dark | kicker: primary | specimen | 7.20 | 4.5 | PASS |
+| dark | kicker: primary | popover | 7.78 | 4.5 | PASS |
+| dark | loss-text (error toast, stamp) | specimen | 6.37 | 4.5 | PASS |
+| dark | muted-foreground (stamp muted) | popover | 6.69 | 4.5 | PASS |
+| dark | foreground (ink tick/checkbox border) | card | 14.12 | 3 | PASS |
+| dark | rule-strong (ledger bottom rule) | card | 3.58 | 3 | PASS |
+| dark | rule-strong (ledger bottom rule) | popover | 3.53 | 3 | PASS |
+| dark | primary (slider thumb/range) | card | 8.21 | 3 | PASS |
+| dark | margin (notebook rule, decorative) | card | 2.48 | 1.15 | PASS |
+| dark | specimen (tab ground) vs card |  | 1.14 | 1.05 | PASS |
 
 Use `text-win-text`, `text-draw-text`, `text-loss-text` for result-colored text (the raw `text-win` / `text-loss` fill colors on a dark `/15` chip are below AA). The `bar-*-fg` pairs are the text colors for the W/D/B bar segments.
 

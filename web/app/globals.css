@@ -75,6 +75,13 @@
   /* Paper grain: static tile, alpha baked into the SVG (see body rule). */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.14 0 0 0 0 0.10 0 0 0 0.085 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
+  /* Field Kit tokens (round 2, additive) */
+  --margin: oklch(0.6 0.12 30 / 0.6);
+  --rule-gap: 1.75rem;
+  --margin-x: 2.25rem;
+  --stamp: var(--primary);
+  --paper-shadow: 0 1px 0 oklch(0.3 0.03 90 / 0.06), 0 8px 24px -8px oklch(0.3 0.04 100 / 0.25);
+
   --chart-1: oklch(0.54 0.125 155);
   --chart-2: oklch(0.55 0.13 245);
   --chart-3: oklch(0.7 0.15 75);
@@ -159,6 +166,10 @@
   --tree-high-foreground: oklch(0.1 0.03 180);
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.96 0 0 0 0 0.93 0 0 0 0 0.84 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
+  --margin: oklch(0.7 0.11 30 / 0.5);
+  --stamp: var(--primary);
+  --paper-shadow: 0 1px 0 oklch(0 0 0 / 0.3), 0 10px 28px -8px oklch(0 0 0 / 0.6);
+
   --chart-1: oklch(0.76 0.12 150);
   --chart-2: oklch(0.7 0.13 245);
   --chart-3: oklch(0.8 0.15 80);
@@ -218,6 +229,9 @@
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
   --color-specimen: var(--specimen);
+  --color-margin: var(--margin);
+  --color-stamp: var(--stamp);
+  --shadow-paper: var(--paper-shadow);
   --color-tree-low: var(--tree-low);
   --color-tree-mid: var(--tree-mid);
   --color-tree-high: var(--tree-high);
@@ -320,6 +334,150 @@
     background: var(--rule);
     pointer-events: none;
   }
+}
+
+/* Kicker: small-caps primary-ink label that sits just above a serif title (Kew "SPECIES" over the binomial). */
+@utility kicker {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+
+/* Notebook ruling: faint horizontal rules every --rule-gap. Decorative; never put under dense controls. */
+@utility ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 calc(var(--rule-gap, 1.75rem) - 1px),
+    color-mix(in oklab, var(--rule) 60%, transparent) calc(var(--rule-gap, 1.75rem) - 1px) var(--rule-gap, 1.75rem)
+  );
+  @media (forced-colors: active) {
+    background-image: none;
+  }
+}
+
+/* Notebook margin rule: one vertical hairline at --margin-x. The element must be positioned (relative/absolute/fixed). */
+@utility margin-rule {
+  &::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: var(--margin-x, 2.25rem);
+    width: 0;
+    border-left: 1px solid var(--margin);
+    pointer-events: none;
+    @media (forced-colors: active) {
+      border-left-color: GrayText;
+    }
+  }
+}
+
+/* Ruler scale along the bottom edge: minor ticks every --tick-gap (default 8px), a taller major tick every 5th. */
+@utility ticks {
+  --_tc: var(--tick-color, var(--rule-strong));
+  --_g: var(--tick-gap, 8px);
+  background-image:
+    repeating-linear-gradient(to right, var(--_tc) 0 1px, transparent 1px calc(var(--_g) * 5)),
+    repeating-linear-gradient(to right, var(--_tc) 0 1px, transparent 1px var(--_g)),
+    linear-gradient(to left, var(--_tc) 0 1px, transparent 1px);
+  background-size:
+    100% 9px,
+    100% 5px,
+    1px 9px;
+  background-position:
+    left bottom,
+    left bottom,
+    right bottom;
+  background-repeat: no-repeat;
+  @media (forced-colors: active) {
+    --tick-color: GrayText;
+  }
+}
+
+/* Tear-off perforation along the top edge. Needs ~6px of top padding to breathe. */
+@utility perforated {
+  background-image: radial-gradient(circle at 50% 50%, var(--rule-strong) 1.1px, transparent 1.6px);
+  background-size: 8px 6px;
+  background-position: 0 1px;
+  background-repeat: repeat-x;
+  @media (forced-colors: active) {
+    background-image: radial-gradient(circle at 50% 50%, GrayText 1.1px, transparent 1.6px);
+  }
+}
+
+/* Rubber stamp: inset double border, mono caps, a 1.5deg tilt (the only tilted thing in the UI). Ink = --stamp. */
+@utility stamp {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 3px double currentColor;
+  border-radius: 2px;
+  color: var(--stamp);
+  font-family: var(--font-mono);
+  font-stretch: 87.5%;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: rotate(-1.5deg);
+}
+
+/* Dotted leader: a flex filler between a label and a value (label ...... value). */
+@utility leader {
+  flex: 1 1 auto;
+  min-width: 1rem;
+  height: 0;
+  align-self: end;
+  margin-bottom: 0.3em;
+  border-bottom: 1px dotted var(--rule-strong);
+  @media (forced-colors: active) {
+    border-bottom-color: GrayText;
+  }
+}
+
+/* Binding: a 7px specimen-coloured band down the left edge with a hairline on its inner side (positioned element). */
+@utility binding {
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 7px;
+    background: var(--specimen);
+    border-right: 1px solid var(--rule-strong);
+    pointer-events: none;
+    @media (forced-colors: active) {
+      border-right-color: GrayText;
+    }
+  }
+}
+@utility binding-end {
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    width: 7px;
+    background: var(--specimen);
+    border-left: 1px solid var(--rule-strong);
+    pointer-events: none;
+    @media (forced-colors: active) {
+      border-left-color: GrayText;
+    }
+  }
+}
+
+/* Skeleton: faint ruled lines (2-3 for a text-sized block) instead of a grey slab. */
+@utility skeleton-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--rule-strong) 55%, transparent) 0 1px,
+    transparent 1px 0.6rem
+  );
 }
 
 @layer base {
