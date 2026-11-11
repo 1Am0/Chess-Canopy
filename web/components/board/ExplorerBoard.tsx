@@ -17,8 +17,8 @@ const MAX_WIDTH = 23.4; // 15/64 of a square
 const HOVER_WIDTH = 20;
 
 /**
- * Muted inks for arrows the user draws (right-drag, plus Shift / Ctrl / Alt / Cmd). The strings only matter while the
- * stroke is being dragged (the library paints that preview); once committed, BoardOverlay redraws the arrow as ink.
+ * Muted colors for arrows the user draws (right-drag, plus Shift / Ctrl / Alt / Cmd). The strings only matter while the
+ * stroke is being dragged (the library paints that preview); once committed, BoardOverlay redraws the arrow.
  */
 const USER_INKS: Record<string, UserInk> = {
   "#4d7a55": "green",
@@ -196,7 +196,7 @@ export function ExplorerBoard() {
             sameTargetArrowLengthReducerDenominator: 4,
             arrowWidthDenominator: 5.5,
             activeArrowWidthMultiplier: 0.9,
-            // Committed arrows are redrawn as ink by BoardOverlay; the library only paints the stroke being dragged.
+            // Committed arrows are redrawn by BoardOverlay; the library only paints the stroke being dragged.
             opacity: 0,
             activeOpacity: 0.45,
             arrowStartOffset: 0.15,

@@ -38,10 +38,7 @@ interface Props {
 
 type Pt = { x: number; y: number };
 
-/**
- * Coordinates are printed small figures in ink: a deep lichen ink on the cream squares, the plate's near-black green on
- * the lichen-tinted ones (both clear 4.5:1). The board is one fixed look, so these are too.
- */
+/** Coordinate label colors for light and dark squares; both clear 4.5:1 contrast on the fixed board colors. */
 const COORD_ON_LIGHT = "#4a5c46";
 const COORD_ON_DARK = "#18211b";
 
@@ -62,7 +59,7 @@ const norm = (v: Pt): Pt => {
   return { x: v.x / l, y: v.y / l };
 };
 
-/** Ink is a little slimmer than the old flat arrows (they were far too loud); frequency still scales it. */
+/** Arrow width multipliers; move frequency still scales the width. */
 const INK_SCALE = 0.78;
 const PENCIL_SCALE = 0.62;
 const TIP_GAP = 26; // the tip stops short of the target centre so the piece stays visible
@@ -71,13 +68,13 @@ const START_GAP = 16;
 interface Geometry {
   /** Filled outline of the whole mark (first leg + arrow). */
   d: string;
-  /** Second, fainter pencil pass (hover preview only; empty otherwise). */
+  /** Second, fainter pass (hover preview only; empty otherwise). */
   d2: string;
 }
 
 /**
- * One arrow as filled ink outlines. Seeded by from + to (+ kind), so it is the same hand every render. Knight moves are
- * an L: a stroke along the long leg and an arrow along the short one.
+ * One arrow as filled outlines. Seeded by from + to (+ kind), so the shape is identical on every render. Knight moves
+ * are an L: a stroke along the long leg and an arrow along the short one.
  */
 function geometry(from: string, to: string, kind: OverlayArrowKind | "user", width: number, orientation: "white" | "black"): Geometry {
   const s = squareCenter(from, orientation);
@@ -216,7 +213,7 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
     <>
       <style>{OVERLAY_CSS}</style>
 
-      {/* Layer 1: ink dots / rings and printed coordinates, soaked into the board (multiply in light). */}
+      {/* Layer 1: target dots / rings and coordinates, blended into the board (multiply in light). */}
       <svg ref={svg} viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-wash`} style={{ pointerEvents: "none", mixBlendMode: "var(--hilite-blend, multiply)" as React.CSSProperties["mixBlendMode"] }}>
         {targets.map((t) =>
           t.capture ? (
@@ -251,7 +248,7 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
         </g>
       </svg>
 
-      {/* Layer 2: a thin light under-stroke so ink stays readable over dark squares and pieces. */}
+      {/* Layer 2: a thin light under-stroke so arrows stay readable over dark squares and pieces. */}
       <svg viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-halo`} style={{ pointerEvents: "none" }}>
         {slots.map(({ a, g, show }, i) => (
           <g key={i} className="ov-arrow" data-slot={i} style={{ opacity: show ? 0.82 : 0, visibility: show ? "visible" : "hidden" }}>
@@ -265,7 +262,7 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
         ))}
       </svg>
 
-      {/* Layer 3: the ink itself. Candidates are blue-black ink (thicker = played more); the hover preview is graphite pencil. */}
+      {/* Layer 3: the arrows. Candidates are dark blue (thicker = played more); the hover preview is orange. */}
       <svg viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-ink`} style={{ pointerEvents: "none", mixBlendMode: "var(--hilite-blend, multiply)" as React.CSSProperties["mixBlendMode"] }}>
         {slots.map(({ a, g, show }, i) => (
           <g key={i} className="ov-arrow" data-slot={i} style={{ opacity: show ? 0.82 : 0, visibility: show ? "visible" : "hidden" }}>

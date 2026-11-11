@@ -238,10 +238,6 @@ describe("lichess", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Round-3 audit fixes
-// ---------------------------------------------------------------------------
-
 const T0 = 1_700_000_000_000;
 const enc = new TextEncoder();
 type LiGame = { i: number; status?: string; variant?: string; moves?: string };
