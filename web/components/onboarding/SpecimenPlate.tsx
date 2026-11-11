@@ -196,7 +196,7 @@ function Tree({ d, className }: { d: Dims; className?: string }) {
     <svg
       viewBox={`0 0 ${W} ${H}`}
       preserveAspectRatio="xMidYMid meet"
-      className={cn("block h-auto w-full", className)}
+      className={cn("block h-auto w-full lg:absolute lg:inset-0 lg:h-full", className)}
       aria-hidden="true"
       focusable="false"
     >
@@ -306,7 +306,7 @@ export function SpecimenPlate({ className }: { className?: string }) {
           No. 001
         </span>
       </div>
-      <div className="flex min-h-0 flex-1 items-center">
+      <div className="flex min-h-0 flex-1 items-center lg:relative">
         <Tree d={NARROW} className="sm:hidden" />
         <Tree d={WIDE} className="hidden sm:block" />
       </div>

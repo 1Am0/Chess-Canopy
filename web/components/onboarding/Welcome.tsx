@@ -6,7 +6,6 @@ import {
   Handnote,
   PaperLabel,
   PaperSheet,
-  PhotoCorners,
   Tape,
   UnderSheet,
 } from "@/components/paper";
@@ -38,9 +37,9 @@ const enter =
 function Plate() {
   return (
     <>
-      <div className="relative isolate flex flex-1 flex-col">
+      <div className="relative isolate flex min-h-0 flex-1 flex-col">
         <UnderSheet seed="welcome-mat" dx={5} dy={6} rotate={0.7} />
-        <PaperSheet className="flex flex-1 flex-col p-4 sm:p-5">
+        <PaperSheet className="flex min-h-0 flex-1 flex-col p-4 sm:p-5 lg:p-4">
           <Tape
             variant="ochre"
             length={96}
@@ -48,16 +47,15 @@ function Plate() {
             seed="welcome-c"
             className="-top-2.5 left-[34%]"
           />
-          <div className="relative flex flex-1 flex-col">
+          <div className="relative flex min-h-0 flex-1 flex-col">
             <SpecimenPlate className="flex-1" />
-            <PhotoCorners />
           </div>
         </PaperSheet>
       </div>
       <Handnote
         seed="plate-note"
         rotate={-2}
-        className="mt-6 ml-[22%] block w-fit text-[20px]"
+        className="mt-6 ml-[22%] block w-fit text-[20px] lg:mt-4"
         arrow={{ x1: -10, y1: 2, x2: -42, y2: -22 }}
       >
         wider ribbon = played more often
@@ -72,13 +70,13 @@ function Plate() {
  */
 export function Welcome() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pt-8 pb-8 sm:px-8 sm:pt-10 sm:pb-10">
-      <div className="grid gap-8 lg:grid-cols-2 lg:grid-rows-[auto_1fr_auto]">
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pt-8 pb-8 sm:px-8 sm:pt-10 sm:pb-10 lg:min-h-0 lg:max-w-[1400px] lg:px-6 lg:pt-6 lg:pb-4">
+      <div className="grid gap-8 lg:min-h-0 lg:flex-1 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5 lg:grid-rows-[auto_minmax(0,1fr)_auto]">
         <div
           className={`relative isolate lg:col-start-1 lg:row-start-1 ${enter}`}
         >
           <UnderSheet seed="welcome-head" dx={6} dy={7} rotate={-0.8} />
-          <PaperSheet as="section" className="px-5 py-6 sm:px-9 sm:py-9">
+          <PaperSheet as="section" className="px-5 py-6 sm:px-9 sm:py-9 lg:py-5">
             <Tape
               variant="ochre"
               length={110}
@@ -92,11 +90,11 @@ export function Welcome() {
                 A field guide to your own openings
               </Kicker>
             </div>
-            <h1 className="mt-3 font-serif text-4xl leading-[1.04] font-semibold tracking-tight text-ink [font-variation-settings:'opsz'_72] min-[400px]:text-5xl sm:text-6xl">
+            <h1 className="mt-3 font-serif text-4xl leading-[1.04] font-semibold tracking-tight text-ink [font-variation-settings:'opsz'_72] min-[400px]:text-5xl sm:text-6xl lg:text-5xl">
               Your openings,{" "}
               <em className="font-normal">from your own games</em>
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:mt-3 lg:text-base lg:[@media(max-height:800px)]:hidden">
               Chess Canopy builds an opening explorer out of the games you have
               played. Everything runs in your browser; your games never leave
               it.
@@ -105,7 +103,7 @@ export function Welcome() {
         </div>
 
         <div
-          className={`relative isolate lg:col-start-1 lg:row-start-2 ${enter}`}
+          className={`relative isolate lg:col-start-1 lg:row-start-2 lg:self-start ${enter}`}
         >
           <UnderSheet seed="welcome-form" dx={5} dy={6} rotate={0.7} />
           <PaperSheet as="section" className="p-4 sm:p-5">
@@ -116,18 +114,18 @@ export function Welcome() {
               seed="welcome-b"
               className="-top-2.5 right-[10%]"
             />
-            <div className="mb-4 border-b-[1.5px] border-margin pb-2">
+            <div className="mb-4 border-b-[1.5px] border-margin pb-2 lg:mb-3">
               <Kicker className="mb-0">Accession</Kicker>
             </div>
             <ImportForm idPrefix="welcome" />
           </PaperSheet>
         </div>
         <ol
-          className={`grid gap-8 md:grid-cols-3 lg:col-span-2 lg:row-start-3 ${enter}`}
+          className={`grid gap-8 md:grid-cols-3 lg:col-span-2 lg:row-start-3 lg:gap-6 ${enter}`}
         >
           {STEPS.map((s) => (
             <li key={s.title} className="relative">
-              <PaperSheet className="h-full px-4 pt-7 pb-5">
+              <PaperSheet className="h-full px-4 pt-7 pb-5 lg:pb-3">
                 <PaperLabel
                   aria-hidden
                   tone="manila"
@@ -148,13 +146,13 @@ export function Welcome() {
         </ol>
 
         <div
-          className={`flex min-w-0 flex-col lg:col-start-2 lg:row-span-2 lg:row-start-1 ${enter}`}
+          className={`flex min-h-0 min-w-0 flex-col lg:col-start-2 lg:row-span-2 lg:row-start-1 ${enter}`}
         >
           <Plate />
         </div>
       </div>
 
-      <p className="mt-8 text-center">
+      <p className="mt-8 text-center lg:mt-3">
         <PaperLabel className="label-caps text-[11px] font-sans whitespace-normal text-muted-foreground">
           Runs entirely in your browser · nothing uploaded · MIT
         </PaperLabel>

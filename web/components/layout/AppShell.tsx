@@ -70,10 +70,10 @@ export function AppShell() {
   return (
     <TooltipProvider>
       <ImportProvider>
-      <div className={`flex min-h-dvh flex-col ${explorer ? "desk overflow-x-clip lg:h-dvh lg:flex-row lg:overflow-hidden" : "desk overflow-x-clip"}`}>
+      <div className={`flex min-h-dvh flex-col desk overflow-x-clip lg:h-dvh lg:flex-row lg:overflow-hidden`}>
         <UrlSideSync />
         <Header showTools={explorer} />
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:overflow-y-auto">
         {!ready && <LoadingShell />}
         {ready && !hasPlayers && <Welcome />}
         {explorer && (

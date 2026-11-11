@@ -17,12 +17,12 @@ export function Header({ showTools }: { showTools: boolean }) {
 
   return (
     <header
-      className={`paper-scope rail sticky top-0 z-20 bg-[var(--strip)] forced-colors:border-b ${showTools ? "lg:h-dvh lg:w-14 lg:shrink-0 lg:overflow-visible " : ""}`}
+      className={`paper-scope rail sticky top-0 z-20 bg-[var(--strip)] forced-colors:border-b ${true ? "lg:h-dvh lg:w-14 lg:shrink-0 lg:overflow-visible " : ""}`}
       style={{ backgroundImage: "var(--sheet-tile)" }}
     >
       {/* a torn strip of cream paper laid across the top of the desk */}
-      <TornEdge seed={11} className={showTools ? "lg:hidden" : undefined} />
-      <div style={showTools ? { backgroundImage: "var(--sheet-tile)" } : undefined} className={`mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:px-4 ${showTools ? "lg:absolute lg:inset-y-0 lg:left-0 lg:w-14 lg:overflow-hidden lg:border-r lg:border-rule lg:bg-[var(--strip)] lg:rail-open:w-48 lg:transition-[width,box-shadow] lg:duration-200 lg:ease-out motion-reduce:transition-none lg:rail-open:shadow-[4px_0_14px_-6px_rgba(0,0,0,0.35)] lg:h-full lg:max-w-none lg:flex-col lg:items-stretch lg:gap-3 lg:px-2 lg:py-4" : ""}`}>
+      <TornEdge seed={11} className="lg:hidden" />
+      <div style={{ backgroundImage: "var(--sheet-tile)" }} className={`mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:px-4 ${true ? "lg:absolute lg:inset-y-0 lg:left-0 lg:w-14 lg:overflow-hidden lg:border-r lg:border-rule lg:bg-[var(--strip)] lg:rail-open:w-48 lg:transition-[width,box-shadow] lg:duration-200 lg:ease-out motion-reduce:transition-none lg:rail-open:shadow-[4px_0_14px_-6px_rgba(0,0,0,0.35)] lg:h-full lg:max-w-none lg:flex-col lg:items-stretch lg:gap-3 lg:px-2 lg:py-4" : ""}`}>
         <div className="mr-1 flex shrink-0 items-center gap-2 text-primary">
           <Logo className="size-7" />
           <span className="hidden whitespace-nowrap font-serif text-xl lg:inline lg:opacity-0 lg:transition-opacity lg:duration-150 lg:rail-open:opacity-100 lg:rail-open:delay-75 leading-none font-semibold tracking-tight text-foreground sm:inline">Chess Canopy</span>
