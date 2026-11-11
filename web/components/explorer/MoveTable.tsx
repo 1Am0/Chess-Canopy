@@ -25,7 +25,7 @@ const FOOT_PX = 32;
 const NO_ROWS: NextMove[] = [];
 
 /**
- * The Moves tab: a scroll region with a sticky header and a sticky Σ total row
+ * The move table: a scroll region with a sticky header and a sticky Σ total row
  * (Lichess explorer style). Every row is a single 32px line. Rare moves, the loading
  * state and the empty / out-of-book states all live inside the same region, so the
  * region's size never depends on the position.
