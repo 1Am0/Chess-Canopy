@@ -57,16 +57,16 @@ export function PlayerManager() {
     <Dialog open={open} onOpenChange={(o) => setUi({ managerOpen: o })}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Manage players</DialogTitle>
+          <DialogTitle className="font-serif text-xl font-semibold tracking-tight">Manage players</DialogTitle>
           <DialogDescription>All data stays in your browser. Export a player as schema v1 JSON for the Python CLI.</DialogDescription>
         </DialogHeader>
-        <ul className="divide-y rounded-lg border">
+        <ul className="divide-y divide-rule border-y border-rule">
           {players.length === 0 && <li className="p-4 text-sm text-muted-foreground">No players imported yet.</li>}
           {players.map((p) => (
             <li key={p.id} className="flex items-center gap-2 p-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="truncate font-medium">{p.displayName}</span>
+                  <span className="truncate font-serif text-base font-semibold">{p.displayName}</span>
                   <Badge variant="outline" className="text-[10px]">{sourceLabel(p.source)}</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground tabular-nums">

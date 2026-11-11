@@ -21,15 +21,15 @@ export function ShortcutsDialog() {
     <Dialog open={open} onOpenChange={(o) => setUi({ shortcutsOpen: o })}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Keyboard shortcuts</DialogTitle>
+          <DialogTitle className="font-serif text-xl font-semibold tracking-tight">Keyboard shortcuts</DialogTitle>
           <DialogDescription>Shortcuts are paused while typing or when a dialog is open.</DialogDescription>
         </DialogHeader>
-        <dl className="divide-y text-sm">
+        <dl className="divide-y divide-rule border-y border-rule text-sm">
           {SHORTCUTS.map(([k, d]) => (
             <div key={k} className="flex items-center justify-between gap-4 py-2">
               <dd className="order-2 text-right text-muted-foreground">{d}</dd>
               <dt className="order-1">
-                <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs">{k}</kbd>
+                <kbd className="inline-flex min-w-6 items-center justify-center rounded-sm border border-b-2 border-rule-strong bg-specimen px-1.5 py-0.5 font-mono text-xs">{k}</kbd>
               </dt>
             </div>
           ))}

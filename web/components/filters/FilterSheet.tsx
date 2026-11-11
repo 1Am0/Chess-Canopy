@@ -22,7 +22,7 @@ const R_MAX = 3000;
 function Field({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={htmlFor} className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+      <Label htmlFor={htmlFor} className="label-caps text-sm">
         {label}
       </Label>
       {children}
@@ -233,8 +233,8 @@ export function FilterSheet() {
   return (
     <Sheet open={open} onOpenChange={(o) => setUi({ filtersOpen: o })}>
       <SheetContent side={desktop ? "right" : "bottom"} className="max-h-[88dvh] gap-0 lg:max-h-none lg:w-[26rem] lg:max-w-[26rem]">
-        <SheetHeader className="border-b">
-          <SheetTitle>Filters</SheetTitle>
+        <SheetHeader className="border-b border-rule">
+          <SheetTitle className="font-serif text-xl font-semibold tracking-tight">Filters</SheetTitle>
           <SheetDescription>Results update as you change filters. Win / Draw / Loss is from your point of view.</SheetDescription>
         </SheetHeader>
 
@@ -325,7 +325,7 @@ export function FilterSheet() {
           </Field>
         </div>
 
-        <SheetFooter className="flex-row border-t">
+        <SheetFooter className="flex-row border-t border-rule">
           <Button variant="outline" className="flex-1" onClick={clearFilters} disabled={count === 0}>
             Reset{count ? ` (${count})` : ""}
           </Button>

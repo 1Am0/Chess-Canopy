@@ -46,8 +46,8 @@ export function PlayerSwitcher() {
       <PopoverContent align="start" className="w-72 p-1.5" aria-label="Choose players">
         <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-2 text-sm hover:bg-accent">
           <Checkbox checked={isAll} onCheckedChange={() => setSelected("all")} aria-label="All players" />
-          <span className="flex-1 font-medium">All players</span>
-          <span className="text-xs text-muted-foreground tabular-nums">
+          <span className="flex-1 font-serif text-base font-semibold">All players</span>
+          <span className="font-mono text-xs text-muted-foreground tabular-nums">
             {players.reduce((n, p) => n + p.gameCount, 0).toLocaleString()}
           </span>
         </label>
@@ -57,9 +57,9 @@ export function PlayerSwitcher() {
             <li key={p.id}>
               <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-2 text-sm hover:bg-accent">
                 <Checkbox checked={isAll || eff.includes(p.id)} disabled={!isAll && eff.length === 1 && eff.includes(p.id)} onCheckedChange={() => toggle(p.id)} aria-label={p.displayName} />
-                <span className="min-w-0 flex-1 truncate">{p.displayName}</span>
+                <span className="min-w-0 flex-1 truncate font-serif text-base">{p.displayName}</span>
                 <Badge variant="outline" className="text-[10px]">{sourceLabel(p.source)}</Badge>
-                <span className="w-9 text-right text-xs text-muted-foreground tabular-nums">{p.gameCount.toLocaleString()}</span>
+                <span className="min-w-9 text-right font-mono text-xs text-muted-foreground tabular-nums">{p.gameCount.toLocaleString()}</span>
               </label>
             </li>
           ))}

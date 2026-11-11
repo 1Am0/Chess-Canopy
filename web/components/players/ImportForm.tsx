@@ -39,12 +39,12 @@ function FileDrop({ accept, label, file, onFile }: { accept: string; label: stri
         onFile(e.dataTransfer.files?.[0] ?? null);
       }}
       className={cn(
-        "flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-6 text-center text-sm transition-colors",
+        "flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-rule-strong bg-specimen/50 px-4 py-6 text-center text-sm transition-colors",
         over && "border-primary bg-accent",
       )}
     >
       <FileUp className="size-6 text-muted-foreground" />
-      <p className="text-muted-foreground">{file ? <span className="font-medium text-foreground">{file.name}</span> : label}</p>
+      <p className={file ? "max-w-full truncate" : "label-caps text-sm"}>{file ? <span className="font-mono text-xs text-foreground">{file.name}</span> : label}</p>
       <Button type="button" size="sm" variant="outline" onClick={() => input.current?.click()}>
         Choose file
       </Button>
