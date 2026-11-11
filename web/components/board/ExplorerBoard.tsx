@@ -8,10 +8,10 @@ import { usePosition } from "@/hooks/use-position";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { splitRare } from "@/components/explorer/rare";
 import { describePosition } from "@/components/board/describe-position";
-import { BOARD_THEMES } from "@/lib/board-themes";
 import { BoardOverlay, type OverlayArrow, type UserArrow, type UserInk } from "@/components/board/BoardOverlay";
-import { fibreStrands, svgDataUri, washPath } from "@/lib/paper";
-import { useTheme } from "next-themes";
+import { svgDataUri, washPath } from "@/lib/paper";
+import { PlateDefs, PLATE_DRAGGING_STYLE, PLATE_PIECES } from "@/components/board/pieces";
+import { PLATE_DARK, PLATE_FRAME, PLATE_LIGHT, PLATE_VARS, squareTile } from "@/components/board/plate-squares";
 
 const MAX_ARROWS = 3;
 const MIN_ARROW_SHARE = 0.1;
@@ -32,14 +32,6 @@ const USER_INKS: Record<string, UserInk> = {
 };
 const INK_STRINGS = { default: "#4d7a55", shift: "#a8503f", ctrl: "#b88a2e", alt: "#4a77a0", meta: "#5b574d" };
 
-/** A very faint paper fibre for the squares (a static 96px tile; the squares themselves stay flat colour). */
-function fibreTile(seed: string, dark: string, light: string): string {
-  const strands = fibreStrands(seed, 96, 96, 26, { min: 6, max: 20, margin: 0, spread: Math.PI });
-  const half = Math.ceil(strands.length / 2);
-  const path = (ds: string[], stroke: string) => `<path d='${ds.join("")}' fill='none' stroke='${stroke}' stroke-width='0.7' stroke-linecap='round'/>`;
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'>${path(strands.slice(0, half), dark)}${path(strands.slice(half), light)}</svg>`;
-  return `url("${svgDataUri(svg)}")`;
-}
 /**
  * A highlighter wash for one square: two uneven passes of a marker. It is a background image of the square (so the
  * piece stays crisp on top); in light mode it multiplies with the square colour like ink soaking into paper.
@@ -48,23 +40,18 @@ function washImage(seed: string, color: string, alpha: number): string {
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><g fill='${color}'><path transform='translate(3 3)' fill-opacity='${alpha}' d='${washPath(seed, 94, 94, 4)}'/><path transform='translate(8 2)' fill-opacity='${alpha * 0.6}' d='${washPath(`${seed}b`, 86, 96, 3)}'/></g></svg>`;
   return `url("${svgDataUri(svg)}")`;
 }
-const WASH = {
-  light: { last: "#f6e98c", sel: "#b4dde4", alpha: 0.8, blend: "multiply" },
-  dark: { last: "#f1dc6a", sel: "#9fd9e0", alpha: 0.4, blend: "normal" },
-} as const;
+/** Highlighter inks; they multiply with the printed square like marker soaking into paper. */
+const WASH = { last: "#f6e98c", sel: "#b4dde4", alpha: 0.8 } as const;
 
-const FIBRE_LIGHT = fibreTile("sq-light", "rgba(60,45,20,0.07)", "rgba(255,255,255,0.35)");
-const FIBRE_DARK = fibreTile("sq-dark", "rgba(20,25,15,0.1)", "rgba(255,255,255,0.12)");
+const ALL_SQUARES = Array.from({ length: 64 }, (_, i) => `${"abcdefgh"[i % 8]}${Math.floor(i / 8) + 1}`);
 
 export function ExplorerBoard() {
   const { fen, visible, lastMove, key, turn } = usePosition();
   const orientation = useExplorerStore((s) => s.orientation);
   const result = useExplorerStore((s) => s.result);
   const hoverMove = useExplorerStore((s) => s.hoverMove);
-  const boardTheme = useExplorerStore((s) => s.boardTheme);
   const playMove = useExplorerStore((s) => s.playMove);
   const [selected, setSelected] = useState<string | null>(null);
-  const { resolvedTheme } = useTheme();
   const [userArrows, setUserArrows] = useState<UserArrow[]>([]);
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const box = useRef<HTMLDivElement>(null);
@@ -181,37 +168,39 @@ export function ExplorerBoard() {
   }, [result, key, fen, hoverMove]);
 
   const squareStyles = useMemo(() => {
-    const w = resolvedTheme === "dark" ? WASH.dark : WASH.light;
-    const s: Record<string, React.CSSProperties> = {};
-    const mark = (sq: string, tone: "last" | "sel") => {
-      // a1 is dark: file+rank parity even => dark square.
-      const dark = (sq.charCodeAt(0) - 97 + Number(sq[1]) - 1) % 2 === 0;
-      s[sq] = {
-        backgroundImage: `${washImage(`${tone}${sq}`, w[tone], w.alpha)}, ${dark ? FIBRE_DARK : FIBRE_LIGHT}`,
-        backgroundBlendMode: `${w.blend}, normal`,
-      };
-    };
+    const washed = new Map<string, "last" | "sel">();
     if (lastMove) {
-      mark(lastMove.from, "last");
-      mark(lastMove.to, "last");
+      washed.set(lastMove.from, "last");
+      washed.set(lastMove.to, "last");
     }
-    if (selected) mark(selected, "sel");
+    if (selected) washed.set(selected, "sel");
+    const s: Record<string, React.CSSProperties> = {};
+    for (const sq of ALL_SQUARES) {
+      const tone = washed.get(sq);
+      s[sq] = tone
+        ? {
+            backgroundImage: `${washImage(`${tone}${sq}`, WASH[tone], WASH.alpha)}, ${squareTile(sq)}`,
+            backgroundBlendMode: "multiply, normal",
+            backgroundSize: "100% 100%",
+          }
+        : { backgroundImage: squareTile(sq), backgroundSize: "100% 100%" };
+    }
     return s;
-  }, [lastMove, selected, resolvedTheme]);
-
-  const theme = BOARD_THEMES[boardTheme];
+  }, [lastMove, selected]);
 
   return (
     <div
       ref={box}
       data-testid="board"
       className="@container relative aspect-square w-full overflow-hidden rounded-[1px]"
-      style={{ "--board-light": theme.light, "--board-dark": theme.dark } as React.CSSProperties}
+      style={{ "--board-light": PLATE_LIGHT, "--board-dark": PLATE_DARK, ...PLATE_VARS, boxShadow: PLATE_FRAME } as React.CSSProperties}
       role="img"
       aria-label={`Chess board. ${describePosition(visible, turn)}`}
     >
+      <PlateDefs />
       <Chessboard
         options={{
+          pieces: PLATE_PIECES,
           id: "explorer-board",
           position: fen,
           boardOrientation: orientation,
@@ -239,10 +228,10 @@ export function ExplorerBoard() {
             arrowStartOffset: 0.15,
           },
           squareStyles,
-          lightSquareStyle: { backgroundColor: theme.light, backgroundImage: FIBRE_LIGHT },
-          darkSquareStyle: { backgroundColor: theme.dark, backgroundImage: FIBRE_DARK },
+          lightSquareStyle: { backgroundColor: PLATE_LIGHT },
+          darkSquareStyle: { backgroundColor: PLATE_DARK },
           dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,252,238,0.75)" },
-          draggingPieceStyle: { transform: "scale(1.1)" },
+          draggingPieceStyle: PLATE_DRAGGING_STYLE,
           onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare ? tryMove(sourceSquare, targetSquare) : false),
           onSquareClick: ({ square }) => {
             if (selected && selected !== square && tryMove(selected, square)) return;

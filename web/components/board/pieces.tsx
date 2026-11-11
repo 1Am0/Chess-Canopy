@@ -131,13 +131,13 @@ export function PlateDefs() {
           <path d="M1.25 0V2.5" stroke={INK} strokeWidth="0.3" />
         </pattern>
         <pattern id="cp-h-cream" width="2.3" height="2.3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <path d="M1.15 0V2.3" stroke={CREAM_LINE} strokeWidth="0.34" />
+          <path d="M1.15 0V2.3" stroke={CREAM_LINE} strokeWidth="0.42" />
         </pattern>
 
         {/* Where each pass shows (white = visible). Light comes from the top left. */}
         <linearGradient id="cp-g-shade" gradientUnits="userSpaceOnUse" x1="12" y1="9" x2="36" y2="38">
-          <stop offset="0.4" stopColor="#000" />
-          <stop offset="0.76" stopColor="#fff" />
+          <stop offset="0.3" stopColor="#000" />
+          <stop offset="0.68" stopColor="#fff" />
         </linearGradient>
         <linearGradient id="cp-g-deep" gradientUnits="userSpaceOnUse" x1="12" y1="9" x2="36" y2="38">
           <stop offset="0.66" stopColor="#000" />
@@ -145,7 +145,7 @@ export function PlateDefs() {
         </linearGradient>
         <linearGradient id="cp-g-lit" gradientUnits="userSpaceOnUse" x1="6" y1="6" x2="32" y2="30">
           <stop offset="0.06" stopColor="#fff" />
-          <stop offset="0.52" stopColor="#000" />
+          <stop offset="0.72" stopColor="#000" />
         </linearGradient>
         {["shade", "deep", "lit"].map((m) => (
           <mask key={m} id={`cp-m-${m}`} maskUnits="userSpaceOnUse" x="0" y="0" width="45" height="45">
@@ -190,7 +190,7 @@ function Specimen({ kind, black, square, svgStyle }: { kind: Kind; black: boolea
         <use href={sil} fill={black ? BLACK_FILL : PAPER} stroke="none" fillRule="evenodd" />
         {black ? (
           <g mask="url(#cp-m-lit)">
-            <use href={sil} fill="url(#cp-h-cream)" stroke="none" />
+            <use href={sil} fill="url(#cp-h-cream)" stroke="none" opacity="0.9" />
           </g>
         ) : (
           <>

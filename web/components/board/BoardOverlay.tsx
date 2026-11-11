@@ -38,11 +38,12 @@ interface Props {
 
 type Pt = { x: number; y: number };
 
-const BOARD_LIGHT = "var(--board-light, #f0d9b5)";
-const BOARD_DARK = "var(--board-dark, #b58863)";
-/** Coordinates are printed in a dark and a light ink, whichever the square needs. The board is theme independent, so these are too. */
-const COORD_ON_LIGHT = `color-mix(in oklab, ${BOARD_DARK} 52%, #1c1b14)`;
-const COORD_ON_DARK = `color-mix(in oklab, ${BOARD_LIGHT} 88%, #fff)`;
+/**
+ * Coordinates are printed small figures in ink: a deep lichen ink on the cream squares, the plate's near-black green on
+ * the lichen-tinted ones (both clear 4.5:1). The board is one fixed look, so these are too.
+ */
+const COORD_ON_LIGHT = "#4a5c46";
+const COORD_ON_DARK = "#18211b";
 
 const FILES = "abcdefgh";
 
@@ -245,7 +246,7 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
             <circle key={t.to} className="ov-mark" cx={t.c.x} cy={t.c.y} r={15} style={{ fill: "var(--ov-dot)" }} />
           ),
         )}
-        <g fontFamily="var(--font-mono, ui-monospace, monospace)" fontSize={fontSize} fontWeight="600" opacity={0.92}>
+        <g fontFamily="var(--font-serif, Georgia, serif)" fontSize={Math.round(fontSize * 1.08)} fontWeight="600" fontStyle="italic" opacity={0.95} style={{ fontVariantNumeric: "lining-nums" }}>
           {coords.map((c) => (
             <text
               key={c.key}
