@@ -427,3 +427,76 @@ any measured rect (overflow-visible wrappers or box-shadow, never padding).
   - Board size: top padding 18px, mat padding 10px, chrome 14.25rem -> 13.5rem (board is 12px bigger than the first prototype, still 21px under the original 12rem).
   - StringTag redrawn: 22px manila tag, washer, string with knot loop and a frayed hanging strand; screenshots after 1.e4 e5 2.Nf3 in `shots/r3-final-moves-*.png`.
   - Checks: typecheck, lint, vitest and e2e 34/34 re-run after the pass.
+
+---
+
+# Round 3, step 2: full rollout (owner approved the prototype)
+
+Owner, after seeing the prototype: "I really like this. Make sure to fully
+commit to this theme across everything, **especially inside all of the
+components**, like custom UI for the eval bar etc."
+
+So the bar is now: **no component interior may look like generic web UI.**
+The prototype converted the *frames* (desk, sheets, tape, corners, tabs).
+Step 2 converts the *insides*: every control, bar, indicator, list row, menu,
+tooltip, toast and dialog becomes a crafted paper/ink object, built from the
+paper system (`lib/paper.ts`, `components/paper/*`, tokens, textures) and the
+Field Kit. Data still stays legible on flat paper (R3.1), but the things that
+*hold* and *show* the data are paper objects.
+
+## S2.1 Design language for interiors
+
+- **Controls are paper, not plastic.** Buttons are small cut card pieces or
+  printed boxes: square corners, a 1px printed ink border, a faint paper
+  fibre, a pressed state that looks like the card pushed into the page
+  (inset contact shadow, 1px down), never glossy fills. Primary actions are
+  a solid forest-green card with cream ink, like a printed label.
+- **Indicators are instruments drawn in ink.** Bars, gauges and progress are
+  drawn like a naturalist's measuring instruments: ruled scales, ticks, ink
+  fills with slightly irregular (seeded) edges, pencil labels for
+  annotations only, mono for numbers.
+- **Selection and focus are marks a person would make:** a pencil/ink
+  underline, a circled item (seeded hand-drawn ellipse), a check in ink. Focus
+  rings stay clearly visible (a11y), drawn as a crisp ink outline.
+- **Overlays are pieces of paper put on top:** menus are index cards,
+  tooltips are small tags on string, toasts are taped slips or sticky notes,
+  dialogs are cards clipped or taped onto the page with a sheet under them.
+- **Motion:** paper only moves like paper: a short settle (opacity +
+  ≤4px translate) on open; none under reduced motion.
+
+## S2.2 Component-by-component brief
+
+| Area | Brief |
+| --- | --- |
+| **Eval bar** | A vertical paper **measuring strip** (like a botanist's ruler / thermometer card): cream strip with printed ticks every pawn (major at 0, ±2, ±5), the white share drawn as cream and the black share as an ink fill whose boundary is a slightly irregular inked edge (seeded), a small **pencil arrow / pointer tag** at the current value with the mono eval label, hatched pencil shading when there's no eval. Same width/height slot as now. |
+| **Board** | Squares stay flat (legibility) but get the board theme as printed paper colours with a very faint fibre; last-move and selected squares as translucent **highlighter / watercolour wash** (multiply), legal-move dots as small ink dots; coordinates in printed small mono. **Arrows**: the backlog item, now in scope — tapered **ink/pencil strokes** (deterministic wobble seeded by the move), muted inks from tokens, multiply blend, a nib-like arrowhead; thickness/opacity still encode frequency; hover preview in a distinct pencil-graphite style; fixed SVG node count kept. User-drawn arrows the same family in a few ink colours. |
+| **Player strips / toolbar** | Player names as small typed labels pasted on the mat (paper label with fibre, tiny shadow); side dot as an ink dot. Toolbar groups as a strip of card buttons (S2.1). |
+| **Side switch** | Two **index-card tabs** / bookmark ribbons; active one sits forward with a pencil underline; counts in mono. |
+| **Opening header** | StringTag (done) + name in italic serif; trail crumbs as faint pencil. |
+| **Filter row** | Active filters as small **paper tags/labels** pinned with a tiny tape bit or paper clip; "Add filter" as a pencil "+ add" note. |
+| **Line strip** | The move strip as a **paper ticket / receipt strip** (perforated ends), moves typed in mono, current move circled in ink (seeded ellipse), start as a stamp. |
+| **Summary + W/D/B bars** | Bars as three **cut paper strips** laid side by side (paper / graphite card / ink card) with slightly irregular cut ends at segment joins, labels printed. Keep the chess convention and values; keep label contrast. Legend as tiny paper swatches. |
+| **Move table** | Ledger on the sheet (keep), rows separated by printed rules; active row marked with a **highlighter wash** + a pencil tick in the margin; low-sample rows pencilled (lighter); Σ row with double rule. Sort indicators as small ink arrows. |
+| **Games list** | Register rows; result as small **rubber stamps** (W / D / L, slightly uneven ink, ≤2° rotation), dates mono, links as ink-underlined. |
+| **Canopy** | Ribbons as **watercolour/ink washes** on the sheet (multiply, soft edge), node bars as ink strokes, labels typed; legend as a little paper key card. |
+| **Empty / loading** | Empty: a taped empty specimen envelope or blank card with a pencil note. Loading: ruled lines being "pencilled" (static shimmer off under reduced motion). |
+| **Header controls** | Paper card buttons; player switcher as a paper label with a fold; theme/sound/help as small round **paper buttons/stamps**. |
+| **Menus / popovers / select / command** | Index cards slightly offset over a second card, taped or pinned at the top; rows printed; highlighted row = highlighter wash; checks in ink. |
+| **Tooltips** | Small manila tag on a string (reuse StringTag visual language), typed text. |
+| **Toasts** | Sticky note or taped paper slip with a pencil kicker. |
+| **Dialogs** | A card taped onto the page with an under-sheet; title in serif; sections as ruled card areas; import drop zones as an **envelope / pocket** you drop files into; progress as a measuring tape; player manager as specimen register cards; shortcuts as a "key to symbols" card. |
+| **Welcome** | The landing page as a scrapbook spread: desk ground, the headline on a cream sheet, the specimen plate as a taped-in print with photo corners, the import form on an index card, steps as numbered paper tabs/labels, a pencil marginal note. |
+| **Sliders / checkboxes / radios / inputs** | Slider: ruler card with ticks and a paper-clip or pin thumb. Checkbox: printed box with an ink check. Inputs: typed onto a ruled line. Toggle groups: index tabs. |
+
+## S2.3 Workstreams
+
+| WS | Files | Runs |
+| --- | --- | --- |
+| **K. Paper kit v2** | `components/ui/*`, `components/paper/*`, `components/field/*`, `lib/paper.ts`, `app/globals.css`, `app/paper-textures.css`, `docs/palette.md` | **First.** Paper buttons/controls, menus, tooltips, toasts, dialogs, sliders, checkboxes, inputs, toggle groups, new paper primitives needed by others (HighlighterWash, InkCircle, InkArrow/ink stroke helper, RubberStamp, PaperLabel, Ticket strip edge, Envelope). Write a reference section below. |
+| **E. Board** | `components/board/*` (eval bar, board, overlay arrows, strips, toolbar) | After K. |
+| **F. Explorer** | `components/explorer/*`, `components/filters/FilterRow.tsx`, `components/layout/SideSwitch.tsx` | After K. |
+| **H. Overlays & pages** | `components/players/*`, `components/filters/FilterSheet.tsx`, `components/layout/{Header,ThemeToggle,SoundToggle,ShortcutsDialog,AppShell}.tsx`, `components/onboarding/*` | After K. |
+
+Same hard constraints (section 5 and R3.4). Every agent screenshots its work
+in light and dark (scripts in the scratchpad; coordinator rebuilds between
+merges), self-reviews at least twice, and logs to the Status log.
