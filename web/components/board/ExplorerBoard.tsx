@@ -8,6 +8,7 @@ import { usePosition } from "@/hooks/use-position";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { splitRare } from "@/components/explorer/rare";
 import { describePosition } from "@/components/board/describe-position";
+import { levelForShare } from "@/components/board/arrow-styles";
 import { BoardOverlay, type OverlayArrow, type UserArrow, type UserInk } from "@/components/board/BoardOverlay";
 import { svgDataUri, washPath } from "@/lib/paper";
 import { PlateDefs, PLATE_DRAGGING_STYLE, PLATE_PIECES } from "@/components/board/pieces";
@@ -152,6 +153,7 @@ export function ExplorerBoard() {
         kind: "candidate",
         width: MIN_WIDTH + (MAX_WIDTH - MIN_WIDTH) * rel,
         opacity,
+        level: levelForShare(rel),
         idx,
       };
       // Collinear arrows from one square overlap into a single long line: keep only the nearer,
@@ -164,7 +166,7 @@ export function ExplorerBoard() {
       }
       out.push(cur);
     });
-    return out.map((o) => ({ from: o.from, to: o.to, kind: o.kind, width: o.width, opacity: o.opacity }));
+    return out.map((o) => ({ from: o.from, to: o.to, kind: o.kind, width: o.width, opacity: o.opacity, level: o.level }));
   }, [result, key, fen, hoverMove]);
 
   const squareStyles = useMemo(() => {

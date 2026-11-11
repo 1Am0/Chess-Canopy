@@ -35,7 +35,7 @@ export interface StyleSpec {
 
 export const STYLES: Record<ArrowStyleId, StyleSpec> = {
   a: { width: [16, 11, 7], headLen: [30, 27, 24], headBase: [36, 32, 28], opacity: [1, 0.86, 0.72] },
-  b: { width: [10, 7.5, 5.5], headLen: [28, 26, 24], headBase: [0, 0, 0], opacity: [1, 0.75, 0.55] },
+  b: { width: [10, 7.5, 5.5], headLen: [31, 29, 27], headBase: [0, 0, 0], opacity: [1, 0.75, 0.55] },
   c: { width: [16, 13, 10], headLen: [32, 30, 28], headBase: [38, 35, 32], opacity: [1, 0.92, 0.82] },
   d: { width: [13, 9, 6], headLen: [32, 30, 28], headBase: [34, 30, 26], opacity: [1, 0.82, 0.64] },
 };
@@ -175,7 +175,7 @@ export function arrowShape(opts: ArrowOptions): ArrowShape {
   const W = (p: Pt): Pt => ({ x: start.x + u.x * p.x + nrm.x * p.y, y: start.y + u.y * p.x + nrm.y * p.y });
 
   const hover = kind === "hover";
-  const lv: ArrowLevel = hover ? 0 : level;
+  const lv: ArrowLevel = hover ? (style === "b" ? 1 : 0) : level;
   const w = spec.width[lv];
   const h = w / 2;
   const headLen = Math.min(spec.headLen[lv], len * 0.62);
@@ -201,7 +201,7 @@ export function arrowShape(opts: ArrowOptions): ArrowShape {
   if (style === "a") {
     const full = outline(h, H, b, len);
     const ow = hair(1.5);
-    layers[0] = { d: shape(full), fill: "paper", stroke: "paper", sw: halo * 2, join: "round", fo: hover ? 0.4 : 0.9, so: hover ? 0.7 : 0.9 };
+    layers[0] = { d: shape(full), fill: "paper", stroke: "paper", sw: halo * 2, join: "round", fo: hover ? 0.6 : 0.9, so: hover ? 0.7 : 0.9 };
     if (hover) {
       layers[3] = { d: shape(full), fill: "none", stroke: "ink", sw: hair(1.7), join: "miter" };
       return result();
@@ -223,7 +223,8 @@ export function arrowShape(opts: ArrowOptions): ArrowShape {
 
   if (style === "b") {
     const th = CHEVRON_HALF_ANGLE;
-    const ext = h / Math.sin(th); // the outer mitre point sits this far beyond the polyline vertex
+    const cw = w * 0.82; // the chevron is a touch lighter than the shaft so it stays open
+    const ext = cw / 2 / Math.sin(th); // the outer mitre point sits this far beyond the polyline vertex
     const v: Pt = { x: len - ext, y: 0 };
     const legLen = (headLen - ext) / Math.cos(th);
     const a: Pt = { x: v.x - Math.cos(th) * legLen, y: Math.sin(th) * legLen };
@@ -234,8 +235,8 @@ export function arrowShape(opts: ArrowOptions): ArrowShape {
     layers[1] = hover
       ? { d: shaft, fill: "none", stroke: "ink", sw: w, cap: "butt", dash: `${n1(w * 1.5)} ${n1(w * 1.0)}` }
       : { d: shaft, fill: "none", stroke: "ink", sw: w, cap: "round" };
-    layers[2] = { d: chev, fill: "none", stroke: "ink", sw: w, cap: "butt", join: "miter" };
-    return result({ headBase: 2 * Math.sin(th) * legLen + w * Math.cos(th), headLength: headLen });
+    layers[2] = { d: chev, fill: "none", stroke: "ink", sw: cw, cap: "butt", join: "miter" };
+    return result({ headBase: 2 * Math.sin(th) * legLen + cw * Math.cos(th), headLength: headLen });
   }
 
   const full = outline(h, H, b, len);

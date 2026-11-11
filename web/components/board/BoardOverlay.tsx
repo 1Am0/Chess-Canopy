@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { inkArrowPath, inkEllipsePath, inkStrokePath } from "@/lib/paper";
+import { arrowShape, levelForShare, LAYER_COUNT, type ArrowLevel, type ArrowShape, type ArrowStyleId, type Layer, type Paint } from "@/components/board/arrow-styles";
 
 export type OverlayArrowKind = "candidate" | "hover";
 export type UserInk = "green" | "red" | "ochre" | "blue" | "graphite";
@@ -13,6 +14,8 @@ export interface OverlayArrow {
   /** Stroke width in board units (100 units = 1 square). */
   width: number;
   opacity: number;
+  /** Frequency step 0 (most played) to 2, for the width ladder of the Round 5 drafts. */
+  level?: ArrowLevel;
 }
 
 export interface UserArrow {
@@ -120,11 +123,57 @@ function geometry(from: string, to: string, kind: OverlayArrowKind | "user", wid
   };
 }
 
+/**
+ * TEMPORARY (Round 5): `?arrows=a|b|c|d` picks a draft arrow style. Read once from the URL on first use and remembered, so
+ * the later `replaceState` (which keeps unknown params anyway) can never lose it. No param: the current ink arrows.
+ */
+let draftStyle: ArrowStyleId | null | undefined;
+function readDraftStyle(): ArrowStyleId | null {
+  if (draftStyle !== undefined) return draftStyle;
+  draftStyle = null;
+  try {
+    const v = new URLSearchParams(window.location.search).get("arrows")?.toLowerCase();
+    if (v === "a" || v === "b" || v === "c" || v === "d") draftStyle = v;
+  } catch {
+    /* ignore */
+  }
+  return draftStyle;
+}
+
+const PAINT: Record<Paint, string> = { ink: "", paper: "var(--ov-paper)", none: "none" };
+
+function layerStyle(l: Layer, ink: string): React.CSSProperties {
+  const col = (p: Paint) => (p === "ink" ? ink : PAINT[p]);
+  return {
+    fill: col(l.fill),
+    stroke: col(l.stroke),
+    strokeWidth: l.sw,
+    strokeLinecap: l.cap ?? "butt",
+    strokeLinejoin: l.join ?? "miter",
+    strokeMiterlimit: 4,
+    strokeDasharray: l.dash,
+    fillOpacity: l.fo,
+    strokeOpacity: l.so,
+  };
+}
+
+function DraftMark({ shape, ink }: { shape: ArrowShape; ink: string }) {
+  return (
+    <g style={{ opacity: shape.opacity }}>
+      {Array.from({ length: LAYER_COUNT }, (_, j) => {
+        const l = shape.layers[j];
+        return <path key={j} d={l.d} style={layerStyle(l, ink)} />;
+      })}
+    </g>
+  );
+}
+
 const COORD_MIN_PX = 11; // smallest rendered size of the rank / file labels
 
 const OVERLAY_CSS = `
   .board-overlay {
     --ov-halo: color-mix(in oklab, var(--bar-white) 72%, transparent);
+    --ov-paper: #f8f3e6;
     --ov-dot: oklch(0.22 0.03 160 / 0.62);
     --ov-cand: oklch(0.3 0.07 262);
     --ov-pencil: oklch(0.4 0.012 80);
@@ -183,6 +232,24 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
     return () => ro.disconnect();
   }, []);
 
+  const [draft, setDraft] = useState<ArrowStyleId | null>(null);
+  useEffect(() => setDraft(readDraftStyle()), []);
+  /** Rendered pixels per board unit (the overlay is 800 units wide). */
+  const [pxScale, setPxScale] = useState(1);
+  useEffect(() => {
+    const el = svg.current;
+    if (!el || !draft) return;
+    const update = () => {
+      const w = el.getBoundingClientRect().width;
+      if (w > 0) setPxScale(Math.round((w / 800) * 100) / 100);
+    };
+    update();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [draft]);
+
   const slots = useMemo(() => {
     const cands = arrows.filter((a) => a.kind === "candidate").slice(0, CANDIDATE_SLOTS);
     const hover = arrows.find((a) => a.kind === "hover");
@@ -199,6 +266,43 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
     () => userArrows.map((u) => ({ ...u, g: geometry(u.from, u.to, "user", 15, orientation) })),
     [userArrows, orientation],
   );
+
+  // Draft styles (Round 5): one fixed-size shape per slot; arrows ending on the same square pull their tips back.
+  const draftSlots = useMemo(() => {
+    if (!draft) return null;
+    const ends = [...slots.filter((x) => x.show).map((x) => x.a.to), ...userArrows.map((u) => u.to)];
+    const extra = (to: string) => Math.max(0, ends.filter((e) => e === to).length - 1) * 6;
+    return slots.map(({ a, show }) => ({
+      show,
+      shape: arrowShape({
+        style: draft,
+        from: squareCenter(a.from, orientation),
+        to: squareCenter(a.to, orientation),
+        level: a.kind === "hover" ? 0 : (a.level ?? levelForShare((a.width - 9.4) / 14 + 0.0)),
+        kind: a.kind,
+        scale: pxScale,
+        extraMargin: extra(a.to),
+      }),
+    }));
+  }, [draft, slots, userArrows, orientation, pxScale]);
+
+  const draftUsers = useMemo(() => {
+    if (!draft) return null;
+    const ends = [...slots.filter((x) => x.show).map((x) => x.a.to), ...userArrows.map((u) => u.to)];
+    return userArrows.map((u) => ({
+      key: `${u.from}${u.to}`,
+      ink: INK_VAR[u.ink],
+      shape: arrowShape({
+        style: draft,
+        from: squareCenter(u.from, orientation),
+        to: squareCenter(u.to, orientation),
+        level: 1,
+        kind: "user",
+        scale: pxScale,
+        extraMargin: Math.max(0, ends.filter((e) => e === u.to).length - 1) * 6,
+      }),
+    }));
+  }, [draft, slots, userArrows, orientation, pxScale]);
 
   const coords = useMemo(() => {
     const out: { key: string; x: number; y: number; text: string; fill: string; anchor: "start" | "end" }[] = [];
@@ -262,6 +366,19 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
         </g>
       </svg>
 
+      {draftSlots && draftUsers ? (
+        <svg viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-draft`} style={{ pointerEvents: "none" }}>
+          {draftSlots.map(({ shape, show }, i) => (
+            <g key={i} className="ov-arrow" data-slot={i} style={{ opacity: show ? 1 : 0, visibility: show ? "visible" : "hidden" }}>
+              <DraftMark shape={shape} ink="var(--ov-cand)" />
+            </g>
+          ))}
+          {draftUsers.map((u) => (
+            <DraftMark key={u.key} shape={u.shape} ink={u.ink} />
+          ))}
+        </svg>
+      ) : (
+        <>
       {/* Layer 2: a thin paper-coloured under-stroke so ink stays readable over dark squares and pieces. */}
       <svg viewBox="0 0 800 800" aria-hidden="true" className={`${svgBase} ov-halo`} style={{ pointerEvents: "none" }}>
         {slots.map(({ a, g, show }, i) => (
@@ -290,6 +407,8 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
           <path key={`${u.from}${u.to}`} d={u.g.d} style={{ fill: INK_VAR[u.ink], opacity: 0.86 }} />
         ))}
       </svg>
+        </>
+      )}
     </>
   );
 }
