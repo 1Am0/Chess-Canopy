@@ -135,4 +135,27 @@ describe("evalLocal", () => {
     await vi.waitFor(() => expect(eng.log.filter((c) => c === "go infinite").length).toBe(2));
     void again;
   });
+
+  it("coming back to a position shows its deepest score at once and only reports deeper ones", async () => {
+    const eng = fakeEngine(() => "cp 0", { holdSearch: true });
+    __setEngineFactory(eng.factory);
+    const first = new AbortController();
+    const p1 = evalLocal(WHITE_TO_MOVE, { continuous: true, signal: first.signal });
+    await vi.waitFor(() => expect(eng.log).toContain("go infinite"));
+    eng.emit("info depth 27 score cp 11 pv a");
+    first.abort();
+    await p1;
+
+    const seen: number[] = [];
+    const second = new AbortController();
+    const p2 = evalLocal(WHITE_TO_MOVE, { continuous: true, signal: second.signal, onProgress: (e) => seen.push(e.depth) });
+    expect(seen).toEqual([27]); // immediately, before the engine says anything
+    await vi.waitFor(() => expect(eng.log.filter((c) => c === "go infinite").length).toBe(2));
+    eng.emit("info depth 9 score cp 1 pv a"); // iterative deepening starts over: hidden
+    eng.emit("info depth 27 score cp 2 pv a"); // not deeper: hidden
+    eng.emit("info depth 28 score cp 12 pv a");
+    expect(seen).toEqual([27, 28]);
+    second.abort();
+    expect(await p2).toEqual({ cp: 12, mate: null, depth: 28 });
+  });
 });

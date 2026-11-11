@@ -46,6 +46,17 @@ interface Job {
 }
 
 const cache = new Map<string, CloudEval>();
+/** Deepest score each position reached in a continuous search, so coming back to it shows that depth at once and only goes deeper. */
+const deepest = new Map<string, CloudEval>();
+const DEEPEST_MAX = 400;
+
+function remember(fen: string, e: CloudEval) {
+  const prev = deepest.get(fen);
+  if (prev && prev.depth >= e.depth) return;
+  deepest.delete(fen); // re-insert so the oldest position is first in line to go
+  deepest.set(fen, e);
+  if (deepest.size > DEEPEST_MAX) deepest.delete(deepest.keys().next().value as string);
+}
 let factory: EngineFactory = defaultFactory;
 let handle: EngineHandle | null = null;
 let ready: Promise<boolean> | null = null;
@@ -70,6 +81,7 @@ export function __setEngineFactory(f: EngineFactory | null) {
   factory = f ?? defaultFactory;
   broken = false;
   cache.clear();
+  deepest.clear();
 }
 
 function shutdown() {
@@ -95,7 +107,10 @@ function onLine(line: string) {
   else if (running && line.startsWith("info ")) {
     const e = parseInfoScore(line, running.whiteToMove);
     if (!e) return;
+    // a repeat visit already shows a deeper score: stay quiet until the search passes it
+    if (running.continuous && running.last && e.depth <= running.last.depth) return;
     running.last = e;
+    if (running.continuous && e.depth >= MIN_REPORT_DEPTH) remember(running.fen, e);
     if (!running.aborted && e.depth >= MIN_REPORT_DEPTH) running.onProgress?.(e);
   } else if (running && line.startsWith("bestmove")) {
     const job = running;
@@ -121,7 +136,7 @@ function ensureEngine(): Promise<boolean> {
       resolve(false);
     }
   }).then((ok) => {
-    if (ok) handle?.post("setoption name Hash value 32");
+    if (ok) handle?.post("setoption name Hash value 128");
     return ok;
   });
   return ready;
@@ -174,6 +189,8 @@ export function evalLocal(fen: string, opts: LocalEvalOptions = {}): Promise<Clo
   const hit = opts.continuous ? undefined : cache.get(fen);
   if (hit) return Promise.resolve(hit);
   if (!localEvalAvailable() || opts.signal?.aborted) return Promise.resolve(null);
+  const seen = opts.continuous ? deepest.get(fen) : undefined;
+  if (seen) opts.onProgress?.(seen);
   return new Promise((resolve) => {
     const job: Job = {
       fen,
@@ -183,7 +200,7 @@ export function evalLocal(fen: string, opts: LocalEvalOptions = {}): Promise<Clo
       continuous: !!opts.continuous,
       onProgress: opts.onProgress,
       resolve,
-      last: null,
+      last: seen ?? null,
       aborted: false,
     };
     opts.signal?.addEventListener(
