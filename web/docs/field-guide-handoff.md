@@ -840,3 +840,5 @@ Contrast passed everywhere; no page-level horizontal scroll.
 - **W4:** default `Button` disabled state is solid muted green at full opacity (no opacity-50), legible cream text.
 - Screenshots: `scratchpad/shots/mb2-{m390,m320}-{header,menu,toast}.png`, `mb2-d1440-header.png`.
 - Checks: build, typecheck, lint, vitest clean; e2e 33/34, the 320px header test failed once in the full run (concurrent rebuilds by other agents) and passed on rerun.
+
+- **WL (Round 6, Welcome)**: one grid on desktop (headline + form left, plate right spanning both rows with the handnote, steps full-width below, 32px gaps, top edges aligned, footer 32px under steps); DOM order headline, form, steps, plate gives the mobile order. Plate rebuilt as two SVG layouts (wide 410x470, narrow 290x390) so labels render at >=11px, "No. 001" 11px. Entrance is now 200ms with opacity from 0.7 (no delays). Note: never render a PaperSheet inside a `display:none` ancestor (torn-edge hook throws on 0x0), so the plate is a single instance. Observed, not mine: at 320 the "Chess.com" import tab text is clipped (components/players/ImportForm). typecheck, lint, test, e2e (34) pass.

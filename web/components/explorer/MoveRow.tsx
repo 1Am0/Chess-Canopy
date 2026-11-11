@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  */
 export const COL = {
   move: "overflow-hidden whitespace-nowrap pr-1 pl-4 @xs:pr-2",
-  games: "w-12 px-1 text-right @xs:w-16 @xs:px-2 tabular-nums whitespace-nowrap",
+  games: "w-12 pr-2 pl-1 text-right @xs:w-16 @xs:px-2 tabular-nums whitespace-nowrap",
   share: "hidden w-14 px-2 text-right tabular-nums whitespace-nowrap @sm:table-cell",
   bar: "w-[36%] px-1 @xs:w-[38%] @xs:px-2",
   score: "w-12 pr-2 pl-1 @xs:w-14 @xs:pr-3 text-right tabular-nums whitespace-nowrap",
