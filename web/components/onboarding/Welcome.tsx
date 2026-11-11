@@ -70,8 +70,8 @@ function Plate() {
  */
 export function Welcome() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pt-8 pb-8 sm:px-8 sm:pt-10 sm:pb-10 lg:min-h-0 lg:max-w-[1400px] lg:px-6 lg:pt-6 lg:pb-4">
-      <div className="grid gap-8 lg:min-h-0 lg:flex-1 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5 lg:grid-rows-[auto_minmax(0,1fr)_auto]">
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pt-8 pb-8 sm:px-8 sm:pt-10 sm:pb-10 lg:max-w-[1400px] lg:px-6 lg:pt-6 lg:pb-4">
+      <div className="grid gap-8 lg:flex-1 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5 lg:grid-rows-[auto_minmax(auto,1fr)_auto]">
         <div
           className={`relative isolate lg:col-start-1 lg:row-start-1 ${enter}`}
         >
