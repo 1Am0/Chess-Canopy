@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { CountedOption, FieldSection } from "@/components/field";
+import { cn } from "@/lib/utils";
 import { InkTick } from "@/components/field/InkTick";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -295,10 +296,9 @@ export function FilterSheet() {
                     variant="outline"
                     size="sm"
                     aria-pressed={on}
-                    className="capitalize"
+                    className={cn("capitalize", on && "border-ink bg-[var(--sheet-under)] font-semibold text-ink shadow-none")}
                     onClick={() => patch({ time_control: on ? null : tc })}
                   >
-                    {on && <InkTick className="size-3.5 text-ink" />}
                     <CountedOption label={tc} />
                   </Button>
                 );
