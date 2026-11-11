@@ -439,7 +439,7 @@ describe("chess.com and lichess variant checks (C4d)", () => {
     expect(isOngoing({ ...l, status: "created" })).toBe(true);
     expect(isOngoing(l)).toBe(false);
   });
-  it("requests oldest first including ongoing games (C1, C2)", async () => {
+  it("requests oldest first including ongoing games", async () => {
     let url = "";
     const fetchImpl = (async (u: string | URL | Request) => {
       url = String(u);
