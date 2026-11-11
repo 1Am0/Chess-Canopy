@@ -14,18 +14,13 @@
  *   mate      a heavy double thud: the capture sound, then a lower one
  *   reset     a slower, quieter move sound (jumping back to the start)
  *
- * Five themes are bundled: standard (the Lichess default, used by default), sfx, piano,
- * nes and futuristic. Everything is a no-op without Web Audio (SSR, old browsers, tests).
+ * One set is bundled: standard (the Lichess default). Everything is a no-op without Web Audio (SSR, old browsers, tests).
  */
 
 export type SoundKind = "move" | "capture" | "castle" | "promote" | "mate" | "reset";
 
 export const SOUND_THEMES = [
   { id: "standard", label: "Lichess (default)" },
-  { id: "sfx", label: "Classic" },
-  { id: "piano", label: "Piano" },
-  { id: "nes", label: "8-bit" },
-  { id: "futuristic", label: "Futuristic" },
 ] as const;
 export type SoundTheme = (typeof SOUND_THEMES)[number]["id"];
 export const DEFAULT_SOUND_THEME: SoundTheme = "standard";

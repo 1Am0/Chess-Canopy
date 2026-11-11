@@ -152,17 +152,6 @@ describe("playSound (recorded Lichess samples)", () => {
     expect(fetched.some((u) => /Victory|Defeat|Draw|GenericNotify/.test(u))).toBe(false);
   });
 
-  it("loads the samples of the selected theme from /sounds/<theme>/ and switches themes", async () => {
-    const { fetched } = installFakeAudio();
-    const { preloadSounds, setSoundTheme } = await import("@/lib/sound");
-    await preloadSounds();
-    fetched.length = 0;
-    setSoundTheme("piano");
-    await flush();
-    expect(fetched.every((u) => u.startsWith("/sounds/piano/"))).toBe(true);
-    expect(fetched.sort()).toEqual(["Capture", "Move"].map((n) => `/sounds/piano/${n}.mp3`));
-  });
-
   it("soft sounds are quieter", async () => {
     const { started } = installFakeAudio();
     const { playSound, preloadSounds } = await import("@/lib/sound");
