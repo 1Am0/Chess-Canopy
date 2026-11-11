@@ -13,12 +13,3 @@ export function splitRare<T extends { stats: { total: number } }>(rows: T[], pos
   if (common.length === 0) return { common: rows, rare: [] };
   return { common, rare: rows.filter((r) => r.stats.total < threshold) };
 }
-
-/**
- * Low-sample honesty: a move's stats read as thin when it has fewer than 3 games, or,
- * in a well-populated position (40+ games), fewer than 5% of them. Purely visual: the
- * move table draws such rows' bar and score lighter.
- */
-export function isLowSample(total: number, positionTotal: number): boolean {
-  return total < 3 || (positionTotal >= 40 && total < positionTotal * 0.05);
-}

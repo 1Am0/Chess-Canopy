@@ -5,7 +5,6 @@ import { compact, pct, score } from "@/lib/format";
 import { shareLabel } from "@/lib/explorer-format";
 import { PencilTick } from "@/components/explorer/ink";
 import { HighlighterWash } from "@/components/paper";
-import { isLowSample } from "@/components/explorer/rare";
 import { cn } from "@/lib/utils";
 
 /**
@@ -28,7 +27,6 @@ export function MoveRow({
   positionTotal,
   active,
   openingName,
-  rare,
   onPlay,
   onHover,
 }: {
@@ -39,13 +37,10 @@ export function MoveRow({
   active: boolean;
   /** Opening reached by this move, only when it differs from the current one */
   openingName?: string | null;
-  rare?: boolean;
   onPlay: () => void;
   onHover: (hover: boolean) => void;
 }) {
   const sc = score(item.stats);
-  const dim = rare || item.stats.total < 3;
-  const thin = isLowSample(item.stats.total, positionTotal);
   return (
     <tr
       id={id}
@@ -63,21 +58,17 @@ export function MoveRow({
             <PencilTick seed={item.move} className="absolute top-1/2 left-[2px] -translate-y-1/2" />
           </>
         )}
-        <div className={cn("flex min-w-0 items-baseline gap-2 text-ink", dim && "text-pencil/70")}>
+        <div className={"flex min-w-0 items-baseline gap-2 text-ink"}>
           <span className="shrink-0 font-mono text-sm font-semibold">{item.move}</span>
           {openingName && <span className="hidden min-w-0 truncate font-serif text-xs text-muted-foreground italic @md:inline">{openingName}</span>}
         </div>
       </td>
-      <td className={cn(COL.games, "text-[13px]", dim && "text-pencil/70")}>{compact(item.stats.total)}</td>
+      <td className={cn(COL.games, "text-[13px]")}>{compact(item.stats.total)}</td>
       <td className={cn(COL.share, "text-xs text-muted-foreground")}>{shareLabel(item.stats.total, positionTotal)}</td>
-      <td className={cn(COL.bar, thin ? "opacity-55" : dim && "opacity-75")}>
+      <td className={COL.bar}>
         <WdbBar stats={item.stats} side={side} seed={item.move} />
       </td>
-      <td
-        className={cn(COL.score, "text-[13px] font-semibold", scoreTextClass(sc, item.stats.total), thin && "opacity-55")}
-        title={thin ? "Small sample" : undefined}
-        aria-description={thin ? "small sample" : undefined}
-      >
+      <td className={cn(COL.score, "text-[13px] font-semibold", scoreTextClass(sc, item.stats.total))}>
         {pct(sc)}
       </td>
     </tr>

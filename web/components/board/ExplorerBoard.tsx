@@ -127,7 +127,7 @@ export function ExplorerBoard() {
       return [{ ...sq, kind: "hover", width: HOVER_WIDTH, opacity: 1 }];
     }
     const max = result.next[0]?.stats.total || 1;
-    // Only moves the table lists as common get an arrow (same rule as the "rare" fold).
+    // Only moves the table lists as common get an arrow.
     const common = splitRare(result.next, result.stats.total).common;
     const picked = common.filter((n, i) => i === 0 || n.stats.total / total >= MIN_ARROW_SHARE).slice(0, MAX_ARROWS);
     type A = OverlayArrow & { idx: number };

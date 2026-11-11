@@ -215,25 +215,10 @@ test("line panel lists moves with numbers; clicking a move rewinds; Reset return
   await expect(line.getByRole("button", { name: "e4", exact: true })).not.toHaveAttribute("aria-current", "step");
 });
 
-test("rare moves collapse behind a toggle and expand on click", async ({ page }) => {
+test("every move is listed, including the uncommon ones", async ({ page }) => {
   await importJsonFile(page, MANY_GAMES_JSON, "tester");
-  await expect(moveRow(page, "e4")).toBeVisible();
-  await expect(moveRow(page, "d4")).toBeVisible();
-  // Threshold is max(3, 1%) of 40 games = 3, so c4 (2), Nf3 (1) and b3 (1) are rare.
-  await expect(moveRow(page, "c4")).toHaveCount(0);
-  await expect(moveRow(page, "Nf3")).toHaveCount(0);
-  await expect(moveRow(page, "b3")).toHaveCount(0);
-
-  const show = page.getByRole("button", { name: "Show 3 rare moves" });
-  await expect(show).toHaveAttribute("aria-expanded", "false");
-  await show.click();
-  await expect(page.getByRole("button", { name: "Hide 3 rare moves" })).toHaveAttribute("aria-expanded", "true");
-  await expect(moveRow(page, "c4")).toBeVisible();
-  await expect(moveRow(page, "Nf3")).toBeVisible();
-  await expect(moveRow(page, "b3")).toBeVisible();
-
-  await page.getByRole("button", { name: "Hide 3 rare moves" }).click();
-  await expect(moveRow(page, "c4")).toHaveCount(0);
+  for (const m of ["e4", "d4", "c4", "Nf3", "b3"]) await expect(moveRow(page, m)).toBeVisible();
+  await expect(page.getByRole("button", { name: /rare move/ })).toHaveCount(0);
 });
 
 test("copy share link shows a Copied toast", async ({ page, context }) => {

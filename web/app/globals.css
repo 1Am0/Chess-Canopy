@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @import "./paper-textures.css";
 
+/* the desktop left rail is open while hovered, focused, or has an open popover/menu */
+@custom-variant rail-open (:is(.rail:hover, .rail:focus-within, .rail:has([aria-expanded="true"])) &);
 @custom-variant dark (&:is(.dark *));
 
 /*

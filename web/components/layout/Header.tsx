@@ -17,38 +17,38 @@ export function Header({ showTools }: { showTools: boolean }) {
 
   return (
     <header
-      className={`paper-scope sticky top-0 z-20 bg-[var(--strip)] forced-colors:border-b ${showTools ? "lg:h-dvh lg:w-48 lg:shrink-0 lg:border-r lg:border-rule" : ""}`}
+      className={`paper-scope rail sticky top-0 z-20 bg-[var(--strip)] forced-colors:border-b ${showTools ? "lg:h-dvh lg:w-14 lg:shrink-0 lg:overflow-visible lg:border-r lg:border-rule" : ""}`}
       style={{ backgroundImage: "var(--sheet-tile)" }}
     >
       {/* a torn strip of cream paper laid across the top of the desk */}
       <TornEdge seed={11} className={showTools ? "lg:hidden" : undefined} />
-      <div className={`mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:px-4 ${showTools ? "lg:h-full lg:max-w-none lg:flex-col lg:items-stretch lg:gap-3 lg:px-3 lg:py-4" : ""}`}>
+      <div style={showTools ? { backgroundImage: "var(--sheet-tile)" } : undefined} className={`mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:px-4 ${showTools ? "lg:absolute lg:inset-y-0 lg:left-0 lg:w-14 lg:overflow-hidden lg:bg-[var(--strip)] lg:rail-open:w-48 lg:rail-open:border-r lg:rail-open:border-rule lg:rail-open:shadow-[4px_0_14px_-6px_rgba(0,0,0,0.35)] lg:transition-[width] lg:duration-150 lg:h-full lg:max-w-none lg:flex-col lg:items-stretch lg:gap-3 lg:px-2 lg:py-4" : ""}`}>
         <div className="mr-1 flex shrink-0 items-center gap-2 text-primary">
           <Logo className="size-7" />
-          <span className="hidden font-serif text-xl leading-none font-semibold tracking-tight text-foreground sm:inline">Chess Canopy</span>
+          <span className="hidden font-serif text-xl lg:hidden lg:rail-open:inline leading-none font-semibold tracking-tight text-foreground sm:inline">Chess Canopy</span>
         </div>
         {showTools && <div className="min-w-0 shrink lg:shrink-0" data-testid="player-switcher"><PlayerSwitcher /></div>}
         <div className="ml-auto flex shrink-0 items-center gap-1.5 max-sm:gap-2 lg:ml-0 lg:min-h-0 lg:flex-1 lg:flex-col lg:items-stretch">
           {showTools && <ImportIndicator />}
           {showTools && (
-            <Button variant="outline" size="sm" className="max-sm:h-9 max-sm:px-2.5 lg:w-full lg:justify-start" onClick={() => setUi({ filtersOpen: true })} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
+            <Button variant="outline" size="sm" className="max-sm:h-9 max-sm:px-2.5 lg:w-full lg:justify-center lg:px-0 lg:rail-open:justify-start lg:rail-open:px-3" onClick={() => setUi({ filtersOpen: true })} aria-label={`Filters${count ? `, ${count} active` : ""}`}>
               <Filter />
-              <span className="hidden sm:inline">Filters</span>
+              <span className="hidden sm:inline lg:hidden lg:rail-open:inline">Filters</span>
               {count > 0 && (
-                <span className="ml-0.5 flex size-5 items-center justify-center rounded-full bg-primary font-mono text-[11px] font-semibold text-primary-foreground tabular-nums shadow-[0_0_0_1.5px_var(--sheet-flat),0.5px_1px_1px_var(--btn-drop)]">
+                <span className="ml-0.5 flex size-5 lg:absolute lg:top-0.5 lg:right-0.5 lg:rail-open:static items-center justify-center rounded-full bg-primary font-mono text-[11px] font-semibold text-primary-foreground tabular-nums shadow-[0_0_0_1.5px_var(--sheet-flat),0.5px_1px_1px_var(--btn-drop)]">
                   {count}
                 </span>
               )}
             </Button>
           )}
           {showTools && (
-            <Button variant="outline" size="sm" className="max-sm:h-9 max-sm:px-2.5 lg:w-full lg:justify-start" onClick={() => setUi({ importOpen: true })} aria-label="Import games">
+            <Button variant="outline" size="sm" className="max-sm:h-9 max-sm:px-2.5 lg:w-full lg:justify-center lg:px-0 lg:rail-open:justify-start lg:rail-open:px-3" onClick={() => setUi({ importOpen: true })} aria-label="Import games">
               <Plus />
-              <span className="hidden sm:inline">Import</span>
+              <span className="hidden sm:inline lg:hidden lg:rail-open:inline">Import</span>
             </Button>
           )}
           <MoreMenu />
-          <div className="flex items-center gap-1.5 max-sm:contents lg:mt-auto">
+          <div className="flex items-center gap-1.5 max-sm:contents lg:mt-auto lg:flex-col lg:rail-open:flex-row">
             <SoundToggle className="max-sm:hidden" />
             <Button variant="chit" size="icon" className="max-sm:hidden" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
               <HelpCircle />

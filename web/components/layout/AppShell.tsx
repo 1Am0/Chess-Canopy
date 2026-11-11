@@ -21,7 +21,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
  * --board-size is the width (and height) of the board itself:
  *   mobile : the viewport minus a 12px gutter on each side, at most 62% of the viewport height
  *            (so a tablet in portrait still shows the move table without scrolling far)
- *   desktop (left rail 12rem, no top header): min( clamp(22rem, ~64% of the width right of the rail, 64rem),
+ *   desktop (left rail 3.5rem, icons only, no top header): min( clamp(22rem, ~64% of the width right of the rail, 64rem),
  *                 viewport height - chrome (8.125rem: strips + toolbar + padding) )
  * The content width is min(100vw, 1600px) minus the page padding (2rem) and the
  * workspace gap (1rem).
@@ -29,7 +29,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
  * chrome is 11.625rem, sized so the board sheet ends level with the explorer sheet.
  */
 const BOARD_COLUMN =
-  "[--board-size:min(calc(100vw-1.5rem),62dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-14rem)*0.64-1rem),64rem),calc(100dvh-8.125rem))]";
+  "[--board-size:min(calc(100vw-1.5rem),62dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-5.5rem)*0.64-1rem),64rem),calc(100dvh-8.125rem))]";
 
 /**
  * Placeholder with the same slots as the explorer, so the first paint doesn't jump: the desk, a mat for the board

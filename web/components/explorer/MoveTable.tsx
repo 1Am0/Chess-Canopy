@@ -8,7 +8,6 @@ import { compact, pct, score } from "@/lib/format";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { usePosition } from "@/hooks/use-position";
 import { COL, MoveRow } from "@/components/explorer/MoveRow";
-import { splitRare } from "@/components/explorer/rare";
 import { WdbBar } from "@/components/explorer/WdbBar";
 import { scoreTextClass } from "@/components/explorer/wdb";
 import { EmptySpecimen } from "@/components/field";
@@ -26,7 +25,7 @@ const NO_ROWS: NextMove[] = [];
 
 /**
  * The move table: a scroll region with a sticky header and a sticky Σ total row
- * (Lichess explorer style). Every row is a single 32px line. Rare moves, the loading
+ * (Lichess explorer style). Every row is a single 32px line. The loading
  * state and the empty / out-of-book states all live inside the same region, so the
  * region's size never depends on the position.
  */
@@ -50,13 +49,11 @@ export function MoveTable({ className }: { className?: string }) {
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({ key: "games", dir: "desc" });
   const [active, setActive] = useState(0);
   const [focused, setFocused] = useState(false);
-  const [showRare, setShowRare] = useState(false);
   const [seenKey, setSeenKey] = useState(posKey);
 
   // Reset transient state when the position changes (adjust-during-render pattern).
   if (seenKey !== posKey) {
     setSeenKey(posKey);
-    setShowRare(false);
     setActive(0);
   }
 
@@ -85,9 +82,7 @@ export function MoveTable({ className }: { className?: string }) {
     return out;
   }, [next, sort]);
 
-  const { common, rare } = useMemo(() => splitRare(sorted, total), [sorted, total]);
-
-  const rows = showRare ? [...common, ...rare] : common;
+  const rows = sorted;
   const idx = Math.min(active, Math.max(rows.length - 1, 0));
 
   // Keep the keyboard-selected row visible between the sticky header and total row.
@@ -218,25 +213,7 @@ export function MoveTable({ className }: { className?: string }) {
               </tr>
             ))}
           {!empty &&
-            common.map((item, i) => <MoveRow key={item.move} {...rowProps(item, i)} />)}
-          {!empty && rare.length > 0 && (
-            <tr className="h-8">
-              {([["@sm:hidden", 4], ["hidden @sm:table-cell", 5]] as const).map(([cls, span]) => (
-                <td key={span} colSpan={span} className={cn("border-b border-rule p-0", cls)}>
-                  <button
-                    type="button"
-                    aria-expanded={showRare}
-                    onClick={() => setShowRare((v) => !v)}
-                    className="flex h-8 w-full items-center justify-center gap-1.5 px-3 font-hand text-[17px] leading-none text-pencil outline-none hover:bg-specimen/60 hover:text-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring"
-                  >
-                    {showRare ? "Hide" : "Show"} {rare.length} rare {rare.length === 1 ? "move" : "moves"}
-                    <InkArrow dir={showRare ? "up" : "down"} />
-                  </button>
-                </td>
-              ))}
-            </tr>
-          )}
-          {!empty && showRare && rare.map((item, j) => <MoveRow key={item.move} {...rowProps(item, common.length + j, true)} />)}
+            rows.map((item, i) => <MoveRow key={item.move} {...rowProps(item, i)} />)}
         </tbody>
         {result && !empty && (
           <tfoot className="sticky bottom-0 z-10">
@@ -316,7 +293,7 @@ export function MoveTable({ className }: { className?: string }) {
     </div>
   );
 
-  function rowProps(item: NextMove, i: number, isRare = false) {
+  function rowProps(item: NextMove, i: number) {
     return {
       id: `move-row-${i}`,
       item,
@@ -324,7 +301,6 @@ export function MoveTable({ className }: { className?: string }) {
       positionTotal: total,
       active: focused && i === idx,
       openingName: openingFor(item.move),
-      rare: isRare,
       onPlay: () => {
         if (inert) return;
         playMove(item.move);

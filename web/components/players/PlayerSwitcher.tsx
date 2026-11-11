@@ -34,14 +34,14 @@ export function PlayerSwitcher() {
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="relative w-full min-w-0 max-w-[11rem] justify-between gap-1.5 px-2.5 max-sm:h-9 sm:max-w-xs sm:gap-2 sm:px-4"
+          className="relative w-full min-w-0 max-w-[11rem] justify-between gap-1.5 px-2.5 max-sm:h-9 sm:max-w-xs sm:gap-2 sm:px-4 lg:justify-center lg:px-0 lg:rail-open:justify-between lg:rail-open:px-3"
           aria-label={`Players: ${label}, ${total.toLocaleString()} games`}
         >
           <Users className="text-muted-foreground" />
-          <span className="hidden min-w-0 truncate min-[380px]:inline">{label}</span>
+          <span className="hidden min-w-0 truncate min-[380px]:inline lg:hidden lg:rail-open:inline">{label}</span>
           {/* narrow phones: icon + game count, the full name stays in the accessible name */}
-          <span className="min-w-[2ch] text-right text-xs text-muted-foreground tabular-nums min-[380px]:hidden sm:inline sm:min-w-[5ch]">{total.toLocaleString()}</span>
-          <ChevronsUpDown className="size-3.5 text-muted-foreground" />
+          <span className="min-w-[2ch] text-right text-xs text-muted-foreground tabular-nums min-[380px]:hidden sm:inline sm:min-w-[5ch] lg:hidden lg:rail-open:inline">{total.toLocaleString()}</span>
+          <ChevronsUpDown className="size-3.5 text-muted-foreground lg:hidden lg:rail-open:block" />
           {/* the label's folded corner: a dog-ear with a darker underside and a soft shadow */}
           <span aria-hidden className="paper-deco pointer-events-none absolute -top-px -right-px size-3.5">
             <span className="absolute inset-0 bg-[var(--strip)] [clip-path:polygon(0_0,100%_0,100%_100%)]" style={{ backgroundImage: "var(--sheet-tile)" }} />
