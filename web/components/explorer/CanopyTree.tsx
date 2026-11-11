@@ -26,7 +26,9 @@ const PAD_L_NARROW = 10;
 const SPREAD = 0.15;
 /** Node heights that still fit a one-line / two-line label. */
 const H_ONE = 12;
-const H_TWO = 26;
+const H_TWO = 28;
+/** Rough advance of one 11px tabular digit/glyph in the stats line, used to check it fits its slot. */
+const STAT_CH = 6.4;
 
 /** Diverging OKLCH colour for a score in [0, 1]; the tokens are defined in the theme. */
 export function scoreColor(sc: number): string {
@@ -250,11 +252,12 @@ export function CanopyTree({ active }: { active: boolean }) {
               const label = root ? rootLabel : moveLabel(p.node.san ?? "", p.node.path.length - 1);
               const aria = nodeAria(p, side);
               const cy = p.y + p.h / 2;
-              const two = p.h >= H_TWO;
+              
               const showLabel = p.h >= H_ONE;
               const games = p.node.stats.total;
               const long = lay.labelW >= 70;
               const stats = `${pct(p.sc)} · ${compact(games)}${long ? (games === 1 ? " game" : " games") : ""}`;
+              const two = p.h >= H_TWO && stats.length * STAT_CH <= lay.labelW - 8;
               const other = p.node.otherGames ?? 0;
               const stubX = p.x + NODE_W + (root ? 0 : lay.labelW) + 2;
               const stubRoom = (p.level < lay.all.length - 1 ? p.x + lay.pitch : lay.w) - stubX;
@@ -295,7 +298,7 @@ export function CanopyTree({ active }: { active: boolean }) {
                   {root && lay.padL >= PAD_L && (
                     <text x={p.x - 7} textAnchor="end" y={cy - 1} className="font-serif" style={{ fontSize: 13, fontStyle: "italic", fill: "var(--ink)" }}>
                       {label}
-                      <tspan x={p.x - 7} dy={13} className="font-sans" style={{ fontSize: 10, fontStyle: "normal", fontVariantNumeric: "tabular-nums", fill: "var(--muted-foreground)" }}>
+                      <tspan x={p.x - 7} dy={13} className="font-sans" style={{ fontSize: 11, fontStyle: "normal", fontVariantNumeric: "tabular-nums", fill: "var(--muted-foreground)" }}>
                         {compact(games)} {games === 1 ? "game" : "games"}
                       </tspan>
                     </text>
@@ -314,9 +317,9 @@ export function CanopyTree({ active }: { active: boolean }) {
                       {two && (
                         <text
                           x={p.x + NODE_W + 6}
-                          y={cy + 11}
+                          y={cy + 12}
                           className="font-sans"
-                          style={{ fontSize: 10, fontVariantNumeric: "tabular-nums", fill: "var(--muted-foreground)" }}
+                          style={{ fontSize: 11, fontVariantNumeric: "tabular-nums", fill: "var(--muted-foreground)" }}
                         >
                           {stats}
                         </text>

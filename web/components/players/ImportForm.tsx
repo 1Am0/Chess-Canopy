@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Envelope } from "@/components/paper";
 
-const tabCls = "px-1.5 text-[13px] sm:px-3 sm:text-sm";
+const tabCls = "px-0.5 text-xs sm:px-3 sm:text-sm";
 
 type Tab = "chess.com" | "lichess" | "pgn" | "json";
 
@@ -85,7 +85,7 @@ export function ImportForm({ initialTab = "chess.com", onDone, idPrefix = "imp" 
   return (
     <form onSubmit={submit} className="space-y-4">
       <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setFile(null); }}>
-        <TabsList className="grid w-full grid-cols-4 gap-1 bg-transparent">
+        <TabsList className="grid w-full grid-cols-[1.4fr_1fr_.75fr_.75fr] gap-1 bg-transparent sm:grid-cols-4">
           <TabsTrigger value="chess.com" disabled={running} className={tabCls}>Chess.com</TabsTrigger>
           <TabsTrigger value="lichess" disabled={running} className={tabCls}>Lichess</TabsTrigger>
           <TabsTrigger value="pgn" disabled={running} className={tabCls}>PGN</TabsTrigger>

@@ -132,7 +132,7 @@ export function MoveTable({ className }: { className?: string }) {
     }
   };
 
-  const Th = ({ k, label, className }: { k: SortKey; label: string; className?: string }) => (
+  const Th = ({ k, label, short, className }: { k: SortKey; label: string; short?: string; className?: string }) => (
     <th scope="col" className={cn("font-medium", className)} aria-sort={sort.key === k ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
       <button
         type="button"
@@ -142,7 +142,14 @@ export function MoveTable({ className }: { className?: string }) {
           sort.key === k && "text-ink",
         )}
       >
-        {label}
+        {short ? (
+          <>
+            <span className="sr-only @xs:not-sr-only">{label}</span>
+            <span aria-hidden className="@xs:hidden">{short}</span>
+          </>
+        ) : (
+          label
+        )}
         {sort.key === k && <InkArrow dir={sort.dir === "asc" ? "up" : "down"} />}
       </button>
     </th>
@@ -190,7 +197,7 @@ export function MoveTable({ className }: { className?: string }) {
         <thead className="sticky top-0 z-10">
           <tr className="label-caps h-7 bg-card text-[13px] text-pencil [&>th]:border-b [&>th]:border-rule-strong">
             <Th k="move" label="Move" className={COL.move} />
-            <Th k="games" label="Games" className={COL.games} />
+            <Th k="games" label="Games" short="G" className={COL.games} />
             <th scope="col" className={cn(COL.share, "font-medium")}>Share</th>
             <th scope="col" className={cn(COL.bar, "font-medium whitespace-nowrap")}>
               <span className="hidden @[22rem]:inline">White / Draw / Black</span>

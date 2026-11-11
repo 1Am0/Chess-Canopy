@@ -133,7 +133,7 @@ function RatingRange({
 function DateStamp({ label, aria, value, onChange }: { label: string; aria: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="relative">
-      <span aria-hidden className="label-caps pointer-events-none absolute top-1.5 left-2.5 text-[10px]">
+      <span aria-hidden className="label-caps pointer-events-none absolute top-1.5 left-2.5 text-[11px]">
         {label}
       </span>
       <Input type="date" aria-label={aria} value={value} onChange={(e) => onChange(e.target.value)} className="h-11 pt-4 font-mono text-sm tabular-nums" />

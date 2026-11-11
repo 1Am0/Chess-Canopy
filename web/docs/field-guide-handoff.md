@@ -850,3 +850,11 @@ Contrast passed everywhere; no page-level horizontal scroll.
 - I3: hint "Play a move to start" below `@[34rem]/sheet`, long copy above; narrow column widths in MoveRow `COL` so "MOVE" fits at 320; Canopy key card shortens to "games · score" and "Plies" label hides below 430px, so depth buttons 2/3/4 stay inside.
 - I4: bar labels 11px (table-bar digit labels hidden under 17% so they never clip), Games W/D/L stamps use size md (11px).
 - Verified: build, typecheck, lint, 425 unit tests, 34 e2e pass. Slot heights unchanged. Shots: scratchpad/shots/ia3-*.
+
+## Status log (round 6, final polish)
+
+- Canopy: node stats line is 11px (root "40 games" too); the second line shows only when the node is >=28px tall (`H_TWO`) and the estimated text width fits the label slot, so it appears at desktop widths and drops at 390/320 instead of overlapping.
+- Filter sheet: "From"/"To" date labels 11px (field layout and aria labels unchanged).
+- Import tabs: columns `1.4fr 1fr .75fr .75fr` below `sm`, 12px text, `px-0.5`; "Chess.com" no longer clipped at 320 (4 tabs fit, names unchanged).
+- Moves table: below `@xs` the Games header shows "G" (sr-only "Games" keeps the sort button's name); clear gap to "W / D / B". Row 32px / header 28px unchanged.
+- Audit: small=0 for canopy_tab and filters_sheet at all 4 widths. Shots: `scratchpad/shots/r6f-*.png`.
