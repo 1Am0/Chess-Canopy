@@ -229,6 +229,8 @@ export const PLATE_PIECES: PieceRenderObject = Object.fromEntries(
 
 /** The piece under the pointer: a bigger lift (the tight shadow of the sheet itself, plus a little scale). */
 export const PLATE_DRAGGING_STYLE: CSSProperties = {
-  transform: "scale(1.1)",
-  filter: "drop-shadow(1.5px 4px 2.5px rgba(36, 29, 16, 0.42))",
+  // --drag-rot is driven per frame by the board (a spring on the pointer's sideways speed): the piece hangs from where you grabbed it and swings against the drag.
+  transform: "scale(1.14) rotate(var(--drag-rot, 0deg))",
+  transformOrigin: "50% 18%",
+  filter: "drop-shadow(2px 6px 3px rgba(36, 29, 16, 0.4))",
 };

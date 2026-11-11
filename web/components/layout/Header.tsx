@@ -48,7 +48,7 @@ export function Header({ showTools }: { showTools: boolean }) {
             </Button>
           )}
           <MoreMenu />
-          <div className="flex items-center gap-1.5 max-sm:contents lg:mt-auto lg:flex-col">
+          <div className="flex items-center gap-1.5 max-sm:contents lg:mt-auto lg:flex-col lg:items-start lg:pl-[2px]">
             <SoundToggle className="max-sm:hidden" />
             <Button variant="chit" size="icon" className="max-sm:hidden" onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
               <HelpCircle />

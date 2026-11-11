@@ -167,6 +167,57 @@ export function ExplorerBoard() {
     return out.map((o) => ({ from: o.from, to: o.to, kind: o.kind, width: o.width, opacity: o.opacity }));
   }, [result, key, fen, hoverMove]);
 
+  // Drag momentum: while a piece is held, its tilt follows a damped spring driven by the pointer's sideways speed,
+  // so it swings against the direction of travel, overshoots a little, and settles when you stop.
+  useEffect(() => {
+    const el = box.current;
+    if (!el || reduceMotion) return;
+    const root = document.documentElement;
+    let down = false;
+    let lastX = 0;
+    let vx = 0;
+    let ang = 0;
+    let vel = 0;
+    let raf = 0;
+    const tick = () => {
+      const target = Math.max(-30, Math.min(30, -vx * 1.4));
+      vel = (vel + (target - ang) * 0.16) * 0.8;
+      ang += vel;
+      vx *= 0.85;
+      root.style.setProperty("--drag-rot", `${ang.toFixed(2)}deg`);
+      if (down || Math.abs(ang) > 0.05 || Math.abs(vel) > 0.05) raf = requestAnimationFrame(tick);
+      else root.style.removeProperty("--drag-rot");
+    };
+    const onDown = (e: PointerEvent) => {
+      if (!(e.target as Element | null)?.closest("[data-piece]")) return;
+      down = true;
+      lastX = e.clientX;
+      vx = 0;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!down) return;
+      vx = vx * 0.4 + (e.clientX - lastX) * 0.6;
+      lastX = e.clientX;
+    };
+    const onUp = () => {
+      down = false;
+    };
+    el.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      cancelAnimationFrame(raf);
+      root.style.removeProperty("--drag-rot");
+      el.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, [reduceMotion]);
+
   const squareStyles = useMemo(() => {
     const washed = new Map<string, "last" | "sel">();
     if (lastMove) {
