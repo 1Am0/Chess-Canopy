@@ -56,6 +56,8 @@ export function useExplorerSync() {
   const { key, visible } = usePosition();
   const urlRead = useRef(false);
   const queryId = useRef(0);
+  /** The filters the last selection was applied with (a change in them is debounced). */
+  const lastFilters = useRef(filters);
   /** Latest setSelection request; older responses are ignored. */
   const selReq = useRef(0);
   /** A selection change is pending (debounce or in flight): position queries wait for it. */
@@ -163,6 +165,9 @@ export function useExplorerSync() {
     }
     selPending.current = true;
     st.setResultLoading(true);
+    // Typing in a filter is debounced; picking players (a click) applies at once, there is nothing to wait for.
+    const filtersChanged = lastFilters.current !== filters;
+    lastFilters.current = filters;
     const t = setTimeout(async () => {
       try {
         const summary = await getExplorer().setSelection(effectiveSelection(selected, players), selectionFilters(filters));
@@ -186,7 +191,7 @@ export function useExplorerSync() {
         if (isExplorerRestart(e)) return; // re-applied after the restart
         toast.error(`Could not apply filters: ${e instanceof Error ? e.message : String(e)}`);
       }
-    }, 180);
+    }, filtersChanged ? 180 : 0);
     return () => clearTimeout(t);
   }, [ready, players, selected, filters, restarts]);
 

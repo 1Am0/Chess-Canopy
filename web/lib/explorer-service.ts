@@ -29,6 +29,27 @@ import { START_FEN } from "./importers/standard";
 
 /** Selections kept warm. Entries are small (references + visited nodes), see position-index.ts. */
 const LRU_SIZE = 6;
+/**
+ * Games kept in memory per player (newest first), so switching players on and off or deleting one never re-reads
+ * IndexedDB for the ones still shown. Capped by total games; the least recently used player outside the current
+ * selection goes first.
+ */
+const PLAYER_CACHE_MAX_GAMES = 30_000;
+/** One shared string per distinct SAN: the same few thousand move strings instead of a fresh copy per ply per game. */
+const SAN_POOL = new Map<string, string>();
+const SAN_POOL_MAX = 20_000;
+function internMoves(games: Game[]): Game[] {
+  if (SAN_POOL.size > SAN_POOL_MAX) SAN_POOL.clear();
+  for (const g of games) {
+    const m = g.moves;
+    for (let i = 0; i < m.length; i++) {
+      const shared = SAN_POOL.get(m[i]);
+      if (shared === undefined) SAN_POOL.set(m[i], m[i]);
+      else m[i] = shared;
+    }
+  }
+  return games;
+}
 const BATCH = 500;
 
 interface Computed {
@@ -132,6 +153,8 @@ class PathBoard {
 
 export interface ExplorerServiceOptions {
   fetchImpl?: typeof fetch;
+  /** Cap on games kept per player in memory (default 30,000); mostly for tests. */
+  playerCacheMaxGames?: number;
 }
 
 export class ExplorerService implements ExplorerAPI {
@@ -139,7 +162,9 @@ export class ExplorerService implements ExplorerAPI {
   private lru = new Map<string, Computed>();
   /** In-flight selection builds, so overlapping setSelection/query calls share one build. */
   private inflight = new Map<string, Promise<Computed>>();
-  /** The loaded games of the current player set (one DB read per set, shared by every caller). */
+  /** Games of each recently used player, newest first (see PLAYER_CACHE_MAX_GAMES); insertion order = recency. */
+  private byPlayer = new Map<string, { promise: Promise<Game[]>; size: number }>();
+  /** The merged games of the current player set (built from `byPlayer`, shared by every caller). */
   private games: { key: string; promise: Promise<Game[]> } | null = null;
   private opponentNames: { key: string; names: string[] } | null = null;
   /** Bumped by invalidate(); builds started before it are not cached. */
@@ -149,8 +174,11 @@ export class ExplorerService implements ExplorerAPI {
   private aborts = new Set<AbortController>();
   private maintenance: Promise<unknown> | null = null;
 
+  private playerCacheMax: number;
+
   constructor(opts: ExplorerServiceOptions = {}) {
     this.fetchImpl = opts.fetchImpl;
+    this.playerCacheMax = opts.playerCacheMaxGames ?? PLAYER_CACHE_MAX_GAMES;
   }
 
   /** Drops cached games and trees; the next setSelection/query rebuilds them from IndexedDB. */
@@ -158,12 +186,15 @@ export class ExplorerService implements ExplorerAPI {
     this.invalidateCaches();
   }
 
-  private invalidateCaches() {
+  /** Drops the selection-level caches, and the stored games of `playerIds` (everyone's when omitted). */
+  private invalidateCaches(playerIds?: readonly string[]) {
     this.gen++;
     this.lru.clear();
     this.inflight.clear();
     this.games = null;
     this.opponentNames = null;
+    if (playerIds) for (const id of playerIds) this.byPlayer.delete(id);
+    else this.byPlayer.clear();
   }
 
   /** One-time startup cleanup of games left without a player row by older versions. */
@@ -180,7 +211,7 @@ export class ExplorerService implements ExplorerAPI {
 
   async deletePlayer(id: string): Promise<void> {
     await dbm.deletePlayer(id);
-    this.invalidateCaches();
+    this.invalidateCaches([id]); // the other players' games stay cached, so what is left shows at once
   }
 
   async exportPlayer(id: string): Promise<string> {
@@ -191,11 +222,54 @@ export class ExplorerService implements ExplorerAPI {
   }
 
   // ---- selection / query ----
+  /** One player's games, newest first: from memory when recent, otherwise one key-range read. */
+  private loadPlayer(id: string): Promise<Game[]> {
+    const hit = this.byPlayer.get(id);
+    if (hit) {
+      this.byPlayer.delete(id);
+      this.byPlayer.set(id, hit); // most recently used last
+      return hit.promise;
+    }
+    const entry = { size: 0, promise: null as unknown as Promise<Game[]> };
+    entry.promise = (async () => {
+      await this.maintain();
+      const games = newestFirst(internMoves(await dbm.getPlayerGames(id)));
+      entry.size = games.length;
+      this.trimPlayerCache(id);
+      return games;
+    })();
+    this.byPlayer.set(id, entry);
+    entry.promise.catch(() => {
+      if (this.byPlayer.get(id) === entry) this.byPlayer.delete(id);
+    });
+    return entry.promise;
+  }
+
+  /** Keeps the per-player cache under its cap, evicting the least recently used players that are not selected. */
+  private trimPlayerCache(keep: string) {
+    let total = 0;
+    for (const e of this.byPlayer.values()) total += e.size;
+    if (total <= this.playerCacheMax) return;
+    const selected = this.sel && this.sel.ids !== "all" ? new Set(this.sel.ids) : null;
+    let evicted = false;
+    for (const [id, e] of this.byPlayer) {
+      if (total <= this.playerCacheMax) break;
+      if (id === keep || selected?.has(id) || (!selected && this.sel)) continue; // "all" selected: everything is in use
+      this.byPlayer.delete(id);
+      total -= e.size;
+      evicted = true;
+    }
+    // Earlier selections' trees still point at the evicted games; drop them too, or nothing is actually freed.
+    if (evicted) this.lru.clear();
+  }
+
   private loadGames(sel: Selection): Promise<Game[]> {
     if (this.games?.key === sel.idsKey) return this.games.promise;
     const promise = (async () => {
-      await this.maintain();
-      return newestFirst(await dbm.getGamesForPlayers(sel.ids));
+      const ids = sel.ids === "all" ? await dbm.listPlayerIds() : sel.ids;
+      const lists = await Promise.all(ids.map((id) => this.loadPlayer(id)));
+      // A fresh array (the cached per-player ones stay untouched), newest first like before.
+      return newestFirst(lists.length === 1 ? [...lists[0]] : lists.flat());
     })();
     const entry = { key: sel.idsKey, promise };
     this.games = entry;
@@ -680,7 +754,7 @@ export class ExplorerService implements ExplorerAPI {
       lastSyncedAt: Date.now(),
     };
     await dbm.updatePlayer(base.id, p);
-    this.invalidateCaches();
+    this.invalidateCaches([base.id]);
     return p;
   }
 

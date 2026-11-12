@@ -542,3 +542,62 @@ describe("imports (C3, C4, C13, C21, C24, C25)", () => {
     await expect(q).rejects.toMatchObject({ name: "AbortError" });
   });
 });
+
+describe("per-player game cache", () => {
+  /** Counts the stored game rows read while `fn` runs. */
+  async function rowsRead(fn: () => Promise<unknown>): Promise<number> {
+    let n = 0;
+    const count = (obj: unknown) => {
+      n++;
+      return obj;
+    };
+    db.games.hook("reading", count);
+    try {
+      await fn();
+    } finally {
+      db.games.hook("reading").unsubscribe(count);
+    }
+    return n;
+  }
+  const two = async () => {
+    await svc.importGames({ ...jsonReq, username: "hero" }, noop);
+    await svc.importGames({ ...jsonReq, username: "villain" }, noop);
+    return new ExplorerService(); // empty caches, like a fresh page load
+  };
+
+  it("switching players on and off, and deleting one, never re-reads the ones still shown", async () => {
+    const s2 = await two();
+    const both = ["json:hero", "json:villain"];
+    expect(await rowsRead(() => s2.setSelection(both, {}))).toBe(6); // each player read once
+    expect(await rowsRead(() => s2.setSelection(["json:hero"], {}))).toBe(0);
+    expect((await s2.setSelection(["json:hero"], {})).games).toBe(3);
+    expect(await rowsRead(() => s2.setSelection(both, {}))).toBe(0);
+    expect(await rowsRead(() => s2.setSelection(["json:villain"], { result: "1-0" }))).toBe(0); // filters never touch the DB
+    await s2.setSelection(both, {});
+    await s2.deletePlayer("json:villain");
+    expect(await rowsRead(() => s2.setSelection(["json:hero"], {}))).toBe(0);
+    expect(await s2.listPlayers()).toHaveLength(1);
+    expect(await db.games.where("playerId").equals("json:villain").count()).toBe(0);
+    expect(await db.games.where("playerId").equals("json:hero").count()).toBe(3);
+  });
+
+  it("a player's games are read again after an import adds to them", async () => {
+    const s2 = await two();
+    expect((await s2.setSelection(["json:hero"], {})).games).toBe(3); // cached now
+    const data = JSON.parse(sampleJson) as { games: Array<Record<string, unknown>> };
+    data.games = [{ ...data.games[0], game_id: "brand-new" }];
+    await s2.importGames({ kind: "json", username: "hero", text: JSON.stringify(data) }, noop);
+    expect((await s2.setSelection(["json:hero"], {})).games).toBe(4);
+    expect((await s2.setSelection(["json:hero", "json:villain"], {})).games).toBe(7);
+  });
+
+  it("keeps at most the configured number of games, dropping players that are not selected", async () => {
+    await two();
+    const s3 = new ExplorerService({ playerCacheMaxGames: 3 });
+    await s3.setSelection(["json:hero"], {});
+    await s3.setSelection(["json:villain"], {}); // 6 > 3: hero is evicted
+    expect(await rowsRead(() => s3.setSelection(["json:villain"], {}))).toBe(0);
+    expect(await rowsRead(() => s3.setSelection(["json:hero"], {}))).toBe(3); // had to come back from the DB
+  });
+});
+

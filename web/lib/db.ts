@@ -99,6 +99,27 @@ async function playerIds(): Promise<string[]> {
   return (await db.players.toCollection().primaryKeys()) as string[];
 }
 
+/** Ids of every stored player, in key order. */
+export async function listPlayerIds(): Promise<string[]> {
+  return playerIds();
+}
+
+/** Primary keys are `${playerId}|${gameId}`, so one player's games are one contiguous key range. */
+const playerRange = (id: string) => db.games.where(":id").between(`${id}|`, `${id}|\uffff`, true, true);
+
+/**
+ * All games of one player. Reads the contiguous primary-key range directly, which is quicker than going through the
+ * `playerId` index (that costs a second lookup per row); the order is the same (index order within a player is key order).
+ */
+export async function getPlayerGames(id: string): Promise<Game[]> {
+  const rows = await playerRange(id).toArray();
+  return rows.map((r) => {
+    const g: Partial<StoredGame> = { ...r };
+    delete g.id;
+    return g as Game;
+  });
+}
+
 /** Games of the given players; "all" means every *known* player (orphan rows are ignored). */
 export async function getGamesForPlayers(ids: string[] | "all"): Promise<Game[]> {
   const list = ids === "all" ? await playerIds() : ids;
@@ -132,7 +153,9 @@ export async function getPlayer(id: string): Promise<Player | undefined> {
 
 export async function deletePlayer(id: string): Promise<void> {
   await db.transaction("rw", db.players, db.games, async () => {
-    await db.games.where("playerId").equals(id).delete();
+    // one range delete instead of collecting every key through the index first
+    await playerRange(id).delete();
+    await db.games.where("playerId").equals(id).delete(); // anything stored under a non-standard key
     await db.players.delete(id);
   });
 }
