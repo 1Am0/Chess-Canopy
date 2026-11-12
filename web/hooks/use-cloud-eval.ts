@@ -10,7 +10,16 @@ import { evalLocal } from "@/lib/local-eval";
  */
 export function useCloudEval(fen: string): EvalResult | "loading" {
   const [state, setState] = useState<{ fen: string; res: EvalResult } | null>(null);
+  // No searching while the tab is hidden: the engine would keep a CPU core busy for nothing.
+  const [tabVisible, setTabVisible] = useState(true);
   useEffect(() => {
+    const sync = () => setTabVisible(document.visibilityState !== "hidden");
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    return () => document.removeEventListener("visibilitychange", sync);
+  }, []);
+  useEffect(() => {
+    if (!tabVisible) return;
     const ctl = new AbortController();
     const show = (res: EvalResult) => {
       if (!ctl.signal.aborted) setState({ fen, res });
@@ -33,7 +42,7 @@ export function useCloudEval(fen: string): EvalResult | "loading" {
       clearTimeout(t);
       ctl.abort();
     };
-  }, [fen]);
+  }, [fen, tabVisible]);
   // Keep showing the previous evaluation until the new one arrives, so the bar doesn't flicker.
   return state ? state.res : "loading";
 }

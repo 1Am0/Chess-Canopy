@@ -9,6 +9,9 @@ export const ENGINE_URL = "/stockfish/stockfish-19-lite-single.js";
 const DEFAULT_DEPTH = 14;
 const DEFAULT_MOVETIME_MS = 2500;
 const IDLE_MS = 60_000;
+/** A continuous search still ends by itself (the engine pins a whole CPU core): at this depth or after this long. */
+const CONTINUOUS_MAX_DEPTH = 40;
+const CONTINUOUS_MAX_MS = 45_000;
 /** Progress is reported from this depth on; shallower scores jump around too much to show. */
 const MIN_REPORT_DEPTH = 6;
 
@@ -37,8 +40,10 @@ interface Job {
   whiteToMove: boolean;
   depth: number;
   movetime: number;
-  /** Search until stopped (`go infinite`) instead of to a fixed depth / time. */
+  /** Search until stopped (`go infinite`) instead of to a fixed depth / time, up to a depth / time cap. */
   continuous: boolean;
+  /** Stops a continuous search at its time limit. */
+  stopTimer?: ReturnType<typeof setTimeout>;
   onProgress?: (e: CloudEval) => void;
   resolve: (e: CloudEval | null) => void;
   last: CloudEval | null;
@@ -112,9 +117,11 @@ function onLine(line: string) {
     running.last = e;
     if (running.continuous && e.depth >= MIN_REPORT_DEPTH) remember(running.fen, e);
     if (!running.aborted && e.depth >= MIN_REPORT_DEPTH) running.onProgress?.(e);
+    if (running.continuous && e.depth >= CONTINUOUS_MAX_DEPTH && !running.aborted) handle?.post("stop");
   } else if (running && line.startsWith("bestmove")) {
     const job = running;
     running = null;
+    clearTimeout(job.stopTimer);
     // a continuous search only ends when it is stopped, and then its last score is still the answer
     const result = job.aborted && !job.continuous ? null : job.last;
     if (result && !job.continuous) cache.set(job.fen, result);
@@ -167,6 +174,7 @@ function next() {
     }
     handle.post(`position fen ${job.fen}`);
     handle.post(job.continuous ? "go infinite" : `go depth ${job.depth} movetime ${job.movetime}`);
+    if (job.continuous) job.stopTimer = setTimeout(() => running === job && handle?.post("stop"), CONTINUOUS_MAX_MS);
   });
 }
 
@@ -174,7 +182,7 @@ export interface LocalEvalOptions {
   signal?: AbortSignal;
   depth?: number;
   movetime?: number;
-  /** Keep analysing, going deeper until the signal aborts (ignores depth and movetime, and is not cached). */
+  /** Keep analysing, going deeper until the signal aborts or the depth / time cap is reached (ignores depth and movetime, and is not cached). */
   continuous?: boolean;
   /** Called with a deeper score as the search progresses. */
   onProgress?: (e: CloudEval) => void;

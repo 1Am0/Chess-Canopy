@@ -158,4 +158,16 @@ describe("evalLocal", () => {
     second.abort();
     expect(await p2).toEqual({ cp: 12, mate: null, depth: 28 });
   });
+
+  it("a continuous search stops itself at the depth cap", async () => {
+    const eng = fakeEngine(() => "cp 0", { holdSearch: true });
+    __setEngineFactory(eng.factory);
+    const p = evalLocal(WHITE_TO_MOVE, { continuous: true });
+    await vi.waitFor(() => expect(eng.log).toContain("go infinite"));
+    eng.emit("info depth 39 score cp 3 pv a");
+    expect(eng.log).not.toContain("stop");
+    eng.emit("info depth 40 score cp 4 pv a");
+    expect(eng.log).toContain("stop");
+    expect(await p).toEqual({ cp: 4, mate: null, depth: 40 });
+  });
 });
