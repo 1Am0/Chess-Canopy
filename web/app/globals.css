@@ -1121,3 +1121,9 @@
     filter: drop-shadow(1px 3px 2px rgba(36, 29, 16, 0.35));
   }
 }
+
+/* Each piece gets its own compositor layer. Without this the slide animation repainted the engraved pieces (hatch patterns
+   and all) on every frame: about 200 ms of raster work per move in a trace, down to about 10 ms with it. */
+[data-testid="board"] [data-piece] {
+  will-change: transform;
+}
