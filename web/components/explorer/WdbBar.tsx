@@ -1,7 +1,5 @@
-import { useMemo } from "react";
 import type { Color, Stats } from "@/lib/engine/types";
 import { barLabel, toWdb, wdbLabel, wdbPercents } from "@/components/explorer/wdb";
-import { createRng, n2 } from "@/lib/paper";
 import { cn } from "@/lib/utils";
 
 const SEGMENTS = [
@@ -20,7 +18,7 @@ function namedLabel(name: string, p: number): string | null {
 /**
  * Stacked White | Draw | Black result bar (chess convention, independent of the viewed side), printed like a
  * letterpress plate: halftone dots for White, hatching for Draw, a soft black with a fine cross-hatch for Black,
- * a second outline printed a hair off register. Labels sit on solid chips and are left out under 15% (the hover
+ * one clean outline. Labels sit on solid chips and are left out under 15% (the hover
  * title still has the numbers). The segments draw in from the left (transform only, short stagger) whenever the
  * bar is mounted; callers re-key it when the position changes. With no games it shows a hatched blank strip.
  */
@@ -29,7 +27,6 @@ export function WdbBar({
   side,
   labels = true,
   named = false,
-  seed = "wdb",
   delay = 0,
   className,
 }: {
@@ -39,7 +36,7 @@ export function WdbBar({
   labels?: boolean;
   /** Label each strip with its name ("White 40%") where it is wide enough, digits where it is not (summary bar). */
   named?: boolean;
-  /** Varies the misregistration of the second outline between bars (the move table passes the move). */
+  /** No longer used (bars used to get a seeded off-register outline); kept so callers need not change. */
   seed?: string;
   /** Extra delay (ms) before the draw-in starts. */
   delay?: number;
@@ -47,10 +44,6 @@ export function WdbBar({
 }) {
   const w = stats && stats.total > 0 ? toWdb(stats, side) : null;
   const p = w ? wdbPercents(w) : null;
-  const shift = useMemo(() => {
-    const rng = createRng(`reg-${seed}`);
-    return { x: n2(rng.range(0.5, 1)), y: n2(rng.range(0.4, 0.8)) };
-  }, [seed]);
   return (
     <div
       role="img"
@@ -60,11 +53,11 @@ export function WdbBar({
     >
       {w && (
         <>
-          <span aria-hidden className="wdb-plate" style={{ transform: `translate(${shift.x}px, ${shift.y}px)` }} />
           <div className="wdb-track">
             {SEGMENTS.map((s, i) => {
               const n = w[s.key];
               const pc = p ? p[s.key] : 0;
+              if (!n) return null; // an empty segment would still draw its dividing line
               const text = named ? namedLabel(s.label, pc) : labels ? barLabel(pc) : null;
               return (
                 <span

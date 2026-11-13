@@ -6,20 +6,16 @@
 
 /* ---- Ledger ------------------------------------------------------------------------------ */
 
-/* One gradient pair on the tbody (not per row): a red margin rule and a faint green bar on every second 40px row. */
+/* One gradient on the tbody (not per row): a faint green bar on every second 40px row. */
 .ledger-body {
-  background-image:
-    linear-gradient(to right, transparent 9px, oklch(0.62 0.12 25 / 0.34) 9px 10px, transparent 10px),
-    repeating-linear-gradient(to bottom, transparent 0 40px, oklch(0.55 0.08 150 / 0.08) 40px 80px);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 40px, oklch(0.55 0.08 150 / 0.08) 40px 80px);
 }
 
-/* The area under a short table keeps the margin rule and ruled lines, so the ledger reads as a page. */
+/* The area under a short table keeps the ruled lines, so the ledger reads as a page. */
 .ledger-void {
-  background-image:
-    linear-gradient(to right, transparent 9px, oklch(0.62 0.12 25 / 0.28) 9px 10px, transparent 10px),
-    repeating-linear-gradient(to bottom, transparent 0 23px, var(--rule) 23px 24px);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 23px, var(--rule) 23px 24px);
   /* Rules line up with the 24px lines of the note. */
-  background-position: 0 0, 0 16px;
+  background-position: 0 16px;
 }
 
 /* Highlighter band behind a hovered or keyboard-selected row: swipes in left to right (scaleX only). */
@@ -72,13 +68,6 @@ tr[aria-selected="true"] > td > .row-tick {
   position: relative;
 }
 /* A second plate printed a hair off register. */
-.wdb-plate {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border: 1px solid var(--wdb-ink);
-  opacity: 0.5;
-}
 .wdb-track {
   position: relative;
   display: flex;
@@ -170,9 +159,6 @@ tr[aria-selected="true"] > td > .row-tick {
   .wdb-track,
   .wdb-seg {
     border-color: CanvasText;
-  }
-  .wdb-plate {
-    display: none;
   }
 }
 
