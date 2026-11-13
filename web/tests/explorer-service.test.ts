@@ -523,7 +523,11 @@ describe("imports (C3, C4, C13, C21, C24, C25)", () => {
     const text = JSON.stringify([...games, { ...games[0], game_id: "star", result: "*" }]);
     await svc.importGames({ kind: "json", username: "hero", text }, noop);
     const sel = await svc.setSelection(["json:hero"], {});
-    expect(sel).toEqual({ games: 3, counts: { white: 2, black: 1 } });
+    expect(sel).toEqual({ games: 3, counts: { white: 2, black: 1 }, totals: { white: 2, black: 1 } });
+    // totals ignore the filters (for "12 of 40" in the side tabs)
+    const filtered = await svc.setSelection(["json:hero"], { result: "1-0" });
+    expect(filtered.totals).toEqual({ white: 2, black: 1 });
+    expect(filtered.counts.white + filtered.counts.black).toBeLessThan(3);
     expect((await svc.gamesAt([], 10)).map((x) => x.game_id)).not.toContain("star");
   });
 

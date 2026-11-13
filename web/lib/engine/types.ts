@@ -189,6 +189,8 @@ export interface Opening {
 export interface SelectionSummary {
   games: number;
   counts: { white: number; black: number };
+  /** Games per side for the same players with no filters at all (for "12 of 40"). */
+  totals?: { white: number; black: number };
 }
 
 export interface ImportOutcome {

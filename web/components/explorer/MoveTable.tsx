@@ -192,7 +192,7 @@ export function MoveTable({ className }: { className?: string }) {
         className="w-full shrink-0 table-fixed border-separate border-spacing-0 text-left text-sm outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring/60"
       >
         <thead className="sticky top-0 z-10">
-          <tr className="label-caps h-7 bg-card text-[13px] text-pencil [&>th]:border-b [&>th]:border-rule-strong">
+          <tr className="label-caps h-7 bg-card text-[11px] text-pencil [&>th]:border-b [&>th]:border-rule-strong">
             <Th k="move" label="Move" className={COL.move} />
             <Th k="games" label="Games" short="G" className={COL.games} />
             <th scope="col" className={cn(COL.share, "font-medium")}>Share</th>

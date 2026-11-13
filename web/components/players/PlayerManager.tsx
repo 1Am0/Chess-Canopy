@@ -8,6 +8,7 @@ import { getExplorer } from "@/lib/explorer-client";
 import { refreshPlayers } from "@/hooks/use-explorer-sync";
 import { useExplorerStore } from "@/lib/store";
 import { sourceLabel } from "@/lib/format";
+import { playThud } from "@/lib/sound";
 import { useSharedImport } from "@/components/players/ImportProvider";
 import { ImportProgress } from "@/components/players/ImportProgress";
 import { EmptySpecimen, MetaGrid } from "@/components/field";
@@ -87,7 +88,7 @@ export function PlayerManager() {
               />
               {confirming === p.id ? (
                 <div className="mt-3 flex items-center gap-2">
-                  <RubberStamp tone="destructive" seed={p.id}>Delete {p.displayName}?</RubberStamp>
+                  <RubberStamp tone="destructive" seed={p.id} thunk>Delete {p.displayName}?</RubberStamp>
                   <div className="ml-auto flex items-center gap-1">
                     <Button size="sm" variant="destructive" disabled={running} onClick={() => remove(p)}>Delete</Button>
                     <Button size="sm" variant="ghost" onClick={() => setConfirming(null)}>Keep</Button>
@@ -105,7 +106,11 @@ export function PlayerManager() {
                   </Button>
                   {/* set apart from the safe actions: a quiet red text button at the far end, behind a confirmation */}
                   <span aria-hidden className="mx-1 ml-auto h-4 w-px bg-rule-strong/60" />
-                  <Button size="xs" variant="ghost" className="text-destructive hover:text-destructive" disabled={running} onClick={() => setConfirming(p.id)} aria-label={`Delete ${p.displayName}`} title={running ? "Wait for the import to finish" : "Delete"}>
+                  <Button size="xs" variant="ghost" className="text-destructive hover:text-destructive" disabled={running} onClick={() => {
+                    setConfirming(p.id);
+                    // the stamp lands about 200ms into its thunk
+                    window.setTimeout(() => playThud(), 190);
+                  }} aria-label={`Delete ${p.displayName}`} title={running ? "Wait for the import to finish" : "Delete"}>
                     <Trash2 /> Delete
                   </Button>
                 </div>

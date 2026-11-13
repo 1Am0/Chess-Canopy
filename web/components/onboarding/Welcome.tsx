@@ -74,13 +74,13 @@ export function Welcome() {
       <div className="grid gap-8 lg:flex-1 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5 lg:grid-rows-[auto_minmax(auto,1fr)_auto]">
         <div className={`relative isolate lg:col-start-1 lg:row-start-1 ${enter}`} style={at(0, -0.6)}>
           <UnderSheet seed="welcome-head" dx={6} dy={7} rotate={-0.8} />
-          <PaperSheet as="section" className="px-5 py-6 sm:px-9 sm:py-9 lg:py-5">
+          <PaperSheet as="section" curl className="px-5 py-6 sm:px-9 sm:py-9 lg:py-5">
             <Tape variant="ochre" length={110} angle={-3} seed="welcome-a" className="-top-2.5 left-[8%]" />
             <div className="flex items-center gap-2">
               <Logo className="size-5 text-primary" />
               <Kicker className="mb-0 text-xs">A field guide to your own openings</Kicker>
             </div>
-            <h1 className="mt-3 font-serif text-4xl leading-[1.04] font-semibold tracking-tight text-ink [font-variation-settings:'opsz'_72] min-[400px]:text-5xl sm:text-6xl lg:text-5xl">
+            <h1 className="letterpress mt-3 font-serif text-4xl leading-[1.04] font-semibold tracking-tight text-ink [font-variation-settings:'opsz'_72] min-[400px]:text-5xl sm:text-6xl lg:text-5xl">
               Your openings, <em className="font-normal">from your own games</em>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:mt-3 lg:text-base lg:[@media(max-height:800px)]:hidden">
@@ -92,9 +92,9 @@ export function Welcome() {
         {/* the focal point: the import form, on the biggest, brightest sheet */}
         <div className={`relative isolate lg:col-start-1 lg:row-start-2 lg:self-start ${enter}`} style={at(1, 0.5)}>
           <UnderSheet seed="welcome-form" dx={5} dy={6} rotate={0.7} />
-          <PaperSheet as="section" aria-labelledby="welcome-import-title" className="p-4 sm:p-6 lg:p-5">
+          <PaperSheet as="section" curl="left" aria-labelledby="welcome-import-title" className="p-4 sm:p-6 lg:p-5">
             <Tape variant="sage" length={92} angle={2.5} seed="welcome-b" className="-top-2.5 right-[10%]" />
-            <h2 id="welcome-import-title" className="mb-4 border-b-[1.5px] border-margin pb-2 font-serif text-2xl leading-tight font-semibold tracking-tight lg:mb-3">
+            <h2 id="welcome-import-title" className="letterpress mb-4 border-b-[1.5px] border-margin pb-2 font-serif text-2xl leading-tight font-semibold tracking-tight lg:mb-3">
               Import your games
             </h2>
             <ImportForm idPrefix="welcome" />

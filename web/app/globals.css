@@ -499,6 +499,11 @@
   letter-spacing: 0.08em;
   font-weight: 500;
   color: var(--muted-foreground);
+  /* buttons reset text-transform; sortable column heads and the like should match their row */
+  & :where(button) {
+    text-transform: inherit;
+    letter-spacing: inherit;
+  }
 }
 
 /* Printed double hairline under a running head (apply to a positioned element, e.g. the sticky header). */

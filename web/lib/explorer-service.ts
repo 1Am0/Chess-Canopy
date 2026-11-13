@@ -56,6 +56,8 @@ interface Computed {
   /** Games of the selection with a known result, newest first. */
   filtered: Game[];
   counts: { white: number; black: number };
+  /** Per-side counts of the same players without any filter. */
+  totals: { white: number; black: number };
   /** The color filter of this selection (null: auto-pick). */
   color: Color | null;
   /** Legal-mode tree (the selection starts at move 1); false only for a `moves_start` slice. */
@@ -101,7 +103,9 @@ function compute(games: Game[], nf: Filters): Computed {
   const color = nf.color ?? null;
   const filtered = color ? base.filter((g) => g.color === color) : base;
   const legal = nf.moves_start == null || nf.moves_start === 0;
-  return { filtered, counts, color, legal, index: {} };
+  const totals = { white: 0, black: 0 };
+  for (const g of games) if ((g.color === "white" || g.color === "black") && classifyResult(g.result ?? "*") !== null) totals[g.color]++;
+  return { filtered, counts, totals, color, legal, index: {} };
 }
 
 /**
@@ -312,7 +316,7 @@ export class ExplorerService implements ExplorerAPI {
     const sel: Selection = { ids, idsKey, filters: nf, key: `${idsKey}::${JSON.stringify(nf)}` };
     this.sel = sel;
     const c = await this.computed(sel);
-    return { games: c.filtered.length, counts: { ...c.counts } };
+    return { games: c.filtered.length, counts: { ...c.counts }, totals: { ...c.totals } };
   }
 
   private async current(): Promise<{ c: Computed; label: string }> {

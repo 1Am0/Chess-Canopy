@@ -1,7 +1,6 @@
 "use client";
 
 import type { Color } from "@/lib/engine/types";
-import { useState } from "react";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
 import { CountUp } from "@/components/explorer/useCountUp";
 import { cn } from "@/lib/utils";
@@ -26,10 +25,8 @@ export function SideSwitch({ className }: { className?: string }) {
   const setSide = useExplorerStore((s) => s.setSide);
   const filterCount = useExplorerStore((s) => activeFilterCount(s.filters));
 
-  // The summary only carries counts after the filters, so the unfiltered counts are remembered
-  // from the last time no filter was on ("12 of 40"). Without a baseline just the count shows.
-  const [base, setBase] = useState<{ white: number; black: number } | null>(null);
-  if (counts && filterCount === 0 && (base?.white !== counts.white || base?.black !== counts.black)) setBase({ ...counts });
+  // Unfiltered per-side counts of the same players, for "12 of 40" while filters are on.
+  const base = useExplorerStore((s) => s.summary?.totals ?? null);
 
   return (
     <ToggleGroup
