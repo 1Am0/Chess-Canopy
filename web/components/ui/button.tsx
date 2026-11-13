@@ -5,16 +5,17 @@ import { cn } from "@/lib/utils";
 
 /*
  * Paper buttons: a cut piece of card with a printed ink edge (see `.paper-btn` in globals.css). Pressed or open
- * looks like the card pushed into the page; focus is a crisp outline, not a glow. Primary is a solid forest-green
- * printed label. `ghost` stays bare until hovered; `chit` is an always-visible round token for icon buttons.
+ * looks like the card pushed into the page; pressing dips it and it springs back (transform only). Focus is a crisp
+ * outline, not a glow. Primary is a solid brand-green printed label (--btn-primary); disabled primary is plain dashed paper. `ghost` stays bare until hovered; `chit` is an always-visible round token for icon buttons.
  */
 const buttonVariants = cva(
   "inline-flex shrink-0 items-center justify-center gap-2 rounded-[2px] text-sm font-medium whitespace-nowrap outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "paper-btn paper-btn-primary disabled:opacity-100 disabled:[--primary:oklch(0.43_0.035_152)] disabled:[--pb-img:var(--sheet-tile)] disabled:saturate-75",
-        destructive: "paper-btn paper-btn-primary [--primary-foreground:var(--destructive-foreground)] [--primary:var(--destructive)]",
+        default: "paper-btn paper-btn-primary disabled:opacity-100",
+        destructive:
+          "paper-btn paper-btn-primary [--primary-foreground:var(--destructive-foreground)] [--btn-primary:var(--destructive)]",
         outline: "paper-btn text-foreground",
         secondary: "paper-btn paper-btn-quiet text-secondary-foreground",
         ghost: "paper-btn paper-btn-ghost text-foreground",
@@ -30,7 +31,9 @@ const buttonVariants = cva(
         icon: "size-9",
       },
     },
-    compoundVariants: [{ variant: "chit", size: "icon", className: "rounded-full" }],
+    compoundVariants: [
+      { variant: "chit", size: "icon", className: "rounded-full" },
+    ],
     defaultVariants: { variant: "default", size: "default" },
   },
 );
@@ -41,9 +44,16 @@ function Button({
   size,
   asChild = false,
   ...props
-}: React.ComponentProps<"button"> & VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
   const Comp = asChild ? Slot.Root : "button";
-  return <Comp data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />;
+  return (
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  );
 }
 
 export { Button, buttonVariants };

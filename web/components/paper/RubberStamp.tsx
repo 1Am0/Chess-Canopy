@@ -12,7 +12,7 @@ const TONES = {
 
 /**
  * An inked rubber stamp: mono caps in a double border with a small tilt, the ink knocked out by seeded specks so it
- * never prints perfectly evenly (the speck tile is shifted per seed, so two stamps do not match). Text is real text.
+ * never prints perfectly evenly (the speck and blotch tiles are shifted per seed, so two stamps do not match). Text is real text.
  *
  *   <RubberStamp tone="win" seed="g1">W</RubberStamp>
  *   <RubberStamp variant="single" rotate={1.2}>Imported 3 Nov</RubberStamp>
@@ -26,6 +26,7 @@ export function RubberStamp({
   size = "md",
   rotate = -1.5,
   seed = 1,
+  thunk = false,
   className,
   style,
   ...props
@@ -35,6 +36,8 @@ export function RubberStamp({
   size?: "sm" | "md";
   rotate?: number;
   seed?: number | string;
+  /** Land with a short thunk animation on mount (scale and opacity, once; off under reduced motion). */
+  thunk?: boolean;
 }) {
   const h = hashSeed(seed);
   const ox = h % 160;
@@ -43,6 +46,7 @@ export function RubberStamp({
     <span
       className={cn(
         "stamp",
+        thunk && "stamp-thunk",
         TONES[tone],
         variant === "single" && "border-2 border-solid",
         size === "sm" && "px-1 py-0 text-[10px] leading-[1.4] tracking-[0.1em]",
