@@ -197,8 +197,8 @@ export function MoveTable({ className }: { className?: string }) {
             <Th k="games" label="Games" short="G" className={COL.games} />
             <th scope="col" className={cn(COL.share, "font-medium")}>Share</th>
             <th scope="col" className={cn(COL.bar, "font-medium whitespace-nowrap")}>
-              <span className="hidden @[22rem]:inline">White / Draw / Black</span>
-              <span className="@[22rem]:hidden">W / D / B</span>
+              <span className="hidden @[27rem]:inline">White / Draw / Black</span>
+              <span className="@[27rem]:hidden">W / D / B</span>
             </th>
             <Th k="score" label="Score" className={COL.score} />
           </tr>
