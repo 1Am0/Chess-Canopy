@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { CountedOption, FieldSection } from "@/components/field";
-import { cn } from "@/lib/utils";
 import { InkTick } from "@/components/field/InkTick";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -270,10 +269,10 @@ export function FilterSheet() {
               aria-label="Result"
               className="w-full"
             >
-              <ToggleGroupItem value="any" className="flex-1">Any</ToggleGroupItem>
-              <ToggleGroupItem value="1-0" className="flex-1">Win</ToggleGroupItem>
-              <ToggleGroupItem value="1/2-1/2" className="flex-1">Draw</ToggleGroupItem>
-              <ToggleGroupItem value="0-1" className="flex-1">Loss</ToggleGroupItem>
+              <ToggleGroupItem value="any" className="flex-1 max-sm:h-11">Any</ToggleGroupItem>
+              <ToggleGroupItem value="1-0" className="flex-1 max-sm:h-11">Win</ToggleGroupItem>
+              <ToggleGroupItem value="1/2-1/2" className="flex-1 max-sm:h-11">Draw</ToggleGroupItem>
+              <ToggleGroupItem value="0-1" className="flex-1 max-sm:h-11">Loss</ToggleGroupItem>
             </ToggleGroup>
             {/* a pencilled margin note (the same words are in the sheet's description for screen readers) */}
             <Handnote seed="wdl" rotate={-1.5} underline={false} className="-mt-0.5 ml-1 block w-fit text-[17px]">
@@ -286,24 +285,20 @@ export function FilterSheet() {
             clearDisabled={!filters.time_control && !filters.time_control_raw}
             onClear={() => patch({ time_control: null, time_control_raw: null })}
           >
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Time control">
-              {TIME_CONTROLS.map((tc) => {
-                const on = filters.time_control === tc;
-                return (
-                  <Button
-                    key={tc}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    aria-pressed={on}
-                    className={cn("capitalize", on && "border-ink bg-[var(--sheet-under)] font-semibold text-ink shadow-none")}
-                    onClick={() => patch({ time_control: on ? null : tc })}
-                  >
-                    <CountedOption label={tc} />
-                  </Button>
-                );
-              })}
-            </div>
+            {/* single choice, like Result and Date: one row of index tabs; tapping the active tab clears it */}
+            <ToggleGroup
+              type="single"
+              value={filters.time_control ?? ""}
+              onValueChange={(v) => patch({ time_control: (v || null) as Filters["time_control"] })}
+              aria-label="Time control"
+              className="w-full"
+            >
+              {TIME_CONTROLS.map((tc) => (
+                <ToggleGroupItem key={tc} value={tc} className="flex-1 px-1 capitalize max-sm:h-11">
+                  <CountedOption label={tc} />
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
             <RawTimeControl value={filters.time_control_raw ?? ""} onCommit={(v) => patch({ time_control_raw: v || null })} />
           </FieldSection>
 
@@ -338,7 +333,7 @@ export function FilterSheet() {
               className="w-full"
             >
               {([...PRESETS, ["all", "All time"]] as const).map(([v, label]) => (
-                <ToggleGroupItem key={v} value={String(v)} className="flex-1 px-1.5">
+                <ToggleGroupItem key={v} value={String(v)} className="flex-1 px-1.5 max-sm:h-11">
                   {label}
                 </ToggleGroupItem>
               ))}
@@ -355,10 +350,12 @@ export function FilterSheet() {
         </div>
 
         <SheetFooter className="flex-row items-center">
-          <Button variant="tag" size="sm" onClick={clearFilters} disabled={count === 0}>
-            Clear all{count ? ` (${count})` : ""}
-          </Button>
-          <Button className="flex-1" onClick={() => setUi({ filtersOpen: false })}>Done</Button>
+          {count > 0 && (
+            <Button variant="ghost" size="sm" className="text-muted-foreground underline underline-offset-2 max-sm:h-11" onClick={clearFilters}>
+              Clear all ({count})
+            </Button>
+          )}
+          <Button className="flex-1 max-sm:h-11" onClick={() => setUi({ filtersOpen: false })}>Done</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

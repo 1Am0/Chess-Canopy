@@ -34,7 +34,7 @@ export function PlayerSwitcher() {
       <PopoverTrigger asChild>
         <Button
           variant="chit"
-          className="relative w-full min-w-0 max-w-[11rem] justify-between gap-1.5 px-2.5 max-sm:h-9 sm:max-w-xs sm:gap-2 sm:px-4 lg:justify-between lg:px-[11px]"
+          className="relative w-full min-w-0 max-w-[11rem] justify-between gap-1.5 px-2.5 max-sm:h-11 sm:max-w-xs sm:gap-2 sm:px-4 lg:h-9 lg:max-w-none lg:justify-between lg:gap-2.5 lg:px-[11px]"
           aria-label={`Players: ${label}, ${total.toLocaleString()} games`}
         >
           <Users className="text-muted-foreground" />
@@ -52,15 +52,14 @@ export function PlayerSwitcher() {
       <PopoverContent align="start" className="w-72 p-2" aria-label="Choose players">
         <p className="kicker mb-0 px-2 pt-1 pb-0.5">Collection</p>
         <label className="paper-row flex cursor-pointer items-baseline gap-2.5 px-2 py-2 text-sm hover:before:opacity-100 has-[:focus-visible]:before:opacity-100">
-          <Checkbox className="self-center" checked={isAll} onCheckedChange={() => setSelected("all")} aria-label="All players" />
+          <Checkbox className="self-center" checked={isAll ? true : "indeterminate"} onCheckedChange={() => setSelected("all")} aria-label="All players" />
           <span className="font-serif text-base font-semibold italic">All players</span>
           <span className="leader" aria-hidden="true" />
           <span className="font-mono text-xs text-muted-foreground tabular-nums">
             {players.reduce((n, p) => n + p.gameCount, 0).toLocaleString()}
           </span>
         </label>
-        <Separator variant="pencil" className="my-1" />
-        <ul>
+        <ul className="ml-[15px] border-l border-rule-strong/60 pl-1.5">
           {players.map((p) => (
             <li key={p.id}>
               <label className="paper-row flex cursor-pointer items-baseline gap-2 px-2 py-2 text-sm hover:before:opacity-100 has-[:focus-visible]:before:opacity-100">

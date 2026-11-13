@@ -18,7 +18,7 @@ export function ImportIndicator() {
   if (!running || importOpen || managerOpen) return null;
   const { label, pct } = progressSummary(progress);
   return (
-    <div role="status" aria-live="polite" data-testid="import-indicator" className="paper-label flex h-9 items-center sm:h-8 rounded-[2px] font-mono text-xs">
+    <div role="status" aria-live="polite" data-testid="import-indicator" className="paper-label flex h-11 items-center sm:h-9 rounded-[2px] font-mono text-xs">
       <button
         type="button"
         onClick={() => setUi({ importOpen: true })}
@@ -32,7 +32,7 @@ export function ImportIndicator() {
           <span className={`block h-full bg-primary ${pct == null ? "w-1/3 animate-pulse motion-reduce:animate-none" : ""}`} style={pct != null ? { width: `${pct}%` } : undefined} />
         </span>
       </button>
-      <Button type="button" variant="ghost" size="icon" className="size-9 min-w-6 sm:size-8 rounded-l-none border-l border-rule" onClick={cancel} aria-label="Cancel import">
+      <Button type="button" variant="ghost" size="icon" className="size-11 min-w-6 sm:size-9 rounded-l-none border-l border-rule" onClick={cancel} aria-label="Cancel import">
         <X className="size-3.5" />
       </Button>
     </div>

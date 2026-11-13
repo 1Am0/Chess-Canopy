@@ -100,7 +100,7 @@ export function EvalBar() {
       className="relative w-8 shrink-0 self-stretch rounded-[1px] border border-[var(--bar-border)] bg-[var(--bar-white)] bg-[image:var(--sheet-tile)] shadow-[0.5px_1px_1.5px_var(--btn-drop)]"
     >
       {/* the ruler's own cream ticks (over the white share) */}
-      <Ticks whiteAtBottom={whiteAtBottom} color="color-mix(in oklab, var(--bar-black) 70%, transparent)" />
+      <Ticks whiteAtBottom={whiteAtBottom} color={`color-mix(in oklab, var(--bar-black) ${ok ? 70 : 28}%, transparent)`} />
       {ok ? (
         <>
           {/* the ink share, with its cream ticks, cut to the inked boundary */}
@@ -143,7 +143,17 @@ export function EvalBar() {
           </div>
         </>
       ) : (
-        <PencilHatch gap={4} opacity={0.5} seed="eval-none" className={cn(res === "loading" && "motion-safe:animate-pulse")} />
+        res === "loading" ? (
+          <PencilHatch gap={4} opacity={0.5} seed="eval-loading" className="motion-safe:animate-pulse" />
+        ) : (
+          // No evaluation: a quiet blank scale with a small caption, instead of a hatched ruler that looks like decoration.
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 grid place-items-center font-mono text-[10px] font-medium tracking-[0.14em] text-pencil uppercase [text-orientation:mixed] [writing-mode:vertical-rl]"
+          >
+            {res.status === "none" ? "no eval" : "eval off"}
+          </span>
+        )
       )}
       {/* search depth, written in the empty margin under the bar (the bottom player strip is indented past it); it counts up while the browser engine keeps searching */}
       {ok && ok.depth > 0 && (

@@ -29,7 +29,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
  * chrome is 11.625rem, sized so the board sheet ends level with the explorer sheet.
  */
 const BOARD_COLUMN =
-  "[--board-size:min(calc(100vw-1.5rem),62dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-5.5rem)*0.64-1rem),64rem),calc(100dvh-8.125rem))]";
+  "[--board-size:min(calc(100vw-1.5rem),54dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-5.5rem)*0.64-1rem),64rem),calc(100dvh-8.125rem))]";
 
 /**
  * Placeholder with the same slots as the explorer, so the first paint doesn't jump: the desk, a mat for the board

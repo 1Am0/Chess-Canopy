@@ -64,9 +64,9 @@ export function darkTile(seed: string, density: number): string {
   }
   const fibre = fibreStrands(`${seed}f`, 100, 100, 5, { min: 8, max: 20, margin: 0, spread: Math.PI }).join("");
   return tile(
-    `<path d='${light}' fill='none' stroke='${PLATE_RULE}' stroke-width='0.7' stroke-opacity='${n2(0.38 * density)}'/>` +
-      `<path d='${heavy}' fill='none' stroke='${PLATE_RULE}' stroke-width='1.05' stroke-opacity='${n2(0.3 * density)}'/>` +
-      `<path d='${stipple}' fill='none' stroke='#33432f' stroke-width='1.3' stroke-linecap='round' stroke-opacity='${n2(0.28 * density)}'/>` +
+    `<path d='${light}' fill='none' stroke='${PLATE_RULE}' stroke-width='0.7' stroke-opacity='${n2(0.23 * density)}'/>` +
+      `<path d='${heavy}' fill='none' stroke='${PLATE_RULE}' stroke-width='1.05' stroke-opacity='${n2(0.18 * density)}'/>` +
+      `<path d='${stipple}' fill='none' stroke='#33432f' stroke-width='1.3' stroke-linecap='round' stroke-opacity='${n2(0.17 * density)}'/>` +
       `<path d='${fibre}' fill='none' stroke='#e8efe2' stroke-width='0.6' stroke-linecap='round' stroke-opacity='0.16'/>`,
   );
 }

@@ -85,7 +85,7 @@ export function ImportForm({ initialTab = "chess.com", onDone, idPrefix = "imp" 
   return (
     <form onSubmit={submit} className="space-y-4">
       <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setFile(null); }}>
-        <TabsList className="grid w-full grid-cols-[1.4fr_1fr_.75fr_.75fr] gap-1 bg-transparent sm:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-[1.4fr_1fr_.75fr_.75fr] gap-1 bg-transparent max-sm:h-11 sm:h-10 sm:grid-cols-4">
           <TabsTrigger value="chess.com" disabled={running} className={tabCls}>Chess.com</TabsTrigger>
           <TabsTrigger value="lichess" disabled={running} className={tabCls}>Lichess</TabsTrigger>
           <TabsTrigger value="pgn" disabled={running} className={tabCls}>PGN</TabsTrigger>
@@ -131,7 +131,7 @@ export function ImportForm({ initialTab = "chess.com", onDone, idPrefix = "imp" 
 
       {progress && <ImportProgress progress={progress} onCancel={cancel} />}
 
-      <Button type="submit" className="w-full" disabled={!canSubmit}>
+      <Button type="submit" size="lg" className="w-full max-sm:h-11" disabled={!canSubmit}>
         {running ? "Importing…" : "Import games"}
       </Button>
     </form>
