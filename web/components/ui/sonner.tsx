@@ -1,15 +1,26 @@
 "use client";
 import { useSyncExternalStore } from "react";
 import { useExplorerStore } from "@/lib/store";
-import { Toaster as Sonner, type ToasterProps } from "sonner";
+import { Toaster as Sonner, toast, type ToasterProps } from "sonner";
 
 /*
- * Toasts are sticky notes held on with a strip of tape, with a pencilled word on top (Noted / Note / Caution /
+ * Toasts are sticky notes held on with a strip of tape (slightly tilted, with a curled corner, dropping in and
+ * peeling up when they leave; see globals.css), with a pencilled word on top (Noted / Note / Caution /
  * Problem, drawn by CSS from the toast type in globals.css `.paper-note`). Errors are a pink note with the pencil in
  * destructive ink. Icons are small inked marks instead of stock glyphs. Sonner keeps the box, stacking and swipe.
  */
 const mark = (children: React.ReactNode) => (
-  <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 16 16"
+    width="16"
+    height="16"
+    fill="none"
+    aria-hidden="true"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     {children}
   </svg>
 );
@@ -38,23 +49,56 @@ const subscribe = (cb: () => void) => {
 };
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const phone = useSyncExternalStore(subscribe, () => window.matchMedia(PHONE).matches, () => false);
-  const sheetOpen = useExplorerStore((s) => s.filtersOpen || s.importOpen || s.managerOpen);
-  // Phones: top-centre, just under the 56px header. Desktop: bottom-right, moving to the top while a sheet/dialog
-  // is open so the notes never cover its footer buttons.
-  const position = phone ? "top-center" : sheetOpen ? "top-right" : "bottom-right";
+  const phone = useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(PHONE).matches,
+    () => false,
+  );
+  const sheetOpen = useExplorerStore(
+    (s) => s.filtersOpen || s.importOpen || s.managerOpen,
+  );
+  // Phones: bottom-centre above the home indicator (a note at the top covered the header and the first board
+  // ranks). Desktop: bottom-right, moving to the top while a sheet/dialog is open so the notes never cover its
+  // footer buttons.
+  const position = phone
+    ? "bottom-center"
+    : sheetOpen
+      ? "top-right"
+      : "bottom-right";
   return (
-    <Sonner
-      theme="light"
-      className="toaster group"
-      icons={ICONS}
-      position={position}
-      duration={4000}
-      offset={{ top: 68, right: 16, bottom: 16, left: 16 }}
-      mobileOffset={{ top: 64, left: 12, right: 12 }}
-      toastOptions={{ classNames: { toast: "paper-note", title: "text-sm", description: "text-sm" } }}
-      {...props}
-    />
+    // Tap or click a note to dismiss it (swipe works too). The wrapper adds no box.
+    <div
+      style={{ display: "contents" }}
+      onClick={(e) => {
+        if ((e.target as Element).closest("[data-sonner-toast]"))
+          toast.dismiss();
+      }}
+    >
+      <Sonner
+        theme="light"
+        className="toaster group"
+        icons={ICONS}
+        position={position}
+        duration={3000}
+        swipeDirections={
+          phone ? ["bottom", "left", "right"] : ["right", "top", "bottom"]
+        }
+        offset={{ top: 68, right: 16, bottom: 16, left: 16 }}
+        mobileOffset={{
+          bottom: "calc(16px + env(safe-area-inset-bottom))",
+          left: 12,
+          right: 12,
+        }}
+        toastOptions={{
+          classNames: {
+            toast: "paper-note",
+            title: "text-sm",
+            description: "text-sm",
+          },
+        }}
+        {...props}
+      />
+    </div>
   );
 };
 

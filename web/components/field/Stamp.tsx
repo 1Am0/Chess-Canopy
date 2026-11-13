@@ -7,9 +7,22 @@ const TONES = {
   destructive: "[--stamp:var(--loss-text)]",
 } as const;
 
-type StampProps = React.ComponentProps<"span"> & { tone?: keyof typeof TONES };
+type StampProps = React.ComponentProps<"span"> & {
+  tone?: keyof typeof TONES;
+  /** Land with a short thunk on mount. */ thunk?: boolean;
+};
 
-/** Rotated (-1.5deg) double-border mono stamp: "Default", "Deleted", a date. Crisp, no texture. */
-export function Stamp({ tone = "primary", className, ...props }: StampProps) {
-  return <span className={cn("stamp", TONES[tone], className)} {...props} />;
+/** Rotated (-1.5deg) double-border mono stamp: "Default", "Deleted", a date. Uneven ink comes from the .stamp class. */
+export function Stamp({
+  tone = "primary",
+  thunk = false,
+  className,
+  ...props
+}: StampProps) {
+  return (
+    <span
+      className={cn("stamp", thunk && "stamp-thunk", TONES[tone], className)}
+      {...props}
+    />
+  );
 }

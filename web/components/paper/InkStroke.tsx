@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { inkArrowPath, inkStrokePath, type InkArrowOptions } from "@/lib/paper";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ export function InkStroke({
   tone = "ink",
   opacity = 0.9,
   blend = true,
+  draw = false,
   className,
   ...opts
 }: {
@@ -37,18 +39,61 @@ export function InkStroke({
   opacity?: number;
   /** Multiply with the page, like ink soaking in (light mode). */
   blend?: boolean;
+  /** Draw the stroke on once when it mounts (a mask line reveals it from `from` to `to`). Off under reduced motion. */
+  draw?: boolean;
   className?: string;
 } & InkArrowOptions) {
-  const d = arrow ? inkArrowPath(seed, from[0], from[1], to[0], to[1], opts) : inkStrokePath(seed, from[0], from[1], to[0], to[1], opts);
+  const d = arrow
+    ? inkArrowPath(seed, from[0], from[1], to[0], to[1], opts)
+    : inkStrokePath(seed, from[0], from[1], to[0], to[1], opts);
+  const uid = useId().replace(/:/g, "");
+  const width = opts.width ?? 4;
   return (
     <svg
       aria-hidden
       width="1"
       height="1"
-      className={cn("paper-deco pointer-events-none absolute top-0 left-0 block overflow-visible", className)}
-      style={blend ? { mixBlendMode: "var(--hilite-blend)" as React.CSSProperties["mixBlendMode"] } : undefined}
+      className={cn(
+        "paper-deco pointer-events-none absolute top-0 left-0 block overflow-visible",
+        className,
+      )}
+      style={
+        blend
+          ? {
+              mixBlendMode:
+                "var(--hilite-blend)" as React.CSSProperties["mixBlendMode"],
+            }
+          : undefined
+      }
     >
-      <path d={d} style={{ fill: INKS[tone], opacity }} />
+      {draw ? (
+        <>
+          <mask
+            id={`${uid}-m`}
+            maskUnits="userSpaceOnUse"
+            x="-4000"
+            y="-4000"
+            width="8000"
+            height="8000"
+          >
+            <path
+              d={`M${from[0]} ${from[1]}L${to[0]} ${to[1]}`}
+              pathLength={1}
+              fill="none"
+              stroke="#fff"
+              strokeWidth={width * 4 + 24}
+              className="ink-reveal"
+            />
+          </mask>
+          <path
+            d={d}
+            mask={`url(#${uid}-m)`}
+            style={{ fill: INKS[tone], opacity }}
+          />
+        </>
+      ) : (
+        <path d={d} style={{ fill: INKS[tone], opacity }} />
+      )}
     </svg>
   );
 }

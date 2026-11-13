@@ -17,7 +17,13 @@
  * One set is bundled: standard (the Lichess default). Everything is a no-op without Web Audio (SSR, old browsers, tests).
  */
 
-export type SoundKind = "move" | "capture" | "castle" | "promote" | "mate" | "reset";
+export type SoundKind =
+  | "move"
+  | "capture"
+  | "castle"
+  | "promote"
+  | "mate"
+  | "reset";
 
 export const SOUND_THEMES = [
   { id: "standard", label: "Lichess (default)" },
@@ -44,12 +50,17 @@ export interface LineState {
  * The sound for a change of the visible position in the line, or null for none.
  * Stepping forward plays that move's own sound; stepping back and jumps are softer.
  */
-export function soundForStep(prev: LineState, next: LineState): { kind: SoundKind; soft: boolean } | null {
+export function soundForStep(
+  prev: LineState,
+  next: LineState,
+): { kind: SoundKind; soft: boolean } | null {
   const d = next.cursor - prev.cursor;
   if (d === 0) return null;
-  if (d === 1) return { kind: classifyMove(next.path[next.cursor - 1]), soft: false };
+  if (d === 1)
+    return { kind: classifyMove(next.path[next.cursor - 1]), soft: false };
   if (d === -1) return { kind: "move", soft: true };
-  if (d > 1) return { kind: classifyMove(next.path[next.cursor - 1]), soft: true };
+  if (d > 1)
+    return { kind: classifyMove(next.path[next.cursor - 1]), soft: true };
   return { kind: next.cursor === 0 ? "reset" : "move", soft: true };
 }
 
@@ -77,7 +88,9 @@ function audioContext(): AudioContext | null {
   if (ctx) return ctx;
   if (typeof window === "undefined") return null;
   const Ctor: AudioContextCtor | undefined =
-    window.AudioContext ?? (window as unknown as { webkitAudioContext?: AudioContextCtor }).webkitAudioContext;
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext?: AudioContextCtor })
+      .webkitAudioContext;
   if (!Ctor) return null;
   try {
     ctx = new Ctor();
@@ -104,7 +117,9 @@ function sample(name: Sample): Promise<AudioBuffer | null> {
   let p = buffers.get(key);
   if (!p) {
     p = fetch(`/sounds/${theme}/${name}.mp3`)
-      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+      .then((r) =>
+        r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status))),
+      )
       .then((data) => c.decodeAudioData(data))
       .catch(() => {
         buffers.delete(key); // allow a retry later
@@ -129,7 +144,10 @@ export function unlockSound(): void {
 }
 
 /** Play one sample `at` seconds from now, with a volume and playback rate. */
-function hit(name: Sample, o: { at?: number; gain?: number; rate?: number } = {}): void {
+function hit(
+  name: Sample,
+  o: { at?: number; gain?: number; rate?: number } = {},
+): void {
   void sample(name).then((buf) => {
     const c = ctx;
     if (!buf || !c || !master || !enabled) return;
@@ -144,7 +162,10 @@ function hit(name: Sample, o: { at?: number; gain?: number; rate?: number } = {}
 }
 
 /** Play a sound. `soft` scales the volume down (stepping back, jumps). */
-export function playSound(kind: SoundKind, opts: { soft?: boolean } = {}): void {
+export function playSound(
+  kind: SoundKind,
+  opts: { soft?: boolean } = {},
+): void {
   if (!enabled) return;
   const c = audioContext();
   if (!c || !master) return;
@@ -179,4 +200,54 @@ export function playSound(kind: SoundKind, opts: { soft?: boolean } = {}): void 
       hit("Move", { gain: 0.45 * v, rate: 0.75 });
       break;
   }
+}
+
+let lastThud = 0;
+
+/**
+ * A short, quiet "thud" for something landing on paper (a rubber stamp). Synthesised, so it needs no file: a
+ * sine that drops from about 150 Hz to 55 Hz in 90 ms plus a few ms of low-passed noise for the contact.
+ * No-op when sounds are off (the same mute setting as move sounds), without Web Audio, or while the context is
+ * still locked (call `unlockSound()` from a gesture first; stamping is usually the result of one).
+ */
+export function playThud(opts: { gain?: number } = {}): void {
+  if (!enabled) return;
+  const c = audioContext();
+  if (!c || !master) return;
+  if (c.state === "suspended") {
+    void c.resume().catch(() => {});
+    return;
+  }
+  const now = performance.now();
+  if (now - lastThud < 120) return;
+  lastThud = now;
+
+  const t = c.currentTime;
+  const v = opts.gain ?? 1;
+  const body = c.createOscillator();
+  body.type = "sine";
+  body.frequency.setValueAtTime(150, t);
+  body.frequency.exponentialRampToValueAtTime(55, t + 0.09);
+  const bg = c.createGain();
+  bg.gain.setValueAtTime(0.0001, t);
+  bg.gain.exponentialRampToValueAtTime(0.32 * v, t + 0.006);
+  bg.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+  body.connect(bg).connect(master);
+  body.start(t);
+  body.stop(t + 0.16);
+
+  const len = Math.floor(c.sampleRate * 0.03);
+  const buf = c.createBuffer(1, len, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++)
+    data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const noise = c.createBufferSource();
+  noise.buffer = buf;
+  const lp = c.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = 600;
+  const ng = c.createGain();
+  ng.gain.value = 0.22 * v;
+  noise.connect(lp).connect(ng).connect(master);
+  noise.start(t);
 }

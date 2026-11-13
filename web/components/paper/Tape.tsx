@@ -13,8 +13,16 @@ import { cn } from "@/lib/utils";
  * Position it with `className` (it is `absolute`); keep `angle` within -4..+4 degrees.
  * Decorative: aria-hidden, no pointer events, hidden in forced-colors mode.
  */
+const FILLS = {
+  ochre: "var(--tape-ochre)",
+  sage: "var(--tape-sage)",
+  rose: "var(--tape-rose)",
+  sky: "var(--tape-sky)",
+} as const;
+
 export function Tape({
   variant = "ochre",
+  pattern = "plain",
   length = 120,
   height = 22,
   angle = -2,
@@ -23,7 +31,9 @@ export function Tape({
   className,
   style,
 }: {
-  variant?: "ochre" | "sage";
+  variant?: keyof typeof FILLS;
+  /** Printed washi pattern over the tint: fine stripes, dots or graph squares. Drawn as a tiny inline SVG pattern. */
+  pattern?: "plain" | "stripes" | "dots" | "graph";
   length?: number;
   height?: number;
   angle?: number;
@@ -44,22 +54,29 @@ export function Tape({
       const x1 = rng.range(0, length * 0.2);
       const x2 = rng.range(length * 0.7, length);
       const dy = rng.range(-0.5, 0.5);
-      lines.push({ d: `M${n2(x1)} ${n2(y)}L${n2(x2)} ${n2(y + dy)}`, light: i % 2 === 0 });
+      lines.push({
+        d: `M${n2(x1)} ${n2(y)}L${n2(x2)} ${n2(y + dy)}`,
+        light: i % 2 === 0,
+      });
     }
     return { body: tapePath(seed, length, height, 4.8), fibres: lines };
   }, [seed, length, height]);
 
-  const fill = variant === "sage" ? "var(--tape-sage)" : "var(--tape-ochre)";
+  const fill = FILLS[variant] ?? FILLS.ochre;
 
   return (
     <span
       aria-hidden
-      className={cn("paper-deco pointer-events-none absolute z-20 block", className)}
+      className={cn(
+        "paper-deco pointer-events-none absolute z-20 block",
+        className,
+      )}
       style={{
         width: length,
         height,
         transform: `rotate(${clamped}deg)`,
-        mixBlendMode: "var(--tape-blend)" as React.CSSProperties["mixBlendMode"],
+        mixBlendMode:
+          "var(--tape-blend)" as React.CSSProperties["mixBlendMode"],
         ...style,
       }}
     >
@@ -68,17 +85,69 @@ export function Tape({
         height={height}
         viewBox={`0 0 ${length} ${height}`}
         className="block overflow-visible"
-        style={{ filter: "drop-shadow(0 1px 1px color-mix(in oklab, var(--shadow-ink) 42%, transparent)) drop-shadow(1px 2.5px 3px color-mix(in oklab, var(--shadow-ink) 24%, transparent))" }}
+        style={{
+          filter:
+            "drop-shadow(0 1px 1px color-mix(in oklab, var(--shadow-ink) 42%, transparent)) drop-shadow(1px 2.5px 3px color-mix(in oklab, var(--shadow-ink) 24%, transparent))",
+        }}
       >
         <defs>
           <clipPath id={`${uid}-c`}>
             <path d={body} />
           </clipPath>
+          {pattern === "stripes" ? (
+            <pattern
+              id={`${uid}-p`}
+              width="5"
+              height="5"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
+              <rect width="2.1" height="5" fill="oklch(1 0 0 / 0.42)" />
+            </pattern>
+          ) : pattern === "dots" ? (
+            <pattern
+              id={`${uid}-p`}
+              width="6.5"
+              height="6.5"
+              patternUnits="userSpaceOnUse"
+            >
+              <circle cx="3.25" cy="3.25" r="1.15" fill="oklch(1 0 0 / 0.55)" />
+            </pattern>
+          ) : pattern === "graph" ? (
+            <pattern
+              id={`${uid}-p`}
+              width="5"
+              height="5"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M5 0V5H0"
+                fill="none"
+                stroke="oklch(0.35 0.05 80 / 0.24)"
+                strokeWidth="0.5"
+              />
+            </pattern>
+          ) : null}
         </defs>
         <path d={body} style={{ fill }} />
         <g clipPath={`url(#${uid}-c)`}>
+          {pattern !== "plain" ? (
+            <rect
+              x="0"
+              y="0"
+              width={length}
+              height={height}
+              fill={`url(#${uid}-p)`}
+            />
+          ) : null}
           {/* soft highlight band, a third of the way down, like light on a glossy-matt film */}
-          <rect x="0" y={n2(height * 0.2)} width={length} height={n2(height * 0.2)} fill="oklch(1 0 0 / 0.26)" />
+          <rect
+            x="0"
+            y={n2(height * 0.2)}
+            width={length}
+            height={n2(height * 0.2)}
+            fill="oklch(1 0 0 / 0.26)"
+          />
           {/* lengthwise fibre of the crepe paper backing */}
           {fibres.map((f, i) => (
             <path
@@ -86,12 +155,28 @@ export function Tape({
               d={f.d}
               fill="none"
               strokeWidth="0.5"
-              style={{ stroke: f.light ? "oklch(1 0 0 / 0.34)" : "oklch(0.45 0.05 80 / 0.16)" }}
+              style={{
+                stroke: f.light
+                  ? "oklch(1 0 0 / 0.34)"
+                  : "oklch(0.45 0.05 80 / 0.16)",
+              }}
             />
           ))}
           {/* the long edges are a hair darker where the film is thicker */}
-          <rect x="0" y="0" width={length} height="0.8" fill="oklch(0.4 0.05 80 / 0.16)" />
-          <rect x="0" y={n2(height - 0.8)} width={length} height="0.8" fill="oklch(0.4 0.05 80 / 0.16)" />
+          <rect
+            x="0"
+            y="0"
+            width={length}
+            height="0.8"
+            fill="oklch(0.4 0.05 80 / 0.16)"
+          />
+          <rect
+            x="0"
+            y={n2(height - 0.8)}
+            width={length}
+            height="0.8"
+            fill="oklch(0.4 0.05 80 / 0.16)"
+          />
         </g>
       </svg>
       {label ? (
