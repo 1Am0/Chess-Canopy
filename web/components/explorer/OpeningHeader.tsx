@@ -34,7 +34,7 @@ export function OpeningHeader({ className }: { className?: string }) {
                         <PencilSlash seed={`${opening.eco}-${i}`} />
                       </span>
                     )}
-                    <span className={last ? "font-serif font-medium italic" : "font-sans text-sm text-pencil/75"}>{c}</span>
+                    <span className={last ? "font-serif font-medium italic" : "font-sans text-sm text-muted-foreground"}>{c}</span>
                   </li>
                 );
               })}
@@ -42,7 +42,7 @@ export function OpeningHeader({ className }: { className?: string }) {
           </nav>
         </>
       ) : (
-        <span className="truncate font-serif text-base leading-7 text-pencil/80 italic">{visible.length === 0 ? "Starting position" : "Out of book"}</span>
+        <span className="truncate font-serif text-base leading-7 text-pencil italic">{visible.length === 0 ? "Starting position" : "Out of book"}</span>
       )}
     </div>
   );

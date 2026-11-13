@@ -12,6 +12,9 @@ function range(lo?: number | null, hi?: number | null): string {
   return `≤ ${hi}`;
 }
 
+/** Text-link buttons ("+ Add filter", "Clear all"): same size in both states, so the row never changes height. */
+const LINK_BTN = "h-7 shrink-0 px-2 text-sm font-medium text-ink underline decoration-ink/40 underline-offset-[3px] hover:bg-transparent hover:decoration-ink";
+
 const PRESET_LABEL: Record<number, string> = { 30: "last 30 days", 90: "last 90 days", 365: "last year" };
 
 function chipsFor(filters: Filters): { label: string; clear: Partial<Filters> }[] {
@@ -61,8 +64,8 @@ export function FilterRow({ className }: { className?: string }) {
     <div data-slot="filter-row" className={cn("flex h-8 min-w-0 shrink-0 items-center gap-2", className)}>
       {chips.length === 0 ? (
         <>
-          <p className="min-w-0 flex-1 truncate text-sm text-pencil/80">All games · no filters</p>
-          <Button variant="ghost" size="sm" aria-label="Add filter" className="h-7 px-2 text-sm font-medium text-ink underline decoration-ink/40 underline-offset-[3px] hover:bg-transparent hover:decoration-ink" onClick={() => setUi({ filtersOpen: true })}>
+          <p className="min-w-0 flex-1 truncate text-sm text-pencil">All games · no filters</p>
+          <Button variant="ghost" size="sm" aria-label="Add filter" className={LINK_BTN} onClick={() => setUi({ filtersOpen: true })}>
             <span aria-hidden>+ Add filter</span>
           </Button>
         </>
@@ -80,14 +83,14 @@ export function FilterRow({ className }: { className?: string }) {
                   type="button"
                   onClick={() => setFilters(c.clear)}
                   aria-label={`Remove filter ${c.label}`}
-                  className="grid size-5 place-items-center text-[color:var(--tag-ink)]/75 outline-none hover:text-[color:var(--tag-ink)] focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-1px] focus-visible:outline-ring"
+                  className="grid size-5 place-items-center text-[color:var(--tag-ink)] outline-none hover:text-primary focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-1px] focus-visible:outline-ring"
                 >
                   <InkCross seed={c.label} />
                 </button>
               </span>
             ))}
           </div>
-          <Button variant="tag" size="xs" className="shrink-0" onClick={clear}>
+          <Button variant="ghost" size="sm" className={LINK_BTN} onClick={clear}>
             Clear all
           </Button>
         </>

@@ -34,7 +34,7 @@ export function ExplorerPanel() {
       <section
         aria-label="Moves"
         data-testid="explorer-region"
-        className="h-[max(22rem,45vh)] min-h-0 overflow-hidden border-t border-rule lg:h-auto lg:min-h-[13rem] lg:flex-1"
+        className="-mx-3 -mb-3 h-[max(22rem,45vh)] min-h-0 overflow-hidden border-t border-rule lg:h-auto lg:min-h-[13rem] lg:flex-1"
       >
         <MoveTable />
       </section>

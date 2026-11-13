@@ -1,7 +1,9 @@
 "use client";
 
 import type { Color } from "@/lib/engine/types";
-import { useExplorerStore } from "@/lib/store";
+import { useState } from "react";
+import { activeFilterCount, useExplorerStore } from "@/lib/store";
+import { CountUp } from "@/components/explorer/useCountUp";
 import { cn } from "@/lib/utils";
 import { PencilUnderline } from "@/components/explorer/ink";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -22,6 +24,12 @@ export function SideSwitch({ className }: { className?: string }) {
   const side = useExplorerStore((s) => s.filters.color ?? "white");
   const counts = useExplorerStore((s) => s.summary?.counts);
   const setSide = useExplorerStore((s) => s.setSide);
+  const filterCount = useExplorerStore((s) => activeFilterCount(s.filters));
+
+  // The summary only carries counts after the filters, so the unfiltered counts are remembered
+  // from the last time no filter was on ("12 of 40"). Without a baseline just the count shows.
+  const [base, setBase] = useState<{ white: number; black: number } | null>(null);
+  if (counts && filterCount === 0 && (base?.white !== counts.white || base?.black !== counts.black)) setBase({ ...counts });
 
   return (
     <ToggleGroup
@@ -38,28 +46,38 @@ export function SideSwitch({ className }: { className?: string }) {
     >
       {SIDES.map((s) => {
         const n = counts?.[s.id];
+        const of = filterCount > 0 && base && n != null && base[s.id] > n ? base[s.id] : null;
+        const zero = n === 0;
         return (
           <ToggleGroupItem
             key={s.id}
             value={s.id}
             aria-label={`View games as ${s.label}`}
-            className="group/side folder-tab h-[calc(100%-4px)] min-w-0 flex-1 justify-center gap-2 rounded-none border-0 bg-transparent px-2 shadow-none hover:bg-transparent data-[state=on]:h-full data-[state=on]:bg-transparent data-[state=on]:text-ink data-[state=on]:shadow-none [&:not(:first-child)]:ml-0"
+            className="group/side folder-tab h-[calc(100%-4px)] [&:not([data-state=on])]:[--tab-fill:color-mix(in_oklab,var(--sheet-under)_78%,var(--rule-strong))] min-w-0 flex-1 justify-center gap-2 rounded-none border-0 bg-transparent px-2 shadow-none hover:bg-transparent data-[state=on]:h-full data-[state=on]:bg-transparent data-[state=on]:text-ink data-[state=on]:shadow-none [&:not(:first-child)]:ml-0"
           >
             <span
               aria-hidden
               className={cn(
                 "text-xl leading-none",
                 s.id === "white" ? "text-foreground [text-shadow:0_0_1px_currentColor]" : "text-foreground",
+                zero && "opacity-45",
               )}
             >
               {s.glyph}
             </span>
-            <span className="relative font-semibold">
+            <span className={cn("relative font-semibold", zero && "font-medium text-muted-foreground")}>
               {s.label}
               <PencilUnderline seed={s.id} tone="ink" className="-bottom-[3px] hidden group-data-[state=on]/side:block" />
             </span>
-            <span className="min-w-[5ch] text-left font-mono text-xs font-normal text-pencil tabular-nums">
-              {n == null ? "–" : n.toLocaleString("en-US")}
+            <span className={cn("text-left font-mono text-xs font-normal text-pencil tabular-nums", of != null ? "min-w-[8ch]" : "min-w-[5ch]")}>
+              {n == null ? (
+                "–"
+              ) : (
+                <>
+                  <CountUp value={n} format={(v) => v.toLocaleString("en-US")} />
+                  {of != null && ` of ${of.toLocaleString("en-US")}`}
+                </>
+              )}
             </span>
           </ToggleGroupItem>
         );

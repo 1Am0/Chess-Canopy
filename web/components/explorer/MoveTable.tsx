@@ -5,11 +5,13 @@ import { RotateCcw, Undo2 } from "lucide-react";
 import type { NextMove } from "@/lib/engine/types";
 import { activeFilterCount, isResultFresh, loadFailed, useExplorerStore } from "@/lib/store";
 import { compact, pct, score } from "@/lib/format";
+import { shareLabel } from "@/lib/explorer-format";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { usePosition } from "@/hooks/use-position";
-import { COL, MoveRow } from "@/components/explorer/MoveRow";
+import { COL, MoveRow, ScoreChip } from "@/components/explorer/MoveRow";
 import { WdbBar } from "@/components/explorer/WdbBar";
-import { scoreTextClass } from "@/components/explorer/wdb";
+import { CountUp } from "@/components/explorer/useCountUp";
+import { useElementSize } from "@/components/paper/use-size";
 import { EmptySpecimen } from "@/components/field";
 import { InkArrow } from "@/components/explorer/ink";
 import { Button } from "@/components/ui/button";
@@ -20,12 +22,12 @@ type SortKey = "games" | "score" | "move";
 
 /** Sticky header (28px) and sticky total row (32px) heights, for keeping rows in view. */
 const HEAD_PX = 28;
-const FOOT_PX = 32;
+const FOOT_PX = 40;
 const NO_ROWS: NextMove[] = [];
 
 /**
  * The move table: a scroll region with a sticky header and a sticky Σ total row
- * (Lichess explorer style). Every row is a single 32px line. The loading
+ * (Lichess explorer style). Every row is a fixed 40px line. The loading
  * state and the empty / out-of-book states all live inside the same region, so the
  * region's size never depends on the position.
  */
@@ -164,7 +166,7 @@ export function MoveTable({ className }: { className?: string }) {
       ref={scroller}
       data-testid="move-table-scroller"
       className={cn(
-        "@container relative h-full min-h-0 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin]",
+        "@container relative flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin]",
         className,
       )}
     >
@@ -187,7 +189,7 @@ export function MoveTable({ className }: { className?: string }) {
           setFocused(false);
           setHoverMove(null);
         }}
-        className="w-full table-fixed border-separate border-spacing-0 text-left text-sm outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring/60"
+        className="w-full shrink-0 table-fixed border-separate border-spacing-0 text-left text-sm outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-ring/60"
       >
         <thead className="sticky top-0 z-10">
           <tr className="label-caps h-7 bg-card text-[13px] text-pencil [&>th]:border-b [&>th]:border-rule-strong">
@@ -201,10 +203,10 @@ export function MoveTable({ className }: { className?: string }) {
             <Th k="score" label="Score" className={COL.score} />
           </tr>
         </thead>
-        <tbody className={cn("transition-opacity duration-200", busy && "pointer-events-none opacity-50")}>
+        <tbody className={cn("ledger-body transition-opacity duration-200", busy && "pointer-events-none opacity-50")}>
           {firstLoad &&
             Array.from({ length: 6 }).map((_, i) => (
-              <tr key={i} className="h-8">
+              <tr key={i} className="h-10">
                 <td className={COL.move}><Skeleton className="h-4 w-10" /></td>
                 <td className={COL.games}><Skeleton className="ml-auto h-4 w-8" /></td>
                 <td className={COL.share}><Skeleton className="ml-auto h-4 w-7" /></td>
@@ -217,20 +219,31 @@ export function MoveTable({ className }: { className?: string }) {
         </tbody>
         {result && !empty && (
           <tfoot className="sticky bottom-0 z-10">
-            <tr className="h-8 bg-card font-semibold [&>td]:border-t-[3px] [&>td]:border-double [&>td]:border-rule-strong">
-              <td className={COL.move}>
-                <span className="font-serif text-base text-ink" aria-label="Total">Σ</span>
+            <tr className="h-10 bg-card font-semibold [&>td]:border-t-[3px] [&>td]:border-double [&>td]:border-pencil">
+              <td className={COL.move} title="All moves from this position">
+                <span className="inline-flex items-baseline gap-1.5">
+                  <span className="font-serif text-base text-ink" aria-label="Total">Σ</span>
+                  <span aria-hidden className="hidden font-serif text-xs font-normal text-muted-foreground italic @xs:inline">all moves</span>
+                </span>
               </td>
-              <td className={cn(COL.games, "text-[13px]")}>{compact(total)}</td>
+              <td className={cn(COL.games, "text-sm")}>
+                <CountUp value={total} format={compact} />
+              </td>
               <td className={cn(COL.share, "text-xs font-normal text-muted-foreground")}>100%</td>
               <td className={COL.bar}>
-                <WdbBar stats={result.stats} side={side} seed="total" />
+                <WdbBar key={`${total}-${result.stats.wins}-${result.stats.draws}-${side}`} stats={result.stats} side={side} seed="total" />
               </td>
-              <td className={cn(COL.score, "text-[13px]", scoreTextClass(sc, total))}>{total ? pct(sc) : "–"}</td>
+              <td className={cn(COL.score, "text-sm")}>
+                <ScoreChip sc={sc} total={total} />
+              </td>
             </tr>
           </tfoot>
         )}
       </table>
+
+      {!firstLoad && !failed && !empty && result && (
+        <FieldNote rows={next} total={total} sc={sc} />
+      )}
 
       {failed && (
         <div className="absolute inset-x-0 top-7 bottom-0 flex items-center justify-center overflow-hidden" role="alert">
@@ -313,4 +326,51 @@ export function MoveTable({ className }: { className?: string }) {
       },
     };
   }
+}
+
+/**
+ * The empty area under a short table: ruled like the ledger, with a pencilled note about this position. It takes
+ * the space the rows leave (flex-1, zero when the rows fill the region), so it never changes any slot size. Lines
+ * are shown only as far as they fit whole.
+ */
+function FieldNote({ rows, total, sc }: { rows: NextMove[]; total: number; sc: number }) {
+  const [ref, size] = useElementSize<HTMLDivElement>();
+  const top = rows.reduce<NextMove | null>((a, r) => (!a || r.stats.total > a.stats.total ? r : a), null);
+  const best = rows
+    .filter((r) => r.stats.total >= 3)
+    .reduce<NextMove | null>((a, r) => (!a || score(r.stats) > score(a.stats) ? r : a), null);
+  const lines: React.ReactNode[] = [
+    <>
+      <b className="font-mono font-semibold text-ink">{total.toLocaleString("en-US")}</b> {total === 1 ? "game reaches" : "games reach"} this position; you score{" "}
+      <b className="font-mono font-semibold text-ink">{pct(sc)}</b>.
+    </>,
+  ];
+  if (top)
+    lines.push(
+      <>
+        Most played: <b className="font-mono font-semibold text-ink">{top.move}</b>, {shareLabel(top.stats.total, total)} of games.
+      </>,
+    );
+  if (best && top && best.move !== top.move && rows.length > 1)
+    lines.push(
+      <>
+        Best result: <b className="font-mono font-semibold text-ink">{best.move}</b>, {pct(score(best.stats))} over {best.stats.total} games.
+      </>,
+    );
+  lines.push("Click a move to play it, or use the arrow keys and Enter.");
+  const fit = size ? Math.max(0, Math.floor((size.h - 44) / 24)) : 0;
+  return (
+    <div ref={ref} aria-hidden className="ledger-void relative min-h-0 flex-1 overflow-hidden">
+      {fit > 0 && (
+        <div className="field-note absolute top-3 right-3 left-5 max-w-[26rem]">
+          <p className="origin-left -rotate-1 font-hand text-xl leading-6 text-pencil">Field note</p>
+          <ul className="mt-1 font-serif text-sm leading-6 text-pencil italic">
+            {lines.slice(0, fit).map((l, i) => (
+              <li key={i} className="truncate [&_b]:not-italic">{l}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }

@@ -81,7 +81,7 @@ export function LinePanel({ className }: { className?: string }) {
         className={cn(
           "h-7 shrink-0 px-2 font-mono text-sm font-medium text-ink outline-none transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
           current && "font-bold",
-          !current && i >= cursor && "font-normal text-pencil/70 italic",
+          !current && i >= cursor && "font-normal text-muted-foreground italic",
         )}
       >
         {san}
@@ -119,7 +119,7 @@ export function LinePanel({ className }: { className?: string }) {
           <ol ref={listRef} className="flex items-center">
             {Array.from({ length: pairs }).map((_, r) => (
               <li key={r} className="flex shrink-0 items-center whitespace-nowrap">
-                <span className="pr-0.5 pl-2 font-mono text-xs text-pencil/80 tabular-nums">{r + 1}.</span>
+                <span className="pr-0.5 pl-2 font-mono text-xs text-muted-foreground tabular-nums">{r + 1}.</span>
                 {cell(r * 2)}
                 {cell(r * 2 + 1)}
               </li>

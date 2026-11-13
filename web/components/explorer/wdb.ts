@@ -41,6 +41,36 @@ export function segmentLabel(p: number): string | null {
   return p > 20 ? `${n}%` : String(n);
 }
 
+/** Shortest segment (percent) that gets a printed label; smaller ones only have the hover title. */
+export const BAR_LABEL_MIN = 15;
+
+/** Label for a result-bar segment: none under 15%, digits up to 24%, then digits with "%". */
+export function barLabel(p: number): string | null {
+  if (p < BAR_LABEL_MIN) return null;
+  const n = Math.round(p);
+  return p >= 24 ? `${n}%` : String(n);
+}
+
+/**
+ * Score chip colour on a continuous scale: 30% or less is a soft red, 50% a neutral sand,
+ * 70% or more a soft green, mixed in between. All three ends are light, so the dark ink text
+ * on top stays well above AA.
+ */
+export function scoreChipColor(sc: number): string {
+  const k = Math.min(1, Math.max(0, (sc - 0.3) / 0.4));
+  const loss = "oklch(0.83 0.09 28)";
+  const mid = "oklch(0.91 0.035 92)";
+  const win = "oklch(0.83 0.12 152)";
+  return k < 0.5
+    ? `color-mix(in oklab, ${loss} ${Math.round((1 - k * 2) * 100)}%, ${mid})`
+    : `color-mix(in oklab, ${win} ${Math.round((k - 0.5) * 200)}%, ${mid})`;
+}
+
+/** A score is "clearly good" from 60% on, with enough games to mean something. */
+export function isGoodScore(sc: number, total: number): boolean {
+  return total >= 3 && sc >= 0.6;
+}
+
 /** Player-perspective score color: win text at >= 55%, loss text at <= 45%. */
 export function scoreTextClass(sc: number, total: number): string {
   if (!total) return "text-muted-foreground";

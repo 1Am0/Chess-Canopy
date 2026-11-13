@@ -1,0 +1,233 @@
+/*
+ * Explorer data panel: ledger table, printed result bars, score chips and the empty-area note.
+ * Plain CSS. Only transform and opacity are animated, and every animation sits behind
+ * prefers-reduced-motion: no-preference.
+ */
+
+/* ---- Ledger ------------------------------------------------------------------------------ */
+
+/* One gradient pair on the tbody (not per row): a red margin rule and a faint green bar on every second 40px row. */
+.ledger-body {
+  background-image:
+    linear-gradient(to right, transparent 9px, oklch(0.62 0.12 25 / 0.34) 9px 10px, transparent 10px),
+    repeating-linear-gradient(to bottom, transparent 0 40px, oklch(0.55 0.08 150 / 0.08) 40px 80px);
+}
+
+/* The area under a short table keeps the margin rule and ruled lines, so the ledger reads as a page. */
+.ledger-void {
+  background-image:
+    linear-gradient(to right, transparent 9px, oklch(0.62 0.12 25 / 0.28) 9px 10px, transparent 10px),
+    repeating-linear-gradient(to bottom, transparent 0 23px, var(--rule) 23px 24px);
+  /* Rules line up with the 24px lines of the note. */
+  background-position: 0 0, 0 16px;
+}
+
+/* Highlighter band behind a hovered or keyboard-selected row: swipes in left to right (scaleX only). */
+.row-wash {
+  position: absolute;
+  inset: 3px 2px;
+  z-index: -10;
+  pointer-events: none;
+  border-radius: 2px 7px 3px 6px / 4px 3px 5px 3px;
+  background: var(--hilite);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+tr:hover > td > .row-wash,
+tr[aria-selected="true"] > td > .row-wash {
+  transform: scaleX(1);
+}
+.row-tick {
+  opacity: 0;
+}
+tr:hover > td > .row-tick,
+tr[aria-selected="true"] > td > .row-tick {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .row-wash {
+    transition: transform 180ms cubic-bezier(0.3, 0.7, 0.3, 1);
+  }
+  .row-tick {
+    transition: opacity 120ms ease-out 60ms;
+  }
+}
+@media (forced-colors: active) {
+  .row-wash {
+    display: none;
+  }
+  tr[aria-selected="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
+/* ---- Printed result bar ------------------------------------------------------------------ */
+
+.wdb {
+  --wdb-ink: #3a423c;
+  --wdb-white: #f7f2e5;
+  --wdb-draw: #a9aca0;
+  --wdb-black: #343d37;
+  position: relative;
+}
+/* A second plate printed a hair off register. */
+.wdb-plate {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--wdb-ink);
+  opacity: 0.5;
+}
+.wdb-track {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  border: 1px solid var(--wdb-ink);
+  background: var(--wdb-white);
+}
+.wdb-seg {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transform-origin: left center;
+}
+.wdb-seg + .wdb-seg {
+  border-left: 1px solid var(--wdb-ink);
+}
+/* Fills: halftone dots (white), diagonal hatch (draw), fine cross-hatch over a soft black (black). */
+.wdb-white {
+  background-color: var(--wdb-white);
+  background-image: radial-gradient(circle at 50% 50%, rgb(58 66 60 / 0.28) 0.6px, transparent 0.9px);
+  background-size: 3px 3px;
+}
+.wdb-draw {
+  background-color: var(--wdb-draw);
+  background-image: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.32) 0 1px, transparent 1px 4px);
+}
+.wdb-black {
+  background-color: var(--wdb-black);
+  background-image:
+    repeating-linear-gradient(45deg, rgb(255 250 235 / 0.1) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(135deg, rgb(255 250 235 / 0.1) 0 1px, transparent 1px 4px);
+}
+/* Labels sit on solid chips so their contrast never depends on the pattern. */
+.wdb-chip {
+  position: relative;
+  border-radius: 2px;
+  padding: 1px 3px;
+  line-height: 1.15;
+}
+.wdb-chip-white {
+  background: #fffdf6;
+  color: #1f1f1f;
+}
+.wdb-chip-draw {
+  background: #ebe8dc;
+  color: #1a1a1a;
+}
+.wdb-chip-black {
+  background: #222a25;
+  color: #f7f2e5;
+}
+.wdb-empty {
+  background-color: color-mix(in oklab, var(--bar-draw) 12%, transparent);
+  background-image: repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in oklab, var(--bar-draw) 32%, transparent) 4px 8px);
+  border: 1px dashed var(--rule-strong);
+}
+@keyframes wdb-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes wdb-label {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wdb-seg {
+    animation: wdb-draw 380ms cubic-bezier(0.25, 0.8, 0.3, 1) both;
+    animation-delay: calc(var(--wdb-delay, 0ms) + var(--wdb-i, 0) * 70ms);
+  }
+  .wdb-chip {
+    animation: wdb-label 180ms ease-out both;
+    animation-delay: calc(var(--wdb-delay, 0ms) + var(--wdb-i, 0) * 70ms + 260ms);
+  }
+}
+@media (forced-colors: active) {
+  .wdb-track,
+  .wdb-seg {
+    border-color: CanvasText;
+  }
+  .wdb-plate {
+    display: none;
+  }
+}
+
+/* ---- Score chip -------------------------------------------------------------------------- */
+
+.score-chip {
+  display: inline-block;
+  min-width: 2.6rem;
+  border-radius: 3px 5px 3px 4px / 4px 3px 5px 3px;
+  padding: 2px 6px;
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+}
+.score-chip[data-good="true"] {
+  box-shadow: inset 0 0 0 1px oklch(0.45 0.12 150 / 0.35);
+}
+@keyframes score-pop {
+  0% {
+    transform: scale(0.82);
+  }
+  55% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .score-chip[data-good="true"] {
+    animation: score-pop 380ms cubic-bezier(0.3, 1.5, 0.5, 1) 220ms both;
+  }
+}
+@media (forced-colors: active) {
+  .score-chip {
+    border: 1px solid CanvasText;
+    color: CanvasText;
+  }
+}
+
+/* ---- Note in the empty area under a short table ------------------------------------------ */
+
+@keyframes note-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .field-note {
+    animation: note-in 300ms ease-out both;
+  }
+}
