@@ -1,5 +1,5 @@
 /*
- * Explorer data panel: ledger table, printed result bars, score chips and the empty-area note.
+ * Explorer data panel: ledger table, printed result bars, score chips and the ruled space under a short table.
  * Plain CSS. Only transform and opacity are animated, and every animation sits behind
  * prefers-reduced-motion: no-preference.
  */
@@ -197,23 +197,5 @@ tr[aria-selected="true"] > td > .row-tick {
   .score-chip {
     border: 1px solid CanvasText;
     color: CanvasText;
-  }
-}
-
-/* ---- Note in the empty area under a short table ------------------------------------------ */
-
-@keyframes note-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .field-note {
-    animation: note-in 300ms ease-out both;
   }
 }

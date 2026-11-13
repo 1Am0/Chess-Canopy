@@ -4,12 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw, Undo2 } from "lucide-react";
 import type { NextMove } from "@/lib/engine/types";
 import { activeFilterCount, isResultFresh, loadFailed, useExplorerStore } from "@/lib/store";
-import { pct, score } from "@/lib/format";
-import { shareLabel } from "@/lib/explorer-format";
+import { score } from "@/lib/format";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { usePosition } from "@/hooks/use-position";
 import { COL, MoveRow } from "@/components/explorer/MoveRow";
-import { useElementSize } from "@/components/paper/use-size";
 import { EmptySpecimen } from "@/components/field";
 import { InkArrow } from "@/components/explorer/ink";
 import { Button } from "@/components/ui/button";
@@ -156,7 +154,6 @@ export function MoveTable({ className }: { className?: string }) {
   const busy = inert && !firstLoad;
   const other = side === "white" ? "black" : "white";
   const otherCount = summary?.counts[other] ?? 0;
-  const sc = result ? score(result.stats) : 0;
 
   return (
     <div
@@ -216,9 +213,8 @@ export function MoveTable({ className }: { className?: string }) {
         </tbody>
       </table>
 
-      {!firstLoad && !failed && !empty && result && (
-        <FieldNote rows={next} total={total} sc={sc} />
-      )}
+      {/* the space under a short table stays ruled like the ledger */}
+      {!firstLoad && !failed && !empty && result && <div aria-hidden className="ledger-void min-h-0 flex-1" />}
 
       {failed && (
         <div className="absolute inset-x-0 top-7 bottom-0 flex items-center justify-center overflow-hidden" role="alert">
@@ -301,51 +297,4 @@ export function MoveTable({ className }: { className?: string }) {
       },
     };
   }
-}
-
-/**
- * The empty area under a short table: ruled like the ledger, with a pencilled note about this position. It takes
- * the space the rows leave (flex-1, zero when the rows fill the region), so it never changes any slot size. Lines
- * are shown only as far as they fit whole.
- */
-function FieldNote({ rows, total, sc }: { rows: NextMove[]; total: number; sc: number }) {
-  const [ref, size] = useElementSize<HTMLDivElement>();
-  const top = rows.reduce<NextMove | null>((a, r) => (!a || r.stats.total > a.stats.total ? r : a), null);
-  const best = rows
-    .filter((r) => r.stats.total >= 3)
-    .reduce<NextMove | null>((a, r) => (!a || score(r.stats) > score(a.stats) ? r : a), null);
-  const lines: React.ReactNode[] = [
-    <>
-      <b className="font-mono font-semibold text-ink">{total.toLocaleString("en-US")}</b> {total === 1 ? "game reaches" : "games reach"} this position; you score{" "}
-      <b className="font-mono font-semibold text-ink">{pct(sc)}</b>.
-    </>,
-  ];
-  if (top)
-    lines.push(
-      <>
-        Most played: <b className="font-mono font-semibold text-ink">{top.move}</b>, {shareLabel(top.stats.total, total)} of games.
-      </>,
-    );
-  if (best && top && best.move !== top.move && rows.length > 1)
-    lines.push(
-      <>
-        Best result: <b className="font-mono font-semibold text-ink">{best.move}</b>, {pct(score(best.stats))} over {best.stats.total} games.
-      </>,
-    );
-  lines.push("Click a move to play it, or use the arrow keys and Enter.");
-  const fit = size ? Math.max(0, Math.floor((size.h - 44) / 24)) : 0;
-  return (
-    <div ref={ref} aria-hidden className="ledger-void relative min-h-0 flex-1 overflow-hidden">
-      {fit > 0 && (
-        <div className="field-note absolute top-3 right-3 left-5 max-w-[26rem]">
-          <p className="origin-left -rotate-1 font-hand text-xl leading-6 text-pencil">Field note</p>
-          <ul className="mt-1 font-serif text-sm leading-6 text-pencil italic">
-            {lines.slice(0, fit).map((l, i) => (
-              <li key={i} className="truncate [&_b]:not-italic">{l}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
 }
