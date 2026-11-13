@@ -51,8 +51,8 @@ export async function importSampleJson(page: Page, username = "tester") {
 
 export const moveRow = (page: Page, san: string) => page.getByRole("row").filter({ has: page.getByText(san, { exact: true }) });
 
-/** The "Games" cell of the move table's total row: the number of games at the current position. */
-export const totalGames = (page: Page) => page.getByRole("grid", { name: /^Candidate moves/ }).locator("tfoot tr td").nth(1);
+/** The game count in the games list header: the number of games at the current position. */
+export const totalGames = (page: Page) => page.getByTestId("position-games");
 
 /**
  * Records Content-Security-Policy violations for the page: Chromium's

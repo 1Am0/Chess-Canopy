@@ -363,3 +363,32 @@ test("clicking the already-active White side before the first summary is not ove
   await expect(white).toHaveAttribute("aria-checked", "true");
   await expect(page.getByLabel("View games as Black")).toHaveAttribute("aria-checked", "false");
 });
+
+test("games list shows the games at the position; the split between moves and games is draggable and remembered", async ({ page }) => {
+  await importSampleJson(page);
+  const games = page.getByRole("list", { name: "Games at this position" });
+  await expect(games.getByRole("listitem")).toHaveCount(2);
+  await expect(totalGames(page)).toHaveText("2");
+  await moveRow(page, "e4").click();
+  await expect(games.getByRole("listitem")).toHaveCount(1);
+
+  const handle = page.getByRole("separator", { name: "Resize the moves and games lists" });
+  const before = Number(await handle.getAttribute("aria-valuenow"));
+  const box = (await handle.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, box.y - 120, { steps: 6 });
+  await page.mouse.up();
+  const dragged = Number(await handle.getAttribute("aria-valuenow"));
+  expect(dragged).toBeGreaterThan(before);
+
+  await handle.focus();
+  await page.keyboard.press("ArrowDown");
+  const keyed = Number(await handle.getAttribute("aria-valuenow"));
+  expect(keyed).toBeLessThan(dragged);
+  // the arrow key resized the split and did not step back through the line
+  await expect(page.getByRole("region", { name: "Line" }).getByRole("button", { name: "e4", exact: true })).toHaveAttribute("aria-current", "step");
+
+  await page.reload();
+  await expect(page.getByRole("separator", { name: "Resize the moves and games lists" })).toHaveAttribute("aria-valuenow", String(keyed));
+});

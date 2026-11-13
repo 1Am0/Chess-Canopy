@@ -4,13 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw, Undo2 } from "lucide-react";
 import type { NextMove } from "@/lib/engine/types";
 import { activeFilterCount, isResultFresh, loadFailed, useExplorerStore } from "@/lib/store";
-import { compact, pct, score } from "@/lib/format";
+import { pct, score } from "@/lib/format";
 import { shareLabel } from "@/lib/explorer-format";
 import { lookupOpening } from "@/lib/openings/lookup";
 import { usePosition } from "@/hooks/use-position";
-import { COL, MoveRow, ScoreChip } from "@/components/explorer/MoveRow";
-import { WdbBar } from "@/components/explorer/WdbBar";
-import { CountUp } from "@/components/explorer/useCountUp";
+import { COL, MoveRow } from "@/components/explorer/MoveRow";
 import { useElementSize } from "@/components/paper/use-size";
 import { EmptySpecimen } from "@/components/field";
 import { InkArrow } from "@/components/explorer/ink";
@@ -20,13 +18,12 @@ import { cn } from "@/lib/utils";
 
 type SortKey = "games" | "score" | "move";
 
-/** Sticky header (28px) and sticky total row (32px) heights, for keeping rows in view. */
+/** Sticky header height, for keeping rows in view. */
 const HEAD_PX = 28;
-const FOOT_PX = 40;
 const NO_ROWS: NextMove[] = [];
 
 /**
- * The move table: a scroll region with a sticky header and a sticky Σ total row
+ * The move table: a scroll region with a sticky header
  * (Lichess explorer style). Every row is a fixed 40px line. The loading
  * state and the empty / out-of-book states all live inside the same region, so the
  * region's size never depends on the position.
@@ -87,7 +84,7 @@ export function MoveTable({ className }: { className?: string }) {
   const rows = sorted;
   const idx = Math.min(active, Math.max(rows.length - 1, 0));
 
-  // Keep the keyboard-selected row visible between the sticky header and total row.
+  // Keep the keyboard-selected row visible below the sticky header.
   useEffect(() => {
     const box = scroller.current;
     if (!box || !focused) return;
@@ -95,7 +92,7 @@ export function MoveTable({ className }: { className?: string }) {
     if (!el) return;
     const top = el.offsetTop;
     if (top - HEAD_PX < box.scrollTop) box.scrollTop = top - HEAD_PX;
-    else if (top + el.offsetHeight + FOOT_PX > box.scrollTop + box.clientHeight) box.scrollTop = top + el.offsetHeight + FOOT_PX - box.clientHeight;
+    else if (top + el.offsetHeight > box.scrollTop + box.clientHeight) box.scrollTop = top + el.offsetHeight - box.clientHeight;
   }, [idx, focused]);
 
   const openingFor = (san: string) => {
@@ -217,28 +214,6 @@ export function MoveTable({ className }: { className?: string }) {
           {!empty &&
             rows.map((item, i) => <MoveRow key={`${posKey}-${item.move}`} {...rowProps(item, i)} />)}
         </tbody>
-        {result && !empty && (
-          <tfoot className="sticky bottom-0 z-10">
-            <tr className="h-10 bg-card font-semibold [&>td]:border-t-[3px] [&>td]:border-double [&>td]:border-pencil">
-              <td className={COL.move} title="All moves from this position">
-                <span className="inline-flex items-baseline gap-1.5">
-                  <span className="font-serif text-base text-ink" aria-label="Total">Σ</span>
-                  <span aria-hidden className="hidden font-serif text-xs font-normal text-muted-foreground italic @xs:inline">all moves</span>
-                </span>
-              </td>
-              <td className={cn(COL.games, "text-sm")}>
-                <CountUp value={total} format={compact} />
-              </td>
-              <td className={cn(COL.share, "text-xs font-normal text-muted-foreground")}>100%</td>
-              <td className={COL.bar}>
-                <WdbBar key={`${total}-${result.stats.wins}-${result.stats.draws}-${side}`} stats={result.stats} side={side} seed="total" />
-              </td>
-              <td className={cn(COL.score, "text-sm")}>
-                <ScoreChip sc={sc} total={total} />
-              </td>
-            </tr>
-          </tfoot>
-        )}
       </table>
 
       {!firstLoad && !failed && !empty && result && (

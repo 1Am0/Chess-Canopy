@@ -62,6 +62,13 @@ export function createChangeAwareStorage<S extends object>(): PersistStorage<S> 
   };
 }
 
+/** Games-list share of the lower explorer region: default and limits (the moves always keep some room). */
+export const GAMES_PANE_DEFAULT = 0.34;
+export const GAMES_PANE_MIN = 0.12;
+export const GAMES_PANE_MAX = 0.78;
+export const clampGamesPane = (f: number) =>
+  Number.isFinite(f) ? Math.min(GAMES_PANE_MAX, Math.max(GAMES_PANE_MIN, f)) : GAMES_PANE_DEFAULT;
+
 export interface ExplorerState {
   // persisted
   selected: string[] | "all";
@@ -71,6 +78,9 @@ export interface ExplorerState {
   soundEnabled: boolean;
   soundTheme: SoundTheme;
   setSoundEnabled: (on: boolean) => void;
+  /** Share of the explorer's lower region given to the games list (persisted; the moves get the rest). */
+  gamesPane: number;
+  setGamesPane: (f: number) => void;
   orientation: Color;
   /** true once the user picked a side (or the one-time auto pick ran) */
   sideChosen: boolean;
@@ -138,6 +148,8 @@ export const useExplorerStore = create<ExplorerState>()(
         setSoundsEnabled(soundEnabled);
         set({ soundEnabled });
       },
+      gamesPane: GAMES_PANE_DEFAULT,
+      setGamesPane: (f) => set({ gamesPane: clampGamesPane(f) }),
       orientation: "white",
 
       ready: false,
@@ -236,6 +248,7 @@ export const useExplorerStore = create<ExplorerState>()(
         selected: s.selected,
         filters: s.filters,
         soundEnabled: s.soundEnabled,
+        gamesPane: s.gamesPane,
         orientation: s.orientation,
         sideChosen: s.sideChosen,
         sideExplicit: s.sideExplicit,

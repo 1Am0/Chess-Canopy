@@ -1,11 +1,15 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { SideSwitch } from "@/components/layout/SideSwitch";
 import { FilterRow } from "@/components/filters/FilterRow";
 import { LinePanel } from "@/components/explorer/LinePanel";
 import { PositionAnnouncer } from "@/components/explorer/PositionAnnouncer";
 import { OpeningHeader } from "@/components/explorer/OpeningHeader";
 import { MoveTable } from "@/components/explorer/MoveTable";
+import { GamesList } from "@/components/explorer/GamesList";
+import { SplitHandle } from "@/components/explorer/SplitHandle";
+import { clampGamesPane, useExplorerStore } from "@/lib/store";
 import { PaperSheet, Tape, UnderSheet } from "@/components/paper";
 
 /**
@@ -14,10 +18,17 @@ import { PaperSheet, Tape, UnderSheet } from "@/components/paper";
  *
  *   desktop (lg+, exactly the viewport height under the header, no outer scroll):
  *     SideSwitch 44 · opening 28 · filters 32 · Line strip 44 ·
- *     move table (flex 1, its own scroll region).
- *   mobile: SideSwitch · opening · filters · move table of fixed height max(22rem, 45vh).
+ *     a region (flex 1) split between the move table and the games list by a draggable handle.
+ *   mobile: the same, in a region of fixed height max(26rem, 52vh).
+ * The split is the user's choice (persisted); moving it never changes the region itself.
  */
 export function ExplorerPanel() {
+  const saved = useExplorerStore((s) => s.gamesPane);
+  const setGamesPane = useExplorerStore((s) => s.setGamesPane);
+  const [live, setLive] = useState<number | null>(null);
+  const region = useRef<HTMLElement>(null);
+  const f = clampGamesPane(live ?? saved);
+
   return (
     // One cream sheet with a second sheet peeking out from under it and a strip of tape across its top edge.
     <div className="relative isolate z-10 min-w-0 lg:h-full lg:min-h-0">
@@ -30,13 +41,27 @@ export function ExplorerPanel() {
       <OpeningHeader />
       <FilterRow />
       <LinePanel />
-      {/* Moves only: the summary bar and the Games / Canopy tabs are off while trying this layout. */}
       <section
-        aria-label="Moves"
+        ref={region}
+        aria-label="Moves and games"
         data-testid="explorer-region"
-        className="-mx-3 -mb-3 h-[max(22rem,45vh)] min-h-0 overflow-hidden border-t border-rule lg:h-auto lg:min-h-[13rem] lg:flex-1"
+        className="-mx-3 -mb-3 flex h-[max(26rem,52vh)] min-h-0 flex-col overflow-hidden border-t border-rule lg:h-auto lg:min-h-[16rem] lg:flex-1"
       >
-        <MoveTable />
+        <div aria-label="Moves" role="region" className="min-h-0" style={{ flex: `${1 - f} 1 0px` }}>
+          <MoveTable />
+        </div>
+        <SplitHandle
+          value={f}
+          region={region}
+          onLive={setLive}
+          onCommit={(v) => {
+            setGamesPane(v);
+            setLive(null);
+          }}
+        />
+        <div className="min-h-0" style={{ flex: `${f} 1 0px` }}>
+          <GamesList />
+        </div>
       </section>
     </PaperSheet>
     </div>
