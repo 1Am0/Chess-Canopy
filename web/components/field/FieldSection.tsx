@@ -1,14 +1,13 @@
 "use client";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type FieldSectionProps = Omit<React.ComponentProps<"section">, "title"> & {
   title: React.ReactNode;
-  /** When given, a small "Clear" tag button appears at the right of the heading. */
+  /** When given, a small "Clear" text link appears at the right of the heading while the group is not at its default. */
   onClear?: () => void;
   clearLabel?: string;
-  /** Disable the clear button when the group is already at its default. */
+  /** True when the group is already at its default: the Clear link is then not shown (the heading row keeps its height). */
   clearDisabled?: boolean;
 };
 
@@ -33,17 +32,15 @@ export function FieldSection({
         <h3 id={id} className="kicker mb-0">
           {title}
         </h3>
-        {onClear && (
-          <Button
+        {onClear && !clearDisabled && (
+          <button
             type="button"
-            variant="tag"
-            size="xs"
             onClick={onClear}
-            disabled={clearDisabled}
             aria-label={typeof title === "string" ? `${clearLabel} ${title.toLowerCase()}` : undefined}
+            className="-my-2 -mr-1 rounded-[2px] px-1 py-2 text-xs text-primary underline underline-offset-2 outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring max-sm:py-3"
           >
             {clearLabel}
-          </Button>
+          </button>
         )}
       </div>
       {children}

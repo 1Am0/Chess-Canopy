@@ -3,6 +3,7 @@ import { Caveat, Martian_Mono, Newsreader, Schibsted_Grotesk } from "next/font/g
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import "./explorer.css";
+import "./shell.css";
 
 // Display serif: opsz axis lets the optical size follow font-size automatically.
 const newsreader = Newsreader({

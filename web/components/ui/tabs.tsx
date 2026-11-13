@@ -28,7 +28,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "folder-tab inline-flex h-full flex-1 items-center justify-center gap-1.5 rounded-none px-3 py-1 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:font-semibold data-[state=active]:text-foreground [&_svg]:size-4",
+        "folder-tab inline-flex h-full flex-1 items-center justify-center gap-1.5 rounded-none px-3 py-1 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_3px_0_0_var(--primary)] [&_svg]:size-4",
         className,
       )}
       {...props}

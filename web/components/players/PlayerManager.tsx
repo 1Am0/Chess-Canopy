@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, RefreshCw, Trash2 } from "lucide-react";
+import { Download, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Player } from "@/lib/engine/types";
 import { getExplorer } from "@/lib/explorer-client";
@@ -103,7 +103,9 @@ export function PlayerManager() {
                   <Button size="xs" variant="tag" onClick={() => exportPlayer(p)} aria-label={`Export ${p.displayName} as JSON`} title="Export JSON">
                     <Download /> Export JSON
                   </Button>
-                  <Button size="xs" variant="tag" className="ml-auto" disabled={running} onClick={() => setConfirming(p.id)} aria-label={`Delete ${p.displayName}`} title={running ? "Wait for the import to finish" : "Delete"}>
+                  {/* set apart from the safe actions: a quiet red text button at the far end, behind a confirmation */}
+                  <span aria-hidden className="mx-1 ml-auto h-4 w-px bg-rule-strong/60" />
+                  <Button size="xs" variant="ghost" className="text-destructive hover:text-destructive" disabled={running} onClick={() => setConfirming(p.id)} aria-label={`Delete ${p.displayName}`} title={running ? "Wait for the import to finish" : "Delete"}>
                     <Trash2 /> Delete
                   </Button>
                 </div>
@@ -113,7 +115,9 @@ export function PlayerManager() {
           ))}
         </ul>
         {progress && <ImportProgress progress={progress} onCancel={cancel} />}
-        <Button variant="outline" disabled={running} onClick={() => setUi({ managerOpen: false, importOpen: true })}>Import another player</Button>
+        <Button disabled={running} onClick={() => setUi({ managerOpen: false, importOpen: true })}>
+          <Plus /> Import another player
+        </Button>
       </DialogContent>
     </Dialog>
   );

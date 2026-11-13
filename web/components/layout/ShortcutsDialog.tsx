@@ -20,19 +20,19 @@ export function ShortcutsDialog() {
   const setUi = useExplorerStore((s) => s.setUi);
   return (
     <Dialog open={open} onOpenChange={(o) => setUi({ shortcutsOpen: o })}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader kicker="Key to symbols">
           <DialogTitle className="font-serif text-xl font-semibold tracking-tight">Keyboard shortcuts</DialogTitle>
           <DialogDescription>Shortcuts are paused while typing or when a dialog is open.</DialogDescription>
         </DialogHeader>
-        <dl className="border-t border-rule-strong text-sm">
+        <dl className="border-t border-rule-strong text-[15px]">
           {SHORTCUTS.map(([keys, d]) => (
-            <div key={d} className="flex min-h-10 items-center gap-3 border-b border-rule py-1.5">
-              <dt className="flex w-28 shrink-0 flex-wrap gap-1">
+            <div key={d} className="flex min-h-11 items-center gap-4 border-b border-rule py-2">
+              <dt className="flex w-40 shrink-0 flex-wrap gap-1.5">
                 {keys.map((k) => (
                   <kbd
                     key={k}
-                    className="paper-label inline-flex min-w-7 items-center justify-center rounded-[2px] border-b-2 border-b-[var(--btn-edge)] px-1.5 py-0.5 text-center font-mono text-xs font-medium text-foreground"
+                    className="paper-label inline-flex min-w-8 items-center justify-center rounded-[2px] border-b-2 border-b-[var(--btn-edge)] px-2 py-1 text-center font-mono text-[13px] font-medium text-foreground"
                   >
                     {k}
                   </kbd>

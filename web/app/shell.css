@@ -1,0 +1,20 @@
+/* Shell-level motion that Tailwind utilities do not cover (plain CSS, no Tailwind directives). */
+
+/* First-load settle of the welcome sheets: each one lands a little after the previous. Transform and opacity only, runs
+   once on mount, and starts at 35% opacity so the content is readable from the first frame. */
+@keyframes settle-in {
+  from {
+    opacity: 0.35;
+    transform: translateY(12px) rotate(var(--settle-rot, 0deg));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .settle {
+    animation: settle-in 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 90ms);
+  }
+}

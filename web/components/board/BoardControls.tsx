@@ -51,12 +51,13 @@ function Tip({ label, keys, children }: { label: string; keys?: string; children
   );
 }
 
-// Below sm (640px) buttons are 32px so both strips fit on one row in the 276px-wide toolbar of a 320px viewport
-// (4 x 32, twice, plus gaps). From sm up they are 36px. Each strip is a run of card buttons butted together like a
+// Below sm (640px) the four move buttons are 44px (touch target) and the four tool buttons 40px, which together fit one
+// row on a 390px phone; narrower phones wrap to two rows. From sm up all are 36px. Each strip is a run of card buttons butted together like a
 // ticket of cards: only the first has a left border, so neighbours share one divider and their hit boxes never overlap.
 const btn =
-  "relative size-8 min-h-8 min-w-8 sm:size-9 sm:min-h-9 sm:min-w-9 rounded-none border-l-0 first:rounded-l-[2px] first:border-l last:rounded-r-[2px] hover:z-10 focus-visible:z-10";
-const btnAfterGap = "ml-2 rounded-l-[2px] border-l";
+  "relative size-11 min-h-11 min-w-11 sm:size-9 sm:min-h-9 sm:min-w-9 rounded-none border-l-0 first:rounded-l-[2px] first:border-l last:rounded-r-[2px] hover:z-10 focus-visible:z-10";
+const btnTool = "max-sm:size-10 max-sm:min-h-10 max-sm:min-w-10";
+const btnAfterGap = "ml-1 rounded-l-[2px] border-l sm:ml-2";
 const group = "flex items-center";
 
 export function BoardControls() {
@@ -122,22 +123,22 @@ export function BoardControls() {
       </div>
       <div className={group}>
         <Tip label="Flip board" keys="F">
-          <Button variant="outline" size="icon" className={btn} onClick={flip} aria-label="Flip board (F)">
+          <Button variant="outline" size="icon" className={cn(btn, btnTool)} onClick={flip} aria-label="Flip board (F)">
             <FlipVertical2 />
           </Button>
         </Tip>
         <Tip label="Copy FEN">
-          <Button variant="outline" size="icon" className={cn(btn, btnAfterGap)} onClick={copyFen} aria-label="Copy FEN">
+          <Button variant="outline" size="icon" className={cn(btn, btnTool, btnAfterGap)} onClick={copyFen} aria-label="Copy FEN">
             <Copy />
           </Button>
         </Tip>
         <Tip label="Copy PGN of this line">
-          <Button variant="outline" size="icon" className={btn} onClick={copyPgn} aria-label="Copy PGN">
+          <Button variant="outline" size="icon" className={cn(btn, btnTool)} onClick={copyPgn} aria-label="Copy PGN">
             <ListOrdered />
           </Button>
         </Tip>
         <Tip label="Copy share link">
-          <Button variant="outline" size="icon" className={btn} onClick={copyLink} aria-label="Copy share link">
+          <Button variant="outline" size="icon" className={cn(btn, btnTool)} onClick={copyLink} aria-label="Copy share link">
             <Link2 />
           </Button>
         </Tip>

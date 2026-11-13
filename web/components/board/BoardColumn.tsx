@@ -32,7 +32,7 @@ export function BoardColumn() {
     <PaperSheet className="flex flex-col gap-2 p-2 lg:p-2.5" data-testid="board-mat">
       <Tape variant="sage" angle={-3} seed="mat-l" className="hidden lg:block -top-1.5 left-5" />
       <Tape variant="sage" angle={3} seed="mat-r" className="hidden lg:block -top-1.5 right-5" />
-      <div data-testid="strip-top" className="pl-10">
+      <div data-testid="strip-top" className="pl-10 max-sm:hidden">
         <PlayerStrip you={!bottomIsYou} color={bottomIsYou ? opp : side} />
       </div>
       <div className="flex gap-2">
@@ -46,7 +46,7 @@ export function BoardColumn() {
         <PlayerStrip you={bottomIsYou} color={bottomIsYou ? side : opp} />
       </div>
       {/* indented to the board's edge, except on the narrowest phones where the two card strips need the full width to stay on one row */}
-      <div className="pl-0 min-[360px]:pl-10">
+      <div className="pl-0 sm:pl-10">
         <BoardControls />
       </div>
     </PaperSheet>

@@ -41,7 +41,7 @@ function Slider({
       {values.map((_, i) => (
         <SliderPrimitive.Thumb
           key={i}
-          className="group/thumb relative block h-6 w-3 shrink-0 outline-none before:absolute before:-inset-x-2 before:-inset-y-1 before:content-[''] focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-ring"
+          className="group/thumb relative block h-6 w-3 shrink-0 outline-none before:absolute before:-inset-x-3 before:-inset-y-1.5 before:content-[''] pointer-coarse:before:-inset-x-4 pointer-coarse:before:-inset-y-2.5 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-ring"
         >
           <PaperClip className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[56%] transition-transform group-active/thumb:translate-y-[-52%]" angle={i % 2 ? 4 : -3} />
         </SliderPrimitive.Thumb>

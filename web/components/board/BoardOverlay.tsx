@@ -124,9 +124,9 @@ const COORD_MIN_PX = 11; // smallest rendered size of the rank / file labels
 
 const OVERLAY_CSS = `
   .board-overlay {
-    --ov-halo: color-mix(in oklab, var(--bar-white) 72%, transparent);
+    --ov-halo: color-mix(in oklab, var(--bar-white) 94%, transparent);
     --ov-dot: oklch(0.22 0.03 160 / 0.62);
-    --ov-cand: oklch(0.3 0.07 262);
+    --ov-cand: oklch(0.31 0.06 235);
     --ov-pencil: oklch(0.4 0.012 80);
     --ov-green: oklch(0.42 0.1 152);
     --ov-red: oklch(0.47 0.15 28);
@@ -256,12 +256,12 @@ export function BoardOverlay({ orientation, arrows, userArrows = [], marks }: Pr
         {slots.map(({ a, g, show }, i) => (
           <g key={i} className="ov-arrow" data-slot={i} style={{ opacity: show ? 0.82 : 0, visibility: show ? "visible" : "hidden" }}>
             <g style={{ opacity: a.opacity }}>
-              <path d={g.d} strokeWidth={3.2} strokeLinejoin="round" style={{ fill: "var(--ov-halo)", stroke: "var(--ov-halo)" }} />
+              <path d={g.d} strokeWidth={7} strokeLinejoin="round" style={{ fill: "var(--ov-halo)", stroke: "var(--ov-halo)" }} />
             </g>
           </g>
         ))}
         {users.map((u) => (
-          <path key={`${u.from}${u.to}`} d={u.g.d} strokeWidth={3.2} strokeLinejoin="round" style={{ fill: "var(--ov-halo)", stroke: "var(--ov-halo)", opacity: 0.82 }} />
+          <path key={`${u.from}${u.to}`} d={u.g.d} strokeWidth={7} strokeLinejoin="round" style={{ fill: "var(--ov-halo)", stroke: "var(--ov-halo)", opacity: 0.82 }} />
         ))}
       </svg>
 
