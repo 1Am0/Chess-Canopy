@@ -530,6 +530,8 @@ export class ExplorerService implements ExplorerAPI {
     let san: string;
     try {
       if (epdOf(entry.fen) !== entry.epd) throw new Error("epd mismatch");
+      // A repertoire move is always your own move: the position must have your side to move.
+      if (entry.fen.split(" ")[1] !== (entry.side === "white" ? "w" : "b")) throw new Error("not your move");
       const m = new Chess(entry.fen).move(entry.san);
       if (m.san === "--") throw new Error("null move");
       san = m.san;

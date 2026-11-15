@@ -183,6 +183,16 @@ describe("analyzeRepertoire", () => {
     expect(detectSwitch(v.slice(0, 6))).toBeNull();
   });
 
+  it("detectSwitch dates the switch from the first game with the new move", () => {
+    // 6 old games then 9 new: the earliest qualifying date is the last old game (1 of 10 = 90% new),
+    // but the switch is reported from the first game that played the new move.
+    const v = [
+      ...Array.from({ length: 6 }, (_, i) => ({ date: day(i + 1), san: "Bc4" })),
+      ...Array.from({ length: 9 }, (_, i) => ({ date: day(i + 10), san: "Bb5" })),
+    ];
+    expect(detectSwitch(v)).toEqual({ from: "Bc4", to: "Bb5", date: day(10), gamesSince: 9 });
+  });
+
   it("uses the locked move as main and for consistency", () => {
     const gs = newestFirst([game(["e4"], day(1)), game(["d4"], day(2)), game(["d4"], day(3)), game(["c4"], day(4))]);
     const locked = [lock("white", [], "e4", Date.UTC(2023, 0, 1)), lock("black", [], "c4", 0)];

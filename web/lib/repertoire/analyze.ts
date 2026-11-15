@@ -246,7 +246,15 @@ export function detectSwitch(visits: readonly { date: string; san: string }[]): 
       if (m && m.n >= SWITCH_SHARE * nSince - 1e-9) {
         const top = mostCommon(before);
         const mBefore = before.get(m.san) ?? 0;
-        if (top && top.n > mBefore) return { from: top.san, to: m.san, date, gamesSince: nSince };
+        if (top && top.n > mBefore) {
+          // Report the switch from the first game that actually played the new move (the earliest qualifying date can
+          // still be a last game with the old move). Starting there only drops old-move games, so the rule still holds.
+          let k = i;
+          while (sorted[k].san !== m.san) k++;
+          const start = sorted[k].date;
+          const gamesSince = sorted.filter((v) => v.date >= start).length;
+          return { from: top.san, to: m.san, date: start, gamesSince };
+        }
       }
     }
     if (nSince < SWITCH_MIN_GAMES) break; // later dates only have fewer games

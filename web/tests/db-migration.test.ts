@@ -26,7 +26,7 @@ describe("DB v2 migration (C4 cleanup of stored variant games)", () => {
 
     const v2 = new CanopyDB(name);
     await v2.open();
-    expect(v2.verno).toBe(2);
+    expect(v2.verno).toBe(3); // v1 → v2 cleanup, then v3 (repertoire table)
     expect((await v2.games.toArray()).map((g) => g.game_id).sort()).toEqual(["ok1", "ok2"]);
     expect((await v2.players.get("json:hero"))?.gameCount).toBe(2);
     v2.close();

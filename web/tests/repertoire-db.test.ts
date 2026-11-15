@@ -35,7 +35,7 @@ beforeEach(async () => {
   await db.repertoire.clear();
 });
 afterEach(() => {
-  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("repertoire storage", () => {
@@ -52,15 +52,15 @@ describe("repertoire storage", () => {
   });
 
   it("keeps lockedAt when the same move is saved again, and resets it for a different move", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(1_000);
+    // (fake timers would stall fake-indexeddb, so only Date.now is mocked)
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_000);
     const first = await putRepertoireEntry(entry({ line: [] }));
     expect(first.lockedAt).toBe(1_000);
-    vi.setSystemTime(2_000);
+    now.mockReturnValue(2_000);
     const same = await putRepertoireEntry(entry({ line: ["x"] }));
     expect(same.lockedAt).toBe(1_000);
     expect(same.line).toEqual(["x"]);
-    vi.setSystemTime(3_000);
+    now.mockReturnValue(3_000);
     const other = await putRepertoireEntry(entry({ san: "d4" }));
     expect(other.lockedAt).toBe(3_000);
     expect(await listRepertoire("white")).toEqual([other]);
@@ -155,6 +155,7 @@ describe("ExplorerService repertoire", () => {
     await expect(svc.saveRepertoireMove(entry({ san: "e5" }))).rejects.toThrow("Illegal repertoire move");
     await expect(svc.saveRepertoireMove(entry({ epd: AFTER_E4_EPD }))).rejects.toThrow("Illegal repertoire move");
     await expect(svc.saveRepertoireMove(entry({ fen: "not a fen" }))).rejects.toThrow("Illegal repertoire move");
+    await expect(svc.saveRepertoireMove(entry({ side: "black" }))).rejects.toThrow("Illegal repertoire move");
 
     const saved = await svc.saveRepertoireMove(entry({ san: "Pd2-d4" }));
     expect(saved.san).toBe("d4");
