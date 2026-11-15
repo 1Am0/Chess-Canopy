@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import { describe, expect, it, vi } from "vitest";
 import { Chess } from "chess.js";
 import type { CloudEval, EvalResult } from "@/lib/cloud-eval";
-import { createEvalQueue, type EvalQueueDeps } from "@/lib/repertoire/eval-queue";
+import { createEvalQueue, LOCAL_DEPTH, LOCAL_MOVETIME_MS, type EvalQueueDeps } from "@/lib/repertoire/eval-queue";
 import { getCachedEvals, normFen, putCachedEval } from "@/lib/repertoire/eval-cache";
 import type { DecisionPoint, MoveUsage, PointEval, RepertoireReport } from "@/lib/repertoire/types";
 
@@ -56,6 +56,29 @@ async function collect(deps: EvalQueueDeps, r: RepertoireReport, signal = new Ab
 }
 
 describe("eval queue", () => {
+  it("runs the browser engine to depth 18 and redoes local evals saved at the old depth 14", async () => {
+    const opts: unknown[] = [];
+    const f = fakeDeps({
+      cloud: async () => ({ status: "none" }) as EvalResult,
+      local: async (_fen, o) => {
+        opts.push(o);
+        return { ...cp(0), depth: 18 };
+      },
+      cache: {
+        get: async (fens) =>
+          new Map(
+            fens.map((x) => [x, x === normFen(START) ? { ...cp(30), depth: 14, source: "local" as const } : { ...cp(20), depth: 16, source: "local" as const }] as const),
+          ),
+        put: async () => {},
+      },
+    });
+    await collect(f.deps, report([P1]));
+    // START was saved at depth 14 → searched again; the depth-16 eval after e4 (time limit reached) is kept
+    expect(opts).toHaveLength(1);
+    expect(opts[0]).toMatchObject({ depth: LOCAL_DEPTH, movetime: LOCAL_MOVETIME_MS });
+    expect(LOCAL_DEPTH).toBe(18);
+  });
+
   it("emits cache hits first without touching the network", async () => {
     const f = fakeDeps({
       cache: { get: async (fens) => new Map(fens.map((x) => [x, cp(x === normFen(START) ? 30 : 20)] as const)), put: async () => {} },

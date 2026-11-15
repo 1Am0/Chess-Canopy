@@ -26,6 +26,18 @@ export interface EvalQueue {
   run(report: RepertoireReport, onPoint: (pe: PointEval) => void, signal: AbortSignal): Promise<void>;
 }
 
+/**
+ * Browser Stockfish settings for positions Lichess has no cloud eval for: search to depth 18, giving up after 6 s
+ * (whichever comes first).
+ */
+export const LOCAL_DEPTH = 18;
+export const LOCAL_MOVETIME_MS = 6000;
+/**
+ * Saved local evals below this depth come from the old depth-14 setting and are searched again. (A search that hit the
+ * time limit before depth 18 is kept: redoing it would take just as long and stop at about the same depth.)
+ */
+export const LOCAL_REDO_BELOW = 15;
+
 const defaultDeps: EvalQueueDeps = {
   cloud: fetchCloudEval,
   local: evalLocal,
@@ -78,7 +90,11 @@ export function createEvalQueue(deps: EvalQueueDeps = defaultDeps): EvalQueue {
 
       const known = new Map<string, CloudEval>();
       try {
-        for (const [fen, e] of await deps.cache.get(order)) known.set(normFen(fen), e);
+        for (const [fen, e] of await deps.cache.get(order)) {
+          // a local eval saved by the earlier, shallower setting is redone at LOCAL_DEPTH
+          if (e.source === "local" && e.depth < LOCAL_REDO_BELOW) continue;
+          known.set(normFen(fen), e);
+        }
       } catch {
         // a cache failure is a miss
       }
@@ -96,7 +112,7 @@ export function createEvalQueue(deps: EvalQueueDeps = defaultDeps): EvalQueue {
         if (signal.aborted) return;
         if (res.status === "ok") result = res.eval;
         else if (deps.localAvailable()) {
-          const local = await deps.local(fen, { signal }).catch(() => null);
+          const local = await deps.local(fen, { signal, depth: LOCAL_DEPTH, movetime: LOCAL_MOVETIME_MS }).catch(() => null);
           if (local) result = { ...local, source: "local" };
         }
         if (signal.aborted) return;
