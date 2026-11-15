@@ -23,7 +23,33 @@ export interface EvalQueueDeps {
 }
 
 export interface EvalQueue {
-  run(report: RepertoireReport, onPoint: (pe: PointEval) => void, signal: AbortSignal): Promise<void>;
+  /**
+   * Evaluates the points of one report, or of several (e.g. White's then Black's): in order, each report's positions
+   * capped at MAX_FENS_PER_RUN.
+   */
+  run(reports: RepertoireReport | RepertoireReport[], onPoint: (pe: PointEval) => void, signal: AbortSignal): Promise<void>;
+}
+
+/** A tiny async FIFO: `take` waits for the next item, or resolves null once `close` was called and it is empty. */
+function channel<T>() {
+  const items: T[] = [];
+  let wake: (() => void) | null = null;
+  let closed = false;
+  return {
+    push(item: T) {
+      items.push(item);
+      wake?.();
+    },
+    close() {
+      closed = true;
+      wake?.();
+    },
+    async take(): Promise<T | null> {
+      while (items.length === 0 && !closed) await new Promise<void>((r) => (wake = r));
+      wake = null;
+      return items.length ? items.shift()! : null;
+    },
+  };
 }
 
 /**
@@ -47,6 +73,7 @@ const defaultDeps: EvalQueueDeps = {
 
 interface Job {
   point: DecisionPoint;
+  side: Color;
   moves: MoveUsage[];
   /** Normalised FENs this point needs. */
   fens: string[];
@@ -65,27 +92,35 @@ function buildPointEval(job: Job, known: Map<string, CloudEval>, side: Color): P
 
 export function createEvalQueue(deps: EvalQueueDeps = defaultDeps): EvalQueue {
   return {
-    async run(report, onPoint, signal) {
+    async run(input, onPoint, signal) {
       if (signal.aborted) return;
+      const reports = Array.isArray(input) ? input : [input];
       const jobs: Job[] = [];
       const order: string[] = []; // normalised FENs, first use first
       const raw = new Map<string, string>(); // normalised -> a full FEN to query with
       const users = new Map<string, Job[]>();
-      for (const point of report.points) {
-        const moves = movesToEvaluate(point);
-        const job: Job = { point, moves, fens: [] };
-        for (const fen of [point.fen, ...moves.map((m) => m.fenAfter)]) {
-          const key = normFen(fen);
-          if (job.fens.includes(key)) continue;
-          job.fens.push(key);
-          if (!raw.has(key)) {
-            raw.set(key, fen);
-            order.push(key);
-            users.set(key, []);
+      /** Per report, the positions first needed by that report (in order). */
+      const segments: string[][] = [];
+      for (const report of reports) {
+        const fresh: string[] = [];
+        for (const point of report.points) {
+          const moves = movesToEvaluate(point);
+          const job: Job = { point, side: report.side, moves, fens: [] };
+          for (const fen of [point.fen, ...moves.map((m) => m.fenAfter)]) {
+            const key = normFen(fen);
+            if (job.fens.includes(key)) continue;
+            job.fens.push(key);
+            if (!raw.has(key)) {
+              raw.set(key, fen);
+              order.push(key);
+              fresh.push(key);
+              users.set(key, []);
+            }
+            users.get(key)!.push(job);
           }
-          users.get(key)!.push(job);
+          jobs.push(job);
         }
-        jobs.push(job);
+        segments.push(fresh);
       }
 
       const known = new Map<string, CloudEval>();
@@ -100,32 +135,52 @@ export function createEvalQueue(deps: EvalQueueDeps = defaultDeps): EvalQueue {
       }
       if (signal.aborted) return;
       for (const job of jobs) {
-        if (job.fens.every((f) => known.has(f))) onPoint(buildPointEval(job, known, report.side));
+        if (job.fens.every((f) => known.has(f))) onPoint(buildPointEval(job, known, job.side));
       }
 
-      const todo = order.filter((f) => !known.has(f)).slice(0, MAX_FENS_PER_RUN);
-      for (const key of todo) {
-        if (signal.aborted) return;
-        const fen = raw.get(key)!;
-        let result: CloudEval | null = null;
-        const res: EvalResult = await deps.cloud(fen, signal).catch(() => ({ status: "error" }) as const);
-        if (signal.aborted) return;
-        if (res.status === "ok") result = res.eval;
-        else if (deps.localAvailable()) {
-          const local = await deps.local(fen, { signal, depth: LOCAL_DEPTH, movetime: LOCAL_MOVETIME_MS }).catch(() => null);
-          if (local) result = { ...local, source: "local" };
-        }
-        if (signal.aborted) return;
+      // Positions that still need the engine, report by report, at most MAX_FENS_PER_RUN per report.
+      const work = segments.flatMap((seg) => seg.filter((k) => !known.has(k)).slice(0, MAX_FENS_PER_RUN));
+
+      const settle = async (key: string, result: CloudEval | null) => {
         if (result) {
           known.set(key, result);
           try {
-            await deps.cache.put(fen, result);
+            await deps.cache.put(raw.get(key)!, result);
           } catch {
             // not cached
           }
         }
-        for (const job of users.get(key) ?? []) onPoint(buildPointEval(job, known, report.side));
-      }
+        if (signal.aborted) return;
+        for (const job of users.get(key) ?? []) onPoint(buildPointEval(job, known, job.side));
+      };
+
+      // Two lanes side by side: Lichess answers the positions it has (one request at a time), and the positions it
+      // has not go to the browser engine, which works through them meanwhile instead of holding up the cloud lane.
+      const toLocal = channel<string>();
+      const useLocal = deps.localAvailable();
+      const cloudLane = (async () => {
+        try {
+          for (const key of work) {
+            if (signal.aborted) return;
+            const res: EvalResult = await deps.cloud(raw.get(key)!, signal).catch(() => ({ status: "error" }) as const);
+            if (signal.aborted) return;
+            if (res.status === "ok") await settle(key, res.eval);
+            else if (useLocal) toLocal.push(key);
+            else await settle(key, null);
+          }
+        } finally {
+          toLocal.close();
+        }
+      })();
+      const localLane = (async () => {
+        for (let key = await toLocal.take(); key !== null; key = await toLocal.take()) {
+          if (signal.aborted) continue; // drain without work
+          const local = await deps.local(raw.get(key)!, { signal, depth: LOCAL_DEPTH, movetime: LOCAL_MOVETIME_MS }).catch(() => null);
+          if (signal.aborted) continue;
+          await settle(key, local ? { ...local, source: "local" } : null);
+        }
+      })();
+      await Promise.all([cloudLane, localLane]);
     },
   };
 }

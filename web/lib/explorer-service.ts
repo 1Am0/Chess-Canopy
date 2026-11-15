@@ -188,7 +188,8 @@ export class ExplorerService implements ExplorerAPI {
   /** Bumped by every repertoire write (part of the report cache key). */
   private repertoireVersion = 0;
   /** The last repertoire report (see repertoireReport). */
-  private report: { key: string; report: RepertoireReport } | null = null;
+  /** Recent repertoire reports (both sides, a few settings), least recently used first. */
+  private reports = new Map<string, RepertoireReport>();
 
   private playerCacheMax: number;
 
@@ -209,7 +210,7 @@ export class ExplorerService implements ExplorerAPI {
     this.inflight.clear();
     this.games = null;
     this.opponentNames = null;
-    this.report = null;
+    this.reports.clear();
     if (playerIds) for (const id of playerIds) this.byPlayer.delete(id);
     else this.byPlayer.clear();
   }
@@ -515,14 +516,22 @@ export class ExplorerService implements ExplorerAPI {
     const timeControl = opts.timeControl === "auto" ? (timeControls[0]?.timeControl ?? null) : (opts.timeControl ?? null);
 
     const key = JSON.stringify([ids === "all" ? "all" : ids.join(","), side, timeControl, maxMove, from, version]);
-    if (this.report?.key === key) return this.report.report;
+    const hit = this.reports.get(key);
+    if (hit) {
+      this.reports.delete(key);
+      this.reports.set(key, hit);
+      return hit;
+    }
 
     const used = timeControl === null ? games : games.filter((g) => g.time_control === timeControl);
     const locked = await dbm.listRepertoire(side);
     const { points, deviations } = analyzeRepertoire(used, { side, maxMove, locked });
     const report: RepertoireReport = { side, timeControl, maxMove, periodDays, games: used.length, points, deviations, timeControls };
     // not cached when the data or the repertoire changed meanwhile
-    if (gen === this.gen && version === this.repertoireVersion) this.report = { key, report };
+    if (gen === this.gen && version === this.repertoireVersion) {
+      this.reports.set(key, report);
+      while (this.reports.size > 4) this.reports.delete(this.reports.keys().next().value as string);
+    }
     return report;
   }
 
@@ -562,7 +571,7 @@ export class ExplorerService implements ExplorerAPI {
   /** A repertoire write: reports computed with the old repertoire are stale. */
   private repertoireChanged() {
     this.repertoireVersion++;
-    this.report = null;
+    this.reports.clear();
   }
 
   // ---- import ----

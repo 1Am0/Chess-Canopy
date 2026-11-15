@@ -7,7 +7,7 @@ import { getExplorer, isExplorerRestart, onExplorerRestart } from "@/lib/explore
 import { effectiveSelection, useExplorerStore } from "@/lib/store";
 import { useRepertoirePage } from "@/lib/repertoire/page-store";
 import type { DecisionPoint, NewRepertoireEntry, PointEval, RepertoireEntry, RepertoireReport } from "@/lib/repertoire/types";
-import { useRepertoireEvals } from "@/hooks/use-repertoire-evals";
+import { useRepertoireEvals, type ReportPair } from "@/hooks/use-repertoire-evals";
 
 export interface RepertoireData {
   side: Color;
@@ -56,8 +56,11 @@ export function RepertoireDataProvider({ children }: { children: React.ReactNode
   const periodDays = useRepertoirePage((s) => s.periodDays);
 
   const [version, setVersion] = useState(0);
-  const [result, setResult] = useState<{ key: string; report: RepertoireReport } | null>(null);
-  const [error, setError] = useState<{ key: string; text: string } | null>(null);
+  /** Both sides' reports for one set of settings (`key`); the shown side appears first, the other follows. */
+  const [result, setResult] = useState<{ key: string; reports: ReportPair } | null>(null);
+  /** The same reports once both sides arrived (or failed): what the engine queue works on. */
+  const [evalPair, setEvalPair] = useState<ReportPair | null>(null);
+  const [error, setError] = useState<{ key: string; side: Color; text: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<{ side: Color; list: RepertoireEntry[] }>({ side, list: [] });
   const [busy, setBusy] = useState(false);
@@ -65,7 +68,10 @@ export function RepertoireDataProvider({ children }: { children: React.ReactNode
   const entriesReq = useRef(0);
 
   const selection = useMemo(() => effectiveSelection(selected, players), [selected, players]);
-  const key = `${JSON.stringify(selection)}|${side}|${timeControl}|${maxMove}|${periodDays}`;
+  // Side is not part of the key: both sides load together, so switching sides needs no new request.
+  const key = `${JSON.stringify(selection)}|${timeControl}|${maxMove}|${periodDays}`;
+  const sideRef = useRef(side);
+  sideRef.current = side;
 
   useEffect(
     () =>
@@ -76,27 +82,36 @@ export function RepertoireDataProvider({ children }: { children: React.ReactNode
     [],
   );
 
-  // The report.
+  // Both sides' reports: the shown side first, then the other.
   useEffect(() => {
     if (!ready || players.length === 0) return;
     const id = ++reportReq.current;
     setLoading(true);
-    getExplorer()
-      .repertoireReport(selection, { side, timeControl, maxMove, periodDays })
-      .then((report) => {
-        if (id !== reportReq.current) return;
-        setResult({ key, report });
-        setError(null);
-        setLoading(false);
-      })
-      .catch((e) => {
-        if (id !== reportReq.current) return;
-        setLoading(false);
-        if (isExplorerRestart(e)) return; // re-run after the restart
-        setError({ key, text: message(e) });
-        toast.error(`Could not build the repertoire: ${message(e)}`);
-      });
-    // `key` stands for selection, side, timeControl, maxMove and periodDays.
+    const first = sideRef.current;
+    const sides: Color[] = [first, first === "white" ? "black" : "white"];
+    const got: ReportPair = {};
+    const load = (s: Color) =>
+      getExplorer()
+        .repertoireReport(selection, { side: s, timeControl, maxMove, periodDays })
+        .then((report) => {
+          if (id !== reportReq.current) return;
+          got[s] = report;
+          setResult((prev) => (prev && prev.key === key ? { key, reports: { ...prev.reports, [s]: report } } : { key, reports: { [s]: report } }));
+          setError((e) => (e && e.side === s ? null : e));
+          if (s === first) setLoading(false);
+        })
+        .catch((e) => {
+          if (id !== reportReq.current) return;
+          if (s === first) setLoading(false);
+          if (isExplorerRestart(e)) return; // re-run after the restart
+          setError({ key, side: s, text: message(e) });
+          if (s === sideRef.current) toast.error(`Could not build the repertoire: ${message(e)}`);
+        });
+    // The worker answers in order, so the shown side is ready first; the engine starts once both are in.
+    void Promise.allSettled(sides.map(load)).then(() => {
+      if (id === reportReq.current) setEvalPair({ ...got });
+    });
+    // `key` stands for selection, timeControl, maxMove and periodDays.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, players.length, key, version]);
 
@@ -115,9 +130,15 @@ export function RepertoireDataProvider({ children }: { children: React.ReactNode
       });
   }, [ready, side, version]);
 
-  const report = result?.report ?? null;
-  const stale = !result || result.key !== key;
-  const { evals, done, total, running } = useRepertoireEvals(report);
+  const report = result?.reports[side] ?? null;
+  const stale = !result || result.key !== key || !result.reports[side];
+  const { evals, running } = useRepertoireEvals(evalPair, side);
+  const total = report?.points.length ?? 0;
+  let done = 0;
+  for (const p of report?.points ?? []) {
+    const st = evals.get(p.epd)?.status;
+    if (st && st !== "pending") done++;
+  }
 
   const pointsByEpd = useMemo(() => new Map((report?.points ?? []).map((p) => [p.epd, p])), [report]);
   const entryList = useMemo(() => (entries.side === side ? entries.list : []), [entries, side]);
@@ -159,7 +180,7 @@ export function RepertoireDataProvider({ children }: { children: React.ReactNode
     report,
     stale,
     loading,
-    error: error && error.key === key ? error.text : null,
+    error: error && error.key === key && error.side === side ? error.text : null,
     entries: entryList,
     pointsByEpd,
     entriesByEpd,

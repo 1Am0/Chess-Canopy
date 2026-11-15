@@ -171,3 +171,44 @@ describe("eval cache", () => {
     expect(got.has(AFTER_E4)).toBe(false);
   });
 });
+
+describe("eval queue: both sides and parallel lanes", () => {
+  it("evaluates several reports in order, each with its own side", async () => {
+    const AFTER_E4_C5 = after(AFTER_E4, "c5");
+    const black = point("b1", AFTER_E4, [usage(AFTER_E4, "c5", 5)]);
+    const f = fakeDeps();
+    const emits: PointEval[] = [];
+    await createEvalQueue(f.deps).run([report([P1]), { ...report([black]), side: "black" }], (pe) => emits.push(pe), new AbortController().signal);
+    // White's positions first, then Black's (AFTER_E4 is shared and asked only once)
+    expect(f.cloudCalls).toEqual([START, AFTER_E4, AFTER_E4_C5]);
+    const b = emits.filter((e) => e.epd === "b1").at(-1)!;
+    // cloud: 20 before (White POV) → 20 after; Black loses 0
+    expect(b.moves.c5).toMatchObject({ lossCp: 0, verdict: "good" });
+  });
+
+  it("keeps asking the cloud while the local engine works on positions the cloud lacks", async () => {
+    const log: string[] = [];
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const f = fakeDeps({
+      cloud: async (fen) => {
+        log.push(`cloud ${fen === START ? "start" : "e4"}`);
+        return fen === START ? ({ status: "none" } as EvalResult) : { status: "ok", eval: cp(20) };
+      },
+      local: async () => {
+        log.push("local start");
+        await gate;
+        log.push("local done");
+        return cp(30);
+      },
+    });
+    const run = collect(f.deps, report([P1]));
+    await vi.waitFor(() => expect(log).toContain("cloud e4"));
+    await vi.waitFor(() => expect(log).toContain("local start"));
+    // the cloud lane moved on to the next position while the local engine is still busy with the first
+    expect(log).not.toContain("local done");
+    release();
+    const emits = await run;
+    expect(emits.at(-1)!.status).toBe("settled");
+  });
+});

@@ -1,46 +1,59 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createEvalQueue } from "@/lib/repertoire/eval-queue";
+import type { Color } from "@/lib/engine/types";
 import type { PointEval, RepertoireReport } from "@/lib/repertoire/types";
 import { statusOf } from "@/lib/repertoire/verdict";
 
 const FLUSH_MS = 150;
 const queue = createEvalQueue();
 
-function initialEvals(report: RepertoireReport | null): Map<string, PointEval> {
+/** The reports to evaluate: one per side (either may be missing). Position keys never collide across sides. */
+export type ReportPair = Partial<Record<Color, RepertoireReport>>;
+
+function initialEvals(pair: ReportPair | null): Map<string, PointEval> {
   const m = new Map<string, PointEval>();
-  for (const p of report?.points ?? []) m.set(p.epd, { epd: p.epd, before: null, moves: {}, status: statusOf(p, undefined) });
+  for (const r of [pair?.white, pair?.black]) {
+    for (const p of r?.points ?? []) m.set(p.epd, { epd: p.epd, before: null, moves: {}, status: statusOf(p, undefined) });
+  }
   return m;
 }
 
 interface State {
-  report: RepertoireReport | null;
+  pair: ReportPair | null;
   evals: Map<string, PointEval>;
   running: boolean;
 }
 
-const fresh = (report: RepertoireReport | null): State => ({
-  report,
-  evals: initialEvals(report),
-  running: !!report && report.points.length > 0,
-});
+const hasPoints = (pair: ReportPair | null) => !!pair && ((pair.white?.points.length ?? 0) > 0 || (pair.black?.points.length ?? 0) > 0);
 
-/** Engine verdicts for every point of `report`, filled in as the eval queue gets them. */
-export function useRepertoireEvals(report: RepertoireReport | null): {
+const fresh = (pair: ReportPair | null): State => ({ pair, evals: initialEvals(pair), running: hasPoints(pair) });
+
+/**
+ * Engine verdicts for every point of both sides' reports, filled in as the eval queue gets them. The side shown when
+ * the run starts (`first`) is evaluated first, then the other, so switching sides later finds its evals ready or on the
+ * way. `pair` must keep its identity until the reports change.
+ */
+export function useRepertoireEvals(
+  pair: ReportPair | null,
+  first: Color,
+): {
   evals: Map<string, PointEval>;
-  done: number;
-  total: number;
   running: boolean;
 } {
-  const [state, setState] = useState<State>(() => fresh(report));
+  const [state, setState] = useState<State>(() => fresh(pair));
+  const firstRef = useRef(first);
+  firstRef.current = first;
   let current = state;
-  if (state.report !== report) {
-    // new report: reset during render (React's recommended pattern) so the old evals never show for it
-    current = fresh(report);
+  if (state.pair !== pair) {
+    // new reports: reset during render (React's recommended pattern) so old evals never show for them
+    current = fresh(pair);
     setState(current);
   }
 
   useEffect(() => {
-    if (!report || report.points.length === 0) return;
+    if (!pair || !hasPoints(pair)) return;
+    const other: Color = firstRef.current === "white" ? "black" : "white";
+    const reports = [pair[firstRef.current], pair[other]].filter((r): r is RepertoireReport => !!r);
     const ctl = new AbortController();
     const pending = new Map<string, PointEval>();
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -50,7 +63,7 @@ export function useRepertoireEvals(report: RepertoireReport | null): {
       const batch = [...pending.values()];
       pending.clear();
       setState((s) => {
-        if (s.report !== report) return s;
+        if (s.pair !== pair) return s;
         const evals = new Map(s.evals);
         for (const pe of batch) evals.set(pe.epd, pe);
         return { ...s, evals };
@@ -61,21 +74,19 @@ export function useRepertoireEvals(report: RepertoireReport | null): {
       timer ??= setTimeout(flush, FLUSH_MS);
     };
     void queue
-      .run(report, onPoint, ctl.signal)
+      .run(reports, onPoint, ctl.signal)
       .catch(() => {})
       .finally(() => {
         if (ctl.signal.aborted) return;
         clearTimeout(timer);
         flush();
-        setState((s) => (s.report === report ? { ...s, running: false } : s));
+        setState((s) => (s.pair === pair ? { ...s, running: false } : s));
       });
     return () => {
       ctl.abort();
       clearTimeout(timer);
     };
-  }, [report]);
+  }, [pair]);
 
-  let done = 0;
-  for (const pe of current.evals.values()) if (pe.status !== "pending") done++;
-  return { evals: current.evals, done, total: report?.points.length ?? 0, running: current.running };
+  return { evals: current.evals, running: current.running };
 }
