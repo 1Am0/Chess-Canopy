@@ -39,8 +39,8 @@ export const SWITCH_MIN_GAMES = 5;
 /** Engine verdict thresholds, in centipawns lost compared with the position before your move. */
 export const DUBIOUS_CP = 50;
 export const BAD_CP = 100;
-/** Moves played fewer times than this are not sent to the engine (the top move always is). */
-export const EVAL_MIN_MOVE_GAMES = 2;
+/** Moves played fewer times than this are not sent to the engine (the top move always is). 1 = every move you played gets an eval. */
+export const EVAL_MIN_MOVE_GAMES = 1;
 /** At most this many "left your repertoire" games are returned. */
 export const MAX_DEVIATIONS = 50;
 

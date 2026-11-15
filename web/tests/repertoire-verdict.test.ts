@@ -107,10 +107,12 @@ describe("statusOf", () => {
     expect(statusOf(mixed, ev(me("e4", "good"), me("d4", "good"), me("c4", "bad")))).toBe("undecided");
     expect(statusOf(mixed, ev(me("e4", "good"), me("d4", "unknown")))).toBe("pending");
   });
-  it("ignores a frequent move that is never sent to the engine", () => {
+  it("sends a move played once to the engine too, and waits for its verdict", () => {
     const p = point({ moves: [usage("e4", 2), usage("d4", 1)] }); // d4: 1 game, 33%
-    expect(movesToEvaluate(p).map((m) => m.san)).toEqual(["e4"]);
-    expect(statusOf(p, ev(me("e4", "good")))).toBe("undecided");
+    expect(movesToEvaluate(p).map((m) => m.san)).toEqual(["e4", "d4"]);
+    expect(statusOf(p, ev(me("e4", "good")))).toBe("pending");
+    expect(statusOf(p, ev(me("e4", "good"), me("d4", "good")))).toBe("undecided");
+    expect(statusOf(p, ev(me("e4", "good"), me("d4", "bad")))).toBe("problem");
   });
   it("needs the main move's verdict before calling a point undecided", () => {
     const p = point({ moves: [usage("e4", 5), usage("d4", 4), usage("c4", 1)], main: "c4", locked: "c4" });
@@ -120,14 +122,14 @@ describe("statusOf", () => {
 });
 
 describe("movesToEvaluate", () => {
-  it("takes frequent moves, the main and top move, and a locked move never played", () => {
+  it("takes every move played, and a locked move never played", () => {
     const p = point({
       moves: [usage("e4", 5), usage("d4", 2), usage("c4", 1), usage("g3", 1)],
       main: "g3",
       locked: "Nf3",
     });
     const ms = movesToEvaluate(p);
-    expect(ms.map((m) => m.san).sort()).toEqual(["Nf3", "d4", "e4", "g3"]);
+    expect(ms.map((m) => m.san).sort()).toEqual(["Nf3", "c4", "d4", "e4", "g3"]);
     const nf3 = ms.find((m) => m.san === "Nf3")!;
     expect(nf3.games).toBe(0);
     expect(nf3.fenAfter).toBe(fenAfter(START, "Nf3"));
