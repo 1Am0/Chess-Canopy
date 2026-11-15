@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronRight, Filter, HelpCircle, Plus } from "lucide-react";
+import Link from "next/link";
+import { BookMarked, ChevronRight, Compass, Filter, HelpCircle, Plus } from "lucide-react";
 import { activeFilterCount, useExplorerStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { ImportIndicator } from "@/components/players/ImportIndicator";
@@ -19,10 +20,23 @@ function Kbd({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Header({ showTools }: { showTools: boolean }) {
+/**
+ * Link to the other page with the viewed side. The side is only in the address bar once it was chosen (or came from a
+ * `?side=` link), and then it is the store's side, so that is what the link carries; otherwise the shared, persisted
+ * store already holds it.
+ */
+export function usePageHref(path: "/" | "/repertoire"): string {
+  const side = useExplorerStore((s) => s.filters.color ?? "white");
+  const explicit = useExplorerStore((s) => s.sideExplicit);
+  return explicit ? `${path}?side=${side}` : path;
+}
+
+export function Header({ showTools, page = "explorer" }: { showTools: boolean; page?: "explorer" | "repertoire" }) {
   const filters = useExplorerStore((s) => s.filters);
   const setUi = useExplorerStore((s) => s.setUi);
   const count = activeFilterCount(filters);
+  const repertoireHref = usePageHref("/repertoire");
+  const explorerHref = usePageHref("/");
 
   return (
     <header
@@ -47,7 +61,7 @@ export function Header({ showTools }: { showTools: boolean }) {
           {showTools && <div className="min-w-0 shrink lg:shrink-0" data-testid="player-switcher"><PlayerSwitcher /></div>}
           <div className="ml-auto flex shrink-0 items-center gap-1.5 max-sm:gap-2 lg:ml-0 lg:min-h-0 lg:flex-1 lg:flex-col lg:items-stretch">
             {showTools && <ImportIndicator />}
-            {showTools && (
+            {showTools && page === "explorer" && (
               <Button
                 variant="chit"
                 size="sm"
@@ -70,14 +84,33 @@ export function Header({ showTools }: { showTools: boolean }) {
                 <span className={RAIL_LABEL}>Import</span>
               </Button>
             )}
-            <MoreMenu />
+            {/* Phones: the explorer header is full, so the Repertoire link lives in the More menu there. */}
+            {showTools && page === "explorer" && (
+              <Button asChild variant="chit" size="sm" className={`max-sm:hidden ${RAIL_BTN}`}>
+                <Link href={repertoireHref} aria-label="Repertoire">
+                  <BookMarked />
+                  <span className={RAIL_LABEL_LG}>Repertoire</span>
+                </Link>
+              </Button>
+            )}
+            {showTools && page === "repertoire" && (
+              <Button asChild variant="chit" size="sm" className={`max-sm:h-11 max-sm:min-w-11 max-sm:px-3 ${RAIL_BTN}`}>
+                <Link href={explorerHref} aria-label="Explorer">
+                  <Compass />
+                  <span className={RAIL_LABEL_LG}>Explorer</span>
+                </Link>
+              </Button>
+            )}
+            <MoreMenu repertoireHref={showTools && page === "explorer" ? repertoireHref : undefined} shortcuts={page === "explorer"} />
             <div className="flex items-center gap-1.5 max-sm:contents lg:mt-auto lg:flex-col lg:items-stretch">
               <SoundToggle className={`max-sm:hidden ${RAIL_BTN}`} label="Sound" />
-              <Button variant="chit" size="icon" className={`max-sm:hidden ${RAIL_BTN}`} onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
-                <HelpCircle />
-                <span className={RAIL_LABEL_LG}>Shortcuts</span>
-                <Kbd>?</Kbd>
-              </Button>
+              {page === "explorer" && (
+                <Button variant="chit" size="icon" className={`max-sm:hidden ${RAIL_BTN}`} onClick={() => setUi({ shortcutsOpen: true })} aria-label="Keyboard shortcuts">
+                  <HelpCircle />
+                  <span className={RAIL_LABEL_LG}>Shortcuts</span>
+                  <Kbd>?</Kbd>
+                </Button>
+              )}
             </div>
           </div>
         </div>
