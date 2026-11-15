@@ -5,6 +5,7 @@ import { useCloudEval } from "@/hooks/use-cloud-eval";
 import { formatEval, whiteShare } from "@/lib/cloud-eval";
 import { usePosition } from "@/hooks/use-position";
 import { useExplorerStore } from "@/lib/store";
+import type { Color } from "@/lib/engine/types";
 import { PencilHatch } from "@/components/paper";
 import { createRng, n2 } from "@/lib/paper";
 import { cn } from "@/lib/utils";
@@ -66,9 +67,12 @@ function Ticks({ whiteAtBottom, color }: { whiteAtBottom: boolean; color: string
  * States: loading and no-eval are pencil-hatched (loading breathes); a cloud value has a manila tag, a local one a dashed
  * cream tag; a forced mate has an ink tag.
  */
-export function EvalBar() {
-  const { fen } = usePosition();
-  const orientation = useExplorerStore((s) => s.orientation);
+export function EvalBar({ fen: fenProp, orientation: orientationProp }: { fen?: string; orientation?: Color } = {}) {
+  // Defaults to the explorer's position and board orientation; other pages (Repertoire) pass their own.
+  const { fen: explorerFen } = usePosition();
+  const explorerOrientation = useExplorerStore((s) => s.orientation);
+  const fen = fenProp ?? explorerFen;
+  const orientation = orientationProp ?? explorerOrientation;
   const res = useCloudEval(fen);
   const ok = res !== "loading" && res.status === "ok" ? res.eval : null;
   const sh = ok ? whiteShare(ok) : 50;

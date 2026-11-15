@@ -14,6 +14,7 @@ import { BoardOverlay, type OverlayArrow, type UserArrow } from "@/components/bo
 import { PlateDefs, PLATE_DRAGGING_STYLE, PLATE_PIECES } from "@/components/board/pieces";
 import { PLATE_DARK, PLATE_FRAME, PLATE_LIGHT, PLATE_VARS, squareTile } from "@/components/board/plate-squares";
 import { PaperSheet, Tape, UnderSheet } from "@/components/paper";
+import { EvalBar } from "@/components/board/EvalBar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -189,7 +190,9 @@ export function RepertoireBoard({
       <PaperSheet className="flex flex-col gap-2 p-2 lg:p-2.5" data-testid="repertoire-board-mat">
         <Tape variant="sage" angle={-3} seed="mat-l" className="hidden lg:block -top-1.5 left-5" />
         <Tape variant="sage" angle={3} seed="mat-r" className="hidden lg:block -top-1.5 right-5" />
-        <div className="relative min-w-0 shadow-print">
+        <div className="flex gap-2">
+        <EvalBar fen={fen} orientation={side} />
+        <div className="relative min-w-0 flex-1 shadow-print">
           <div
             ref={box}
             data-testid="repertoire-board"
@@ -229,7 +232,9 @@ export function RepertoireBoard({
             <BoardOverlay orientation={side} arrows={arrows} userArrows={userArrows} marks={{ targets: legalTargets }} />
           </div>
         </div>
-        <div role="group" aria-label="Board controls" className="flex items-center">
+        </div>
+        {/* indented past the eval bar, whose search depth is written in the margin under it (as in the explorer) */}
+        <div role="group" aria-label="Board controls" className="flex items-center pl-10">
           <Tip label="Back to the selected position">
             <Button variant="outline" size="icon" className={btn} onClick={onReset} aria-label="Back to the selected position">
               <RotateCcw />
