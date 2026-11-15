@@ -26,6 +26,14 @@ import { parsePgnText, type ParseStats } from "./importers/pgn";
 import { parseStoreJson } from "./importers/normalize";
 import { abortError, HttpError } from "./importers/common";
 import { START_FEN } from "./importers/standard";
+import { analyzeRepertoire, epdOf, summarizeGame } from "./repertoire/analyze";
+import {
+  DEFAULT_MAX_MOVE,
+  type NewRepertoireEntry,
+  type RepertoireEntry,
+  type RepertoireOptions,
+  type RepertoireReport,
+} from "./repertoire/types";
 
 /** Selections kept warm. Entries are small (references + visited nodes), see position-index.ts. */
 const LRU_SIZE = 6;
@@ -177,6 +185,10 @@ export class ExplorerService implements ExplorerAPI {
   private board = new PathBoard();
   private aborts = new Set<AbortController>();
   private maintenance: Promise<unknown> | null = null;
+  /** Bumped by every repertoire write (part of the report cache key). */
+  private repertoireVersion = 0;
+  /** The last repertoire report (see repertoireReport). */
+  private report: { key: string; report: RepertoireReport } | null = null;
 
   private playerCacheMax: number;
 
@@ -197,6 +209,7 @@ export class ExplorerService implements ExplorerAPI {
     this.inflight.clear();
     this.games = null;
     this.opponentNames = null;
+    this.report = null;
     if (playerIds) for (const id of playerIds) this.byPlayer.delete(id);
     else this.byPlayer.clear();
   }
@@ -267,14 +280,17 @@ export class ExplorerService implements ExplorerAPI {
     if (evicted) this.lru.clear();
   }
 
+  /** The games of `ids` ("all": every stored player) as a fresh array, newest first. Uses the per-player cache only. */
+  private async mergePlayers(ids: string[] | "all"): Promise<Game[]> {
+    const list = ids === "all" ? await dbm.listPlayerIds() : ids;
+    const lists = await Promise.all(list.map((id) => this.loadPlayer(id)));
+    // A fresh array (the cached per-player ones stay untouched), newest first like before.
+    return newestFirst(lists.length === 1 ? [...lists[0]] : lists.flat());
+  }
+
   private loadGames(sel: Selection): Promise<Game[]> {
     if (this.games?.key === sel.idsKey) return this.games.promise;
-    const promise = (async () => {
-      const ids = sel.ids === "all" ? await dbm.listPlayerIds() : sel.ids;
-      const lists = await Promise.all(ids.map((id) => this.loadPlayer(id)));
-      // A fresh array (the cached per-player ones stay untouched), newest first like before.
-      return newestFirst(lists.length === 1 ? [...lists[0]] : lists.flat());
-    })();
+    const promise = this.mergePlayers(sel.ids);
     const entry = { key: sel.idsKey, promise };
     this.games = entry;
     promise.catch(() => {
@@ -454,20 +470,7 @@ export class ExplorerService implements ExplorerAPI {
     const from = Math.max(0, Math.floor(offset) || 0);
     const n = Math.min(from + Math.max(0, Math.floor(limit) || 0), node.idx.length);
     for (let k = from; k < n; k++) {
-      const g = index.games[node.idx[k]];
-      out.push({
-        game_id: g.game_id,
-        date: g.date,
-        opponent: g.opponent,
-        my_rating: g.my_rating,
-        opponent_rating: g.opponent_rating,
-        result: g.result,
-        color: g.color,
-        url: g.url,
-        source: g.source,
-        time_control: g.time_control,
-        moves: g.moves,
-      });
+      out.push(summarizeGame(index.games[node.idx[k]]));
     }
     return out;
   }
@@ -489,6 +492,71 @@ export class ExplorerService implements ExplorerAPI {
     const names = [...freq.values()].sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)).map((e) => e.name);
     if (gen === this.gen) this.opponentNames = { key: sel.idsKey, names };
     return names;
+  }
+
+  // ---- repertoire ----
+  async repertoireReport(playerIds: string[] | "all", opts: RepertoireOptions): Promise<RepertoireReport> {
+    const ids = playerIds === "all" ? "all" : [...new Set(playerIds)].sort();
+    const side = opts.side;
+    const maxMove = Number.isFinite(opts.maxMove) ? Math.min(40, Math.max(1, Math.floor(opts.maxMove))) : DEFAULT_MAX_MOVE;
+    const gen = this.gen;
+    const version = this.repertoireVersion;
+
+    const games = (await this.mergePlayers(ids)).filter((g) => g.color === side && classifyResult(g.result ?? "*") !== null);
+    const perTc = new Map<string, number>();
+    for (const g of games) if (g.time_control) perTc.set(g.time_control, (perTc.get(g.time_control) ?? 0) + 1);
+    const timeControls = [...perTc]
+      .map(([timeControl, n]) => ({ timeControl, games: n }))
+      .sort((a, b) => b.games - a.games || (a.timeControl < b.timeControl ? -1 : a.timeControl > b.timeControl ? 1 : 0));
+    const timeControl = opts.timeControl === "auto" ? (timeControls[0]?.timeControl ?? null) : (opts.timeControl ?? null);
+
+    const key = JSON.stringify([ids === "all" ? "all" : ids.join(","), side, timeControl, maxMove, version]);
+    if (this.report?.key === key) return this.report.report;
+
+    const used = timeControl === null ? games : games.filter((g) => g.time_control === timeControl);
+    const locked = await dbm.listRepertoire(side);
+    const { points, deviations } = analyzeRepertoire(used, { side, maxMove, locked });
+    const report: RepertoireReport = { side, timeControl, maxMove, games: used.length, points, deviations, timeControls };
+    // not cached when the data or the repertoire changed meanwhile
+    if (gen === this.gen && version === this.repertoireVersion) this.report = { key, report };
+    return report;
+  }
+
+  async listRepertoire(side: Color): Promise<RepertoireEntry[]> {
+    return dbm.listRepertoire(side);
+  }
+
+  async saveRepertoireMove(entry: NewRepertoireEntry): Promise<RepertoireEntry> {
+    let san: string;
+    try {
+      if (epdOf(entry.fen) !== entry.epd) throw new Error("epd mismatch");
+      const m = new Chess(entry.fen).move(entry.san);
+      if (m.san === "--") throw new Error("null move");
+      san = m.san;
+    } catch {
+      throw new Error("Illegal repertoire move");
+    }
+    this.repertoireChanged();
+    try {
+      return await dbm.putRepertoireEntry({ ...entry, san });
+    } finally {
+      this.repertoireChanged();
+    }
+  }
+
+  async deleteRepertoireMove(side: Color, epd: string): Promise<void> {
+    this.repertoireChanged();
+    try {
+      await dbm.deleteRepertoireEntry(side, epd);
+    } finally {
+      this.repertoireChanged();
+    }
+  }
+
+  /** A repertoire write: reports computed with the old repertoire are stale. */
+  private repertoireChanged() {
+    this.repertoireVersion++;
+    this.report = null;
   }
 
   // ---- import ----

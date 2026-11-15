@@ -92,5 +92,9 @@ export function createWorkerExplorer(opts: WorkerExplorerOptions = {}): Explorer
     importGames: (req: ImportRequest, cb: (p: ImportProgress) => void) => call(() => remote.importGames(req, Comlink.proxy(cb))),
     syncPlayer: (id: string, cb: (p: ImportProgress) => void) => call(() => remote.syncPlayer(id, Comlink.proxy(cb))),
     cancelImport: () => call(() => remote.cancelImport()),
+    repertoireReport: (ids, o) => call(() => remote.repertoireReport(ids, o)),
+    listRepertoire: (side) => call(() => remote.listRepertoire(side)),
+    saveRepertoireMove: (e) => call(() => remote.saveRepertoireMove(e)),
+    deleteRepertoireMove: (side, epd) => call(() => remote.deleteRepertoireMove(side, epd)),
   };
 }

@@ -1,5 +1,6 @@
 import Dexie, { type Table, type Transaction } from "dexie";
-import type { Game, Player } from "./engine/types";
+import type { Color, Game, Player } from "./engine/types";
+import type { NewRepertoireEntry, RepertoireEntry } from "./repertoire/types";
 import { isStandardPlay } from "./importers/standard";
 
 export type StoredGame = Game & { id: string };
@@ -35,6 +36,8 @@ async function dropNonStandardGames(tx: Transaction): Promise<void> {
 export class CanopyDB extends Dexie {
   players!: Table<Player, string>;
   games!: Table<StoredGame, string>;
+  /** Saved repertoire moves (lib/repertoire/types.ts); they belong to the user, not to an imported player. */
+  repertoire!: Table<RepertoireEntry, string>;
   constructor(name = "chess-canopy") {
     super(name);
     this.version(1).stores({
@@ -47,6 +50,11 @@ export class CanopyDB extends Dexie {
         games: "&id, playerId, date",
       })
       .upgrade(dropNonStandardGames);
+    this.version(3).stores({
+      players: "&id, source",
+      games: "&id, playerId, date",
+      repertoire: "&id, side",
+    });
   }
 }
 
@@ -167,4 +175,40 @@ export async function updatePlayer(id: string, patch: Partial<Player>): Promise<
     if (cur) await db.players.put({ ...cur, ...patch, id });
     else await db.players.put({ id, ...patch } as Player);
   });
+}
+
+// ---- repertoire ----
+
+export const repertoireId = (side: Color, epd: string) => `${side}|${epd}`;
+
+/** Saved repertoire moves of one side. */
+export async function listRepertoire(side: Color): Promise<RepertoireEntry[]> {
+  return db.repertoire.where("side").equals(side).toArray();
+}
+
+/**
+ * Store the repertoire move of a position (replacing the one there). `lockedAt` is now, unless the same move was
+ * already locked there, which keeps its date (the line and FEN are still updated).
+ */
+export async function putRepertoireEntry(e: NewRepertoireEntry): Promise<RepertoireEntry> {
+  const id = repertoireId(e.side, e.epd);
+  return db.transaction("rw", db.repertoire, async () => {
+    const cur = await db.repertoire.get(id);
+    const entry: RepertoireEntry = {
+      id,
+      side: e.side,
+      epd: e.epd,
+      fen: e.fen,
+      san: e.san,
+      line: [...e.line],
+      lockedAt: cur && cur.san === e.san ? cur.lockedAt : Date.now(),
+    };
+    await db.repertoire.put(entry);
+    return entry;
+  });
+}
+
+/** Remove the repertoire move of a position (no-op when there is none). */
+export async function deleteRepertoireEntry(side: Color, epd: string): Promise<void> {
+  await db.repertoire.delete(repertoireId(side, epd));
 }

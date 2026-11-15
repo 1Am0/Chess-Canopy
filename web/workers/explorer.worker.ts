@@ -45,6 +45,10 @@ const api: ExplorerAPI = {
   importGames: (req, cb) => withProgress(cb, (p) => svc.importGames(req, p)),
   syncPlayer: (id, cb) => withProgress(cb, (p) => svc.syncPlayer(id, p)),
   cancelImport: () => svc.cancelImport(),
+  repertoireReport: (ids, o) => svc.repertoireReport(ids, o),
+  listRepertoire: (side) => svc.listRepertoire(side),
+  saveRepertoireMove: (e) => svc.saveRepertoireMove(e),
+  deleteRepertoireMove: (side, epd) => svc.deleteRepertoireMove(side, epd),
 };
 
 Comlink.expose(api);
