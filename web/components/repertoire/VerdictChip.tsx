@@ -1,4 +1,4 @@
-import { VERDICT_LABEL, type MoveEval } from "@/lib/repertoire/types";
+import { STATUS_HINT, STATUS_LABEL, VERDICT_LABEL, type MoveEval, type PointStatus } from "@/lib/repertoire/types";
 import { formatEval } from "@/lib/cloud-eval";
 import { scoreChipColor } from "@/components/explorer/wdb";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,34 @@ export function VerdictChip({ ev, className }: { ev: MoveEval | undefined; class
       aria-label={`Eval ${text}, ${detail}`}
     >
       {text}
+    </span>
+  );
+}
+
+/** The verdict tones read as a position's status: settled green, undecided or leaking sand, a problem spot red. */
+const STATUS_TONE: Record<Exclude<PointStatus, "pending">, string> = {
+  settled: TONE.good,
+  undecided: TONE.dubious,
+  leaking: TONE.dubious,
+  problem: TONE.bad,
+};
+
+/** A report position's status as a small score-chip (plain muted text while the engine hasn't looked). */
+export function StatusChip({ status, className }: { status: PointStatus; className?: string }) {
+  if (status === "pending") {
+    return (
+      <span className={cn("truncate text-xs text-muted-foreground", className)} title={STATUS_HINT.pending}>
+        {STATUS_LABEL.pending}
+      </span>
+    );
+  }
+  return (
+    <span
+      className={cn("score-chip min-w-0 truncate text-[11px] whitespace-nowrap", className)}
+      style={{ backgroundColor: STATUS_TONE[status] }}
+      title={STATUS_HINT[status]}
+    >
+      {STATUS_LABEL[status]}
     </span>
   );
 }

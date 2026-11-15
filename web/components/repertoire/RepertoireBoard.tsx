@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { linePositions } from "@/lib/position-cache";
 import { svgDataUri, washPath } from "@/lib/paper";
@@ -13,10 +12,6 @@ import { describePosition } from "@/components/board/describe-position";
 import { BoardOverlay, type OverlayArrow, type UserArrow } from "@/components/board/BoardOverlay";
 import { PlateDefs, PLATE_DRAGGING_STYLE, PLATE_PIECES } from "@/components/board/pieces";
 import { PLATE_DARK, PLATE_FRAME, PLATE_LIGHT, PLATE_VARS, squareTile } from "@/components/board/plate-squares";
-import { PaperSheet, Tape, UnderSheet } from "@/components/paper";
-import { EvalBar } from "@/components/board/EvalBar";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** Arrow widths in board units, as on the explorer board (thicker = played more). */
 const MIN_WIDTH = 9.4;
@@ -51,42 +46,24 @@ export function useBoardPosition() {
   }, [boardLine, cursor]);
 }
 
-function Tip({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
-  );
-}
-
-// The explorer's board-control card buttons (see BoardControls): 44px on phones, 36px from sm, butted together.
-const btn =
-  "relative size-11 min-h-11 min-w-11 sm:size-9 sm:min-h-9 sm:min-w-9 rounded-none border-l-0 first:rounded-l-[2px] first:border-l last:rounded-r-[2px] hover:z-10 focus-visible:z-10";
-
 /**
- * The Repertoire page's board: the explorer's plate (same squares, pieces, wash and ink arrows) on its mat, bound to the
- * page's own line. Both colours can be moved, to explore or to add a line. Arrows show the moves you played in this
+ * The Repertoire page's board: the explorer's plate (same squares, pieces, wash and ink arrows), bound to the page's own
+ * line. The mat, strips, eval bar and controls around it are RepertoireBoardColumn's. Both colours can be moved, to explore or to add a line. Arrows show the moves you played in this
  * position (thicker = more games) and your locked move in green ink.
  */
 export function RepertoireBoard({
   side,
   moves,
   locked,
-  onReset,
 }: {
   side: Color;
   /** Moves you played in the shown position, most games first. */
   moves: { san: string; games: number }[];
   /** Your locked move in the shown position, if any. */
   locked: string | null;
-  /** Back to the selected position (or the start). */
-  onReset: () => void;
 }) {
-  const { fen, visible, turn, lastMove, at, sans } = useBoardPosition();
+  const { fen, visible, turn, lastMove } = useBoardPosition();
   const playMove = useRepertoirePage((s) => s.playMove);
-  const back = useRepertoirePage((s) => s.back);
-  const forward = useRepertoirePage((s) => s.forward);
   const [selected, setSelected] = useState<string | null>(null);
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const box = useRef<HTMLDivElement>(null);
@@ -185,73 +162,43 @@ export function RepertoireBoard({
   }, [lastMove, selected]);
 
   return (
-    <div id="repertoire-board" className="relative isolate z-10 mx-auto w-[var(--board-size)] max-w-full scroll-mt-16 lg:mx-0 lg:w-[calc(var(--board-size)+1.25rem)]">
-      <UnderSheet seed={5} dx={5} dy={6} rotate={0.7} />
-      <PaperSheet className="flex flex-col gap-2 p-2 lg:p-2.5" data-testid="repertoire-board-mat">
-        <Tape variant="sage" angle={-3} seed="mat-l" className="hidden lg:block -top-1.5 left-5" />
-        <Tape variant="sage" angle={3} seed="mat-r" className="hidden lg:block -top-1.5 right-5" />
-        <div className="flex gap-2">
-        <EvalBar fen={fen} orientation={side} />
-        <div className="relative min-w-0 flex-1 shadow-print">
-          <div
-            ref={box}
-            data-testid="repertoire-board"
-            className="@container relative aspect-square w-full overflow-hidden rounded-[1px]"
-            style={{ "--board-light": PLATE_LIGHT, "--board-dark": PLATE_DARK, ...PLATE_VARS, boxShadow: PLATE_FRAME } as React.CSSProperties}
-            role="img"
-            aria-label={`Chess board. ${describePosition(visible, turn)}`}
-          >
-            <PlateDefs />
-            <Chessboard
-              options={{
-                pieces: PLATE_PIECES,
-                id: "repertoire-board",
-                position: fen,
-                boardOrientation: side,
-                showNotation: false,
-                allowDrawingArrows: false,
-                animationDurationInMs: reduceMotion || seenFen.snap ? 0 : 160,
-                squareStyles,
-                lightSquareStyle: { backgroundColor: PLATE_LIGHT },
-                darkSquareStyle: { backgroundColor: PLATE_DARK },
-                dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,252,238,0.75)" },
-                draggingPieceStyle: PLATE_DRAGGING_STYLE,
-                onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare ? tryMove(sourceSquare, targetSquare) : false),
-                onSquareClick: ({ square }) => {
-                  if (selected && selected !== square && tryMove(selected, square)) return;
-                  try {
-                    const chess = new Chess(fen);
-                    const piece = chess.get(square as never);
-                    setSelected(piece && piece.color === chess.turn() && selected !== square ? square : null);
-                  } catch {
-                    setSelected(null);
-                  }
-                },
-              }}
-            />
-            <BoardOverlay orientation={side} arrows={arrows} userArrows={userArrows} marks={{ targets: legalTargets }} />
-          </div>
-        </div>
-        </div>
-        {/* indented past the eval bar, whose search depth is written in the margin under it (as in the explorer) */}
-        <div role="group" aria-label="Board controls" className="flex items-center pl-10">
-          <Tip label="Back to the selected position">
-            <Button variant="outline" size="icon" className={btn} onClick={onReset} aria-label="Back to the selected position">
-              <RotateCcw />
-            </Button>
-          </Tip>
-          <Tip label="Previous move">
-            <Button variant="outline" size="icon" className={btn} onClick={back} disabled={at === 0} aria-label="Previous move">
-              <ChevronLeft />
-            </Button>
-          </Tip>
-          <Tip label="Next move">
-            <Button variant="outline" size="icon" className={btn} onClick={forward} disabled={at >= sans.length} aria-label="Next move">
-              <ChevronRight />
-            </Button>
-          </Tip>
-        </div>
-      </PaperSheet>
+    <div
+      ref={box}
+      data-testid="repertoire-board"
+      className="@container relative aspect-square w-full overflow-hidden rounded-[1px]"
+      style={{ "--board-light": PLATE_LIGHT, "--board-dark": PLATE_DARK, ...PLATE_VARS, boxShadow: PLATE_FRAME } as React.CSSProperties}
+      role="img"
+      aria-label={`Chess board. ${describePosition(visible, turn)}`}
+    >
+      <PlateDefs />
+      <Chessboard
+        options={{
+          pieces: PLATE_PIECES,
+          id: "repertoire-board",
+          position: fen,
+          boardOrientation: side,
+          showNotation: false,
+          allowDrawingArrows: false,
+          animationDurationInMs: reduceMotion || seenFen.snap ? 0 : 160,
+          squareStyles,
+          lightSquareStyle: { backgroundColor: PLATE_LIGHT },
+          darkSquareStyle: { backgroundColor: PLATE_DARK },
+          dropSquareStyle: { boxShadow: "inset 0 0 0 3px rgba(255,252,238,0.75)" },
+          draggingPieceStyle: PLATE_DRAGGING_STYLE,
+          onPieceDrop: ({ sourceSquare, targetSquare }) => (targetSquare ? tryMove(sourceSquare, targetSquare) : false),
+          onSquareClick: ({ square }) => {
+            if (selected && selected !== square && tryMove(selected, square)) return;
+            try {
+              const chess = new Chess(fen);
+              const piece = chess.get(square as never);
+              setSelected(piece && piece.color === chess.turn() && selected !== square ? square : null);
+            } catch {
+              setSelected(null);
+            }
+          },
+        }}
+      />
+      <BoardOverlay orientation={side} arrows={arrows} userArrows={userArrows} marks={{ targets: legalTargets }} />
     </div>
   );
 }

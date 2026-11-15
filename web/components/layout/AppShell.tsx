@@ -28,14 +28,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
  * Round 3: the board sits on a mat (12px) under the torn header edge (24px top padding), so the
  * chrome is 11.625rem, sized so the board sheet ends level with the explorer sheet.
  */
-const BOARD_COLUMN =
+export const BOARD_COLUMN =
   "[--board-size:min(calc(100vw-1.5rem),54dvh)] lg:[--board-size:min(clamp(22rem,calc((min(100vw,1600px)-5.5rem)*0.64-1rem),64rem),calc(100dvh-8.125rem))]";
 
 /**
  * Placeholder with the same slots as the explorer, so the first paint doesn't jump: the desk, a mat for the board
  * and a sheet for the explorer, each with pencilled ruled lines where the content will be written.
  */
-function LoadingShell() {
+export function LoadingShell() {
   return (
     <div className={`mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 lg:grid-cols-[auto_minmax(0,1fr)] ${BOARD_COLUMN}`} aria-busy="true">
       <div className="px-3 pt-4 pb-2 sm:px-4 lg:pt-[18px] lg:pr-4 lg:pb-3">
