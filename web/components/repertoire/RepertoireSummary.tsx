@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { Color } from "@/lib/engine/types";
 import { useExplorerStore } from "@/lib/store";
 import { useRepertoirePage } from "@/lib/repertoire/page-store";
-import { MAX_MOVE_CHOICES, STATUS_LABEL, type PointStatus } from "@/lib/repertoire/types";
+import { MAX_MOVE_CHOICES, PERIOD_CHOICES, STATUS_LABEL, type PointStatus } from "@/lib/repertoire/types";
 import { STATUS_ORDER, statusOf } from "@/lib/repertoire/verdict";
 import { PencilUnderline } from "@/components/explorer/ink";
 import { CountedOption } from "@/components/field";
@@ -60,6 +60,8 @@ export function RepertoireSummary() {
   const setTimeControl = useRepertoirePage((s) => s.setTimeControl);
   const maxMove = useRepertoirePage((s) => s.maxMove);
   const setMaxMove = useRepertoirePage((s) => s.setMaxMove);
+  const periodDays = useRepertoirePage((s) => s.periodDays);
+  const setPeriodDays = useRepertoirePage((s) => s.setPeriodDays);
   const shown = stale ? null : report;
 
   const tally = useMemo(() => {
@@ -113,6 +115,21 @@ export function RepertoireSummary() {
         </div>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <h2 className="label-caps text-[11px] text-pencil" id="period-label">
+            Period
+          </h2>
+          <Select value={periodDays === null ? "all" : String(periodDays)} onValueChange={(v) => setPeriodDays(v === "all" ? null : Number(v))}>
+            <SelectTrigger aria-labelledby="period-label" className="h-8 w-auto min-w-40 max-sm:h-10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PERIOD_CHOICES.map((c) => (
+                <SelectItem key={c.label} value={c.days === null ? "all" : String(c.days)}>
+                  {c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <h2 className="label-caps text-[11px] text-pencil" id="depth-label">
             Depth
           </h2>

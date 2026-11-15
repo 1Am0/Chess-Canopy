@@ -53,6 +53,7 @@ export function RepertoireDataProvider({ children }: { children: React.ReactNode
   const side = useExplorerStore((s) => s.filters.color ?? "white");
   const timeControl = useRepertoirePage((s) => s.timeControl);
   const maxMove = useRepertoirePage((s) => s.maxMove);
+  const periodDays = useRepertoirePage((s) => s.periodDays);
 
   const [version, setVersion] = useState(0);
   const [result, setResult] = useState<{ key: string; report: RepertoireReport } | null>(null);
@@ -64,7 +65,7 @@ export function RepertoireDataProvider({ children }: { children: React.ReactNode
   const entriesReq = useRef(0);
 
   const selection = useMemo(() => effectiveSelection(selected, players), [selected, players]);
-  const key = `${JSON.stringify(selection)}|${side}|${timeControl}|${maxMove}`;
+  const key = `${JSON.stringify(selection)}|${side}|${timeControl}|${maxMove}|${periodDays}`;
 
   useEffect(
     () =>
@@ -81,7 +82,7 @@ export function RepertoireDataProvider({ children }: { children: React.ReactNode
     const id = ++reportReq.current;
     setLoading(true);
     getExplorer()
-      .repertoireReport(selection, { side, timeControl, maxMove })
+      .repertoireReport(selection, { side, timeControl, maxMove, periodDays })
       .then((report) => {
         if (id !== reportReq.current) return;
         setResult({ key, report });
@@ -95,7 +96,7 @@ export function RepertoireDataProvider({ children }: { children: React.ReactNode
         setError({ key, text: message(e) });
         toast.error(`Could not build the repertoire: ${message(e)}`);
       });
-    // `key` stands for selection, side, timeControl and maxMove.
+    // `key` stands for selection, side, timeControl, maxMove and periodDays.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, players.length, key, version]);
 

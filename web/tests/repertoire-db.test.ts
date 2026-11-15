@@ -145,6 +145,21 @@ describe("ExplorerService repertoire", () => {
     expect(rapid.points[0].main).toBe("d4");
   });
 
+  it("only counts games inside the period, including for the time-control counts", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(Date.parse("2024-02-15T12:00:00Z"));
+    await seed();
+    const svc = new ExplorerService();
+    // 20 days back from 2024-02-15 = from 2024-01-26: the January blitz games drop out, so rapid becomes the default.
+    const r = await svc.repertoireReport(["json:hero"], { side: "white", timeControl: "auto", maxMove: 12, periodDays: 20 });
+    expect(r.periodDays).toBe(20);
+    expect(r.timeControl).toBe("rapid");
+    expect(r.timeControls).toEqual([{ timeControl: "rapid", games: 3 }]);
+    expect(r.games).toBe(3);
+    const all = await svc.repertoireReport(["json:hero"], { side: "white", timeControl: "auto", maxMove: 12, periodDays: null });
+    expect(all.periodDays).toBeNull();
+    expect(all.timeControl).toBe("blitz");
+  });
+
   it("saves, validates and deletes repertoire moves, and the report follows", async () => {
     await seed();
     const svc = new ExplorerService();

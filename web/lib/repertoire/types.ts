@@ -18,6 +18,16 @@ import type { Color, GameSummary } from "../engine/types";
 export const DEFAULT_MAX_MOVE = 12;
 /** Choices offered by the page's depth picker. */
 export const MAX_MOVE_CHOICES = [8, 10, 12, 15, 20] as const;
+/** Default time window: only games from the last year count. */
+export const DEFAULT_PERIOD_DAYS = 365;
+/** Choices offered by the page's period picker (days back; null = all time). */
+export const PERIOD_CHOICES: readonly { days: number | null; label: string }[] = [
+  { days: 90, label: "Last 3 months" },
+  { days: 180, label: "Last 6 months" },
+  { days: 365, label: "Last year" },
+  { days: 730, label: "Last 2 years" },
+  { days: null, label: "All time" },
+];
 /** Positions you reached fewer times than this are left out of the report. */
 export const MIN_GAMES = 3;
 /** A position is "consistent" when your main move has at least this share of its current games. */
@@ -45,6 +55,8 @@ export interface RepertoireOptions {
   timeControl: string | null | "auto";
   /** Last full move number analysed (12 = your moves up to and including move 12). */
   maxMove: number;
+  /** Only games from the last N days count (null or omitted = all time). Applies to the time-control counts too. */
+  periodDays?: number | null;
 }
 
 export interface MoveUsage {
@@ -117,6 +129,8 @@ export interface RepertoireReport {
   /** The time control actually used (null = all), after resolving "auto". */
   timeControl: string | null;
   maxMove: number;
+  /** The time window used (null = all time). */
+  periodDays: number | null;
   /** Games of this side (and time control) that were analysed. */
   games: number;
   /** Positions with at least MIN_GAMES games, sorted by priority desc, then games desc, then moveNumber asc. */
@@ -126,7 +140,7 @@ export interface RepertoireReport {
    * the day the move was locked; newest first, at most MAX_DEVIATIONS.
    */
   deviations: Deviation[];
-  /** Games per time control on this side for the selected players (ignoring the time-control choice), most first. */
+  /** Games per time control on this side for the selected players within the period (ignoring the time-control choice), most first. */
   timeControls: { timeControl: string; games: number }[];
 }
 

@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createChangeAwareStorage } from "@/lib/store";
 import { legalSan, linePositions } from "@/lib/position-cache";
-import { DEFAULT_MAX_MOVE, MAX_MOVE_CHOICES } from "@/lib/repertoire/types";
+import { DEFAULT_MAX_MOVE, DEFAULT_PERIOD_DAYS, MAX_MOVE_CHOICES, PERIOD_CHOICES } from "@/lib/repertoire/types";
 
 /**
  * State of the Repertoire page. The players and the White / Black side are shared with the explorer (lib/store.ts);
@@ -17,6 +17,8 @@ export interface RepertoirePageState {
   timeControl: string | null | "auto";
   /** Last full move number analysed. */
   maxMove: number;
+  /** Only games from the last N days count (null = all time). */
+  periodDays: number | null;
 
   // session
   /** EPD of the selected report position, or null. */
@@ -28,6 +30,7 @@ export interface RepertoirePageState {
 
   setTimeControl: (tc: string | null | "auto") => void;
   setMaxMove: (n: number) => void;
+  setPeriodDays: (days: number | null) => void;
   /** Select a report position (or a saved line) and show its line on the board. */
   select: (epd: string | null, line: string[]) => void;
   /** Play a move at the cursor. Illegal input is ignored; the rest of the line is kept when it is the same move. */
@@ -43,12 +46,14 @@ export const useRepertoirePage = create<RepertoirePageState>()(
     (set) => ({
       timeControl: "auto",
       maxMove: DEFAULT_MAX_MOVE,
+      periodDays: DEFAULT_PERIOD_DAYS,
       selectedEpd: null,
       boardLine: [],
       cursor: 0,
 
       setTimeControl: (timeControl) => set({ timeControl }),
       setMaxMove: (maxMove) => set({ maxMove }),
+      setPeriodDays: (periodDays) => set({ periodDays }),
       select: (selectedEpd, line) => {
         const lp = linePositions(line);
         const boardLine = lp.sans.slice();
@@ -74,13 +79,15 @@ export const useRepertoirePage = create<RepertoirePageState>()(
       storage: createChangeAwareStorage(),
       version: 1,
       skipHydration: true,
-      partialize: (s) => ({ timeControl: s.timeControl, maxMove: s.maxMove }),
+      partialize: (s) => ({ timeControl: s.timeControl, maxMove: s.maxMove, periodDays: s.periodDays }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<RepertoirePageState>;
         const tc = p.timeControl;
         const maxMove = (MAX_MOVE_CHOICES as readonly number[]).includes(p.maxMove as number) ? (p.maxMove as number) : current.maxMove;
+        const periodDays = PERIOD_CHOICES.some((c) => c.days === p.periodDays) ? (p.periodDays as number | null) : current.periodDays;
         return {
           ...current,
+          periodDays,
           timeControl: tc === undefined || (tc !== null && typeof tc !== "string") ? current.timeControl : tc,
           maxMove,
         };

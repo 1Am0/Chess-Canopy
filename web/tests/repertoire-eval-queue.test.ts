@@ -22,7 +22,7 @@ function point(epd: string, fen: string, moves: MoveUsage[]): DecisionPoint {
   return { epd, fen, line: [], moveNumber: 1, games, moves, main: moves[0].san, consistency: moves[0].games / games, switch: null, priority: 0, locked: null };
 }
 function report(points: DecisionPoint[]): RepertoireReport {
-  return { side: "white", timeControl: null, maxMove: 12, games: 10, points, deviations: [], timeControls: [] };
+  return { side: "white", timeControl: null, maxMove: 12, periodDays: null, games: 10, points, deviations: [], timeControls: [] };
 }
 
 const P1 = point("p1", START, [usage(START, "e4", 10)]);

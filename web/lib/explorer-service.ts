@@ -499,10 +499,14 @@ export class ExplorerService implements ExplorerAPI {
     const ids = playerIds === "all" ? "all" : [...new Set(playerIds)].sort();
     const side = opts.side;
     const maxMove = Number.isFinite(opts.maxMove) ? Math.min(40, Math.max(1, Math.floor(opts.maxMove))) : DEFAULT_MAX_MOVE;
+    const periodDays = typeof opts.periodDays === "number" && Number.isFinite(opts.periodDays) && opts.periodDays > 0 ? Math.floor(opts.periodDays) : null;
+    const from = periodDays === null ? null : isoDaysAgo(periodDays);
     const gen = this.gen;
     const version = this.repertoireVersion;
 
-    const games = (await this.mergePlayers(ids)).filter((g) => g.color === side && classifyResult(g.result ?? "*") !== null);
+    const games = (await this.mergePlayers(ids)).filter(
+      (g) => g.color === side && classifyResult(g.result ?? "*") !== null && (from === null || g.date >= from),
+    );
     const perTc = new Map<string, number>();
     for (const g of games) if (g.time_control) perTc.set(g.time_control, (perTc.get(g.time_control) ?? 0) + 1);
     const timeControls = [...perTc]
@@ -510,13 +514,13 @@ export class ExplorerService implements ExplorerAPI {
       .sort((a, b) => b.games - a.games || (a.timeControl < b.timeControl ? -1 : a.timeControl > b.timeControl ? 1 : 0));
     const timeControl = opts.timeControl === "auto" ? (timeControls[0]?.timeControl ?? null) : (opts.timeControl ?? null);
 
-    const key = JSON.stringify([ids === "all" ? "all" : ids.join(","), side, timeControl, maxMove, version]);
+    const key = JSON.stringify([ids === "all" ? "all" : ids.join(","), side, timeControl, maxMove, from, version]);
     if (this.report?.key === key) return this.report.report;
 
     const used = timeControl === null ? games : games.filter((g) => g.time_control === timeControl);
     const locked = await dbm.listRepertoire(side);
     const { points, deviations } = analyzeRepertoire(used, { side, maxMove, locked });
-    const report: RepertoireReport = { side, timeControl, maxMove, games: used.length, points, deviations, timeControls };
+    const report: RepertoireReport = { side, timeControl, maxMove, periodDays, games: used.length, points, deviations, timeControls };
     // not cached when the data or the repertoire changed meanwhile
     if (gen === this.gen && version === this.repertoireVersion) this.report = { key, report };
     return report;
