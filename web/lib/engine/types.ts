@@ -3,6 +3,8 @@
  * (chess_explorer/import_games.py parse_game, storage.py schema v1).
  */
 
+import type { NewRepertoireEntry, RepertoireEntry, RepertoireOptions, RepertoireReport } from "../repertoire/types";
+
 export type Source = "chess.com" | "lichess" | "pgn" | "json";
 
 /** Result from the PLAYER's perspective: "1-0" = player won, "0-1" = player lost. */
@@ -229,4 +231,17 @@ export interface ExplorerAPI {
   importGames(req: ImportRequest, onProgress: (p: ImportProgress) => void): Promise<ImportOutcome>;
   syncPlayer(id: string, onProgress: (p: ImportProgress) => void): Promise<ImportOutcome>;
   cancelImport(): Promise<void>;
+
+  // ---- Repertoire page (contract: lib/repertoire/types.ts) ----
+  /**
+   * Repertoire analysis of the given players' games on `opts.side`. Independent of setSelection: it neither reads nor
+   * changes the explorer's selection or filters.
+   */
+  repertoireReport(playerIds: string[] | "all", opts: RepertoireOptions): Promise<RepertoireReport>;
+  /** Saved repertoire moves of one side. */
+  listRepertoire(side: Color): Promise<RepertoireEntry[]>;
+  /** Lock in (or replace) the repertoire move of a position; returns the stored entry. */
+  saveRepertoireMove(entry: NewRepertoireEntry): Promise<RepertoireEntry>;
+  /** Remove the repertoire move of a position (no-op when there is none). */
+  deleteRepertoireMove(side: Color, epd: string): Promise<void>;
 }
